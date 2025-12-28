@@ -1,31 +1,12 @@
 {
-  "version": 2,
-  "name": "jugend-forscht",
-  "builds": [
+  "rewrites": [
     {
-      "src": "Visualisierungen+Websiten/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/Visualisierungen+Websiten/$1"
+      "source": "/",
+      "destination": "/Visualisierungen+Websiten/DatenVisualisierung.html"
     },
     {
-      "src": "/",
-      "dest": "/Visualisierungen+Websiten/DatenVisualisierung.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "source": "/:path*",
+      "destination": "/Visualisierungen+Websiten/:path*"
     }
   ]
 }
