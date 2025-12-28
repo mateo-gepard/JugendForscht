@@ -43,6 +43,7 @@
             text-align: center;
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
+            position: relative;
         }
 
         h1 {
@@ -55,6 +56,42 @@
         .subtitle {
             color: var(--text-muted);
             font-size: 0.75rem;
+        }
+
+        /* Navigation Toggle */
+        .nav-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nav-btn.active {
+            background: var(--vr-color);
+            color: white;
         }
 
         .stats {
@@ -127,6 +164,570 @@
             position: relative;
         }
 
+        /* Dashboard views */
+        .dashboard-view {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .dashboard-view.active {
+            display: flex;
+        }
+
+        /* Qualitative Dashboard Styles - 8 Questions Grid */
+        .qual-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .qual-main-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .qual-q-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .qual-q-card:hover {
+            border-color: var(--vr-color);
+        }
+
+        .qual-q-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .qual-q-number {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            background: linear-gradient(135deg, var(--vr-color), var(--non-vr-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .qual-q-title-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .qual-q-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .qual-q-question {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .qual-q-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .qual-q-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .qual-q-stat-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .qual-q-stat-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .qual-q-stat-fill.vr {
+            background: var(--vr-color);
+        }
+
+        .qual-q-stat-fill.non-vr {
+            background: var(--non-vr-color);
+        }
+
+        .qual-q-stat-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .qual-q-stat-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .qual-q-stat-value {
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .qual-q-stat-value.vr {
+            color: var(--vr-color);
+        }
+
+        .qual-q-stat-value.non-vr {
+            color: var(--non-vr-color);
+        }
+
+        .qual-q-quotes {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+            min-height: 0;
+            padding-right: 4px;
+        }
+
+        .qual-quote {
+            background: rgba(0,0,0,0.25);
+            border-radius: 4px;
+            padding: 6px 8px;
+            border-left: 3px solid var(--vr-color);
+            flex-shrink: 0;
+        }
+
+        .qual-quote.non-vr {
+            border-left-color: var(--non-vr-color);
+        }
+
+        .qual-quote-text {
+            font-size: 0.55rem;
+            color: var(--text);
+            font-style: italic;
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+
+        .qual-quote-meta {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.5rem;
+        }
+
+        .qual-quote-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .qual-quote-badge {
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-size: 0.45rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .qual-quote-badge.vr {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--vr-color);
+        }
+
+        .qual-quote-badge.non-vr {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--non-vr-color);
+        }
+
+        .qual-quote-score {
+            margin-left: auto;
+            color: var(--text-muted);
+        }
+
+        .qual-quote.vr .qual-quote-score {
+            color: var(--vr-color);
+        }
+
+        .qual-quote.non-vr .qual-quote-score {
+            color: var(--non-vr-color);
+        }
+
+        /* Legend */
+        .qual-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            padding: 8px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .qual-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .qual-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .qual-legend-dot.vr {
+            background: var(--vr-color);
+        }
+
+        .qual-legend-dot.non-vr {
+            background: var(--non-vr-color);
+        }
+
+        /* Scrollbar styling */
+        .qual-q-quotes::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .qual-q-quotes::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 2px;
+        }
+
+        .qual-q-quotes::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .qual-q-quotes::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Triangulation Dashboard Styles */
+        .tri-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 12px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .tri-header {
+            grid-column: span 2;
+            display: flex;
+            gap: 12px;
+        }
+
+        .tri-insight {
+            flex: 1;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tri-insight-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .tri-insight-icon.finding {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .tri-insight-icon.paradox {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .tri-insight-icon.vr-effect {
+            background: linear-gradient(135deg, var(--vr-color), #2563eb);
+        }
+
+        .tri-insight-content {
+            flex: 1;
+        }
+
+        .tri-insight-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .tri-insight-desc {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .tri-panel {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tri-panel-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .tri-panel-content {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .tri-profiles {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            height: 100%;
+            padding-right: 4px;
+        }
+
+        .tri-profile {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 10px 12px;
+            border-left: 3px solid var(--vr-color);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+
+        .tri-profile.non-vr {
+            border-left-color: var(--non-vr-color);
+        }
+
+        .tri-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tri-profile-name {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .tri-profile-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tri-profile-badge.vr {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--vr-color);
+        }
+
+        .tri-profile-badge.non-vr {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--non-vr-color);
+        }
+
+        .tri-profile-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tri-profile-score-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .tri-profile-score-value.vr {
+            color: var(--vr-color);
+        }
+
+        .tri-profile-score-value.non-vr {
+            color: var(--non-vr-color);
+        }
+
+        .tri-profile-score-label {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .tri-profile-details {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid var(--border);
+        }
+
+        .tri-profile-detail {
+            text-align: center;
+        }
+
+        .tri-profile-detail-value {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .tri-profile-detail-label {
+            font-size: 0.45rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .tri-profile-quote {
+            grid-column: span 2;
+            font-size: 0.55rem;
+            font-style: italic;
+            color: var(--text-muted);
+            line-height: 1.3;
+            margin-top: 4px;
+        }
+
+        .tri-chart {
+            height: 100%;
+        }
+
+        .tri-case {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+
+        .tri-case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .tri-case-name {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .tri-case-tag {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tri-case-tag.paradox {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .tri-case-tag.expected {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .tri-case-tag.vr-boost {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--vr-color);
+        }
+
+        .tri-case-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .tri-case-quant, .tri-case-qual {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .tri-case-quant strong, .tri-case-qual strong {
+            color: var(--text);
+        }
+
+        .tri-profiles::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tri-profiles::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 2px;
+        }
+
+        .tri-profiles::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
         @media (max-width: 1400px) {
             .charts {
                 grid-template-columns: repeat(2, 1fr);
@@ -135,43 +736,89 @@
             .chart.span-2 {
                 grid-column: span 2;
             }
+            .qual-main-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+            }
+            .tri-container {
+                grid-template-columns: 1fr;
+            }
+            .tri-header {
+                grid-column: span 1;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .qual-main-grid {
+                grid-template-columns: 1fr;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Exam Results Analysis</h1>
+            <h1 id="dashboardTitle">Quantitative Analyse</h1>
             <p class="subtitle">VR vs Non-VR Learning Groups</p>
+            <div class="nav-toggle">
+                <button class="nav-btn active" onclick="showDashboard('quantitative')">Quantitativ</button>
+                <button class="nav-btn" onclick="showDashboard('qualitative')">Qualitativ</button>
+                <button class="nav-btn" onclick="showDashboard('triangulation')">Triangulation</button>
+            </div>
         </header>
 
-        <div class="stats" id="stats"></div>
+        <!-- Quantitative Dashboard -->
+        <div id="quantitative-view" class="dashboard-view active">
+            <div class="stats" id="stats"></div>
 
-        <div class="charts">
-            <div class="chart">
-                <h2 class="chart-title">Gesamtpunkte</h2>
-                <div class="chart-content" id="violinPlot"></div>
-            </div>
+            <div class="charts">
+                <div class="chart">
+                    <h2 class="chart-title">Gesamtpunkte</h2>
+                    <div class="chart-content" id="violinPlot"></div>
+                </div>
 
-            <div class="chart">
-                <h2 class="chart-title">Schwierigkeit</h2>
-                <div class="chart-content" id="difficultyChart"></div>
-            </div>
+                <div class="chart">
+                    <h2 class="chart-title">Schwierigkeit</h2>
+                    <div class="chart-content" id="difficultyChart"></div>
+                </div>
 
-            <div class="chart">
-                <h2 class="chart-title">Kompetenzen</h2>
-                <div class="chart-content" id="competencyChart"></div>
-            </div>
+                <div class="chart">
+                    <h2 class="chart-title">Kompetenzen</h2>
+                    <div class="chart-content" id="competencyChart"></div>
+                </div>
 
-            <div class="chart span-2">
-                <h2 class="chart-title">Leistung pro Aufgabe</h2>
-                <div class="chart-content" id="taskBarChart"></div>
-            </div>
+                <div class="chart span-2">
+                    <h2 class="chart-title">Leistung pro Aufgabe</h2>
+                    <div class="chart-content" id="taskBarChart"></div>
+                </div>
 
-            <div class="chart">
-                <h2 class="chart-title">Heatmap</h2>
-                <div class="chart-content" id="heatmap"></div>
+                <div class="chart">
+                    <h2 class="chart-title">Heatmap</h2>
+                    <div class="chart-content" id="heatmap"></div>
+                </div>
             </div>
+        </div>
+
+        <!-- Qualitative Dashboard -->
+        <div id="qualitative-view" class="dashboard-view">
+            <div class="qual-legend">
+                <div class="qual-legend-item">
+                    <div class="qual-legend-dot vr"></div>
+                    <span>VR Gruppe (n=5 Interviews)</span>
+                </div>
+                <div class="qual-legend-item">
+                    <div class="qual-legend-dot non-vr"></div>
+                    <span>Non-VR Gruppe (n=7 Interviews)</span>
+                </div>
+            </div>
+            <div class="qual-container" id="qualContainer"></div>
+        </div>
+
+        <!-- Triangulation Dashboard -->
+        <div id="triangulation-view" class="dashboard-view">
+            <div class="tri-container" id="triContainer"></div>
         </div>
     </div>
 
@@ -490,6 +1137,650 @@ NV_15,Non-VR,0,0,0,0,0.5,1,1,1,0,0,0`;
             yaxis: { gridcolor: '#2d3748', tickfont: { size: 6 }, dtick: 1 },
             autosize: true
         }, config);
+
+        // ============================================
+        // QUALITATIVE DASHBOARD - Interview Analysis
+        // ============================================
+
+        // 8 Interview Questions with all 12 participants
+        // Score: 1 = sehr positiv/stark, 0.5 = mittel/neutral, 0 = negativ/schwach
+        
+        const interviewQuestions = [
+            {
+                id: 'experience',
+                title: 'Lernerfahrung vs. Unterricht',
+                question: 'Wie ähnlich/verschieden war die Lernerfahrung zum regulären Unterricht?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 1, quote: '„Sehr verschieden. Der Anfang war ähnlicher zum normalen Unterricht, aber dann der VR-Teil war was ganz Neues."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 1, quote: '„War sehr verschieden. Hat sich komplett anders angefühlt. Gute Abwechslung."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 1, quote: '„Schon ähnlich, nicht ganz besser. Aber die 3D-Modelle mit Hintergrund, Vordergrund fand ich besser."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 1, quote: '„Anders, weil du konntest alles selbst sehen, anfassen und drehen. Es war schon sehr anders als normalerweise."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 1, quote: '„Sehr unterschiedlich. Durch die VR-Brille war es viel anschaulicher als der Unterricht auf Papier."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 0.5, quote: '„Eigentlich ganz gleich, aber es ist halt so ein bisschen offener, nicht so in diesem Unterricht."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 1, quote: '„Eigentlich schon besser, weil ihr doch Schüler seid."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0.5, quote: '„Schon ähnlich, ja."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0.5, quote: '„Es war eigentlich ganz gut."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0.5, quote: '„Ähnlich zum Unterricht, aber kompakter."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Ein bisschen anders, aber okay."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Deutlich schneller und nicht so ausführlich."' }
+                ]
+            },
+            {
+                id: 'difficulty',
+                title: 'Themenschwierigkeit',
+                question: 'Wie schwer fandest du das Thema im Vergleich zu anderen Chemie-Themen?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 0.5, quote: '„Schon eher schwerer, aber dafür habe ich es relativ gut verstanden."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 0.5, quote: '„Im Vergleich zu anderen Chemie-Themen fand ich es schon schwerer, aber wurde trotzdem gut erklärt."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 0.5, quote: '„Schon ein Fehler. Wenn man es richtig versteht, dann ist es einfacher, aber sonst eigentlich schon schwerer."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 0.5, quote: '„Es ist schon ein schweres Thema, aber es war sehr anschaulich mit der VR-Brille."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 0.5, quote: '„Von der Schwerheit ziemlich ähnlich wie andere Themen. Vielleicht noch ein bisschen länger hätte ich gebraucht."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 0.5, quote: '„Ähnlich eigentlich. Vielleicht ein bisschen schwerer, aber eher ähnlich."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 0.5, quote: '„Eigentlich ziemlich gleich schwer wie die anderen, weil es war halt so relativ übersichtlich."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0.5, quote: '„Der Anfang war einfach, das Ende fand ich ein bisschen komplizierter."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0.5, quote: '„Einfacher als manch andere, aber auch nicht das Leichteste."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0, quote: '„Vier Jahre Stoff in einer Minute."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Schon schwierig, aber machbar."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0, quote: '„Den ersten Teil gut verstanden, Keilstrich kompliziert."' }
+                ]
+            },
+            {
+                id: 'understanding',
+                title: 'Tiefenverständnis',
+                question: 'Würdest du sagen, du hast ein tiefgründiges Verständnis für das Thema erlangt?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 1, quote: '„Ja, auf jeden Fall. Vor allem für die Zeit."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 0.5, quote: '„Wurde trotzdem gut erklärt, habe ich auch gut verstanden."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 0.5, quote: '„Fast. Also noch nicht ganz, aber ich habe es halt schon verstanden."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 0, quote: '„Nee, wahrscheinlich noch nicht wirklich. Dafür müsste ich mir das noch länger anschauen."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 1, quote: '„Ich hätte jetzt ein anschaulicheres und im Alltag nutzbares Verständnis bekommen."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 0, quote: '„Nicht so richtig."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 1, quote: '„Ich glaube schon, dass ich naturwissenschaftliche Sachen besser machen kann."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0.5, quote: '„Das Wichtigste verstanden, aber nicht alles."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0, quote: '„Nicht wirklich."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0.5, quote: '„Das Wichtigste verstanden, aber nicht die genauen alle."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Teilweise verstanden."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Den ersten Teil gut verstanden, Keilstrich kompliziert."' }
+                ]
+            },
+            {
+                id: 'testRep',
+                title: 'Test-Repräsentation',
+                question: 'Glaubst du, der Test repräsentiert deine Leistungen gut?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 1, quote: '„Definitiv ja."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 0, quote: '„Ich glaube, ich hätte es deutlich besser machen können."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 0, quote: '„Ich hätte an einem anderen Tag besser performt. Absolute Stille fehlte."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 0.5, quote: '„Mein Können für das Thema schon repräsentiert, aber nicht an sich an Chemie."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 0.5, quote: '„Ich hatte ein bisschen zu wenig Zeit. Für die Zeit war es relativ okay."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 1, quote: '„Also der war schon gut."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 0.5, quote: '„Wegen diesem zweiten Thema war ich nicht so gut."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 1, quote: '„Repräsentiert meine Leistungen gut."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 1, quote: '„Würde sagen sogar besser als ich eigentlich wäre, durch diese Ankreuzaufgaben."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0, quote: '„Test war sehr schwer."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„War okay."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0, quote: '„Man sollte mehr auf die Keilstrichformel eingehen."' }
+                ]
+            },
+            {
+                id: 'selfAssess',
+                title: 'Selbsteinschätzung Chemie',
+                question: 'Wie schätzt du dich in Chemie generell ein?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 0, quote: '„Tatsächlich gar nicht. Noten sehr schlecht. Aber jetzt habe ich es verstanden."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 0.5, quote: '„Eher so ein mittleres. Also eigentlich ganz okay, jetzt nicht super, aber auch nicht scheiße."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 0.5, quote: '„Ich habe schon Interesse. Zwei, drei Jahre. Ich finde Chemie super, aber schwieriger."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 0, quote: '„Also nicht so gut."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 1, quote: '„In Chemie schätze ich mich relativ gut ein. Wenn ich es im Nachhinein lerne, lief es relativ gut."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 0, quote: '„Eher schwächer."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 1, quote: '„Schon eher einer meiner besseren Fächer. Sehr interessant zu verstehen."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0.5, quote: '„Noten sind immer unterschiedlich. Im Unterricht interessiert mich das nicht so sehr."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0, quote: '„Interesse da, aber ich bin sehr, sehr, sehr schlecht."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0.5, quote: '„Durchschnittlich."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0, quote: '„Eher schwach in Chemie."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0, quote: '„Nicht so stark in Chemie."' }
+                ]
+            },
+            {
+                id: 'fun',
+                title: 'Lernspaß',
+                question: 'Wie viel Spaß hattest du am Lernen?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 1, quote: '„Sehr viel Spaß."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 1, quote: '„Auf jeden Fall mehr Spaß, weil mit der VR-Brille ist immer mal was Neues."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 1, quote: '„Viel Spaß, also viel mehr Spaß als im Unterricht."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 1, quote: '„Das Lernen hat schon Spaß gemacht, es war etwas sehr Neues und spannender."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 1, quote: '„Auf jeden Fall spaßiger als normaler Unterricht."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 0, quote: '„Nicht so viel wie normalerweise. Eher weniger."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 1, quote: '„Ich hatte schon Spaß. Ich fand es spannend, das Thema klar zu bekommen."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0.5, quote: '„Ein bisschen."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0.5, quote: '„Ich hatte kein besonderes Missfallen, es war eigentlich ganz gut."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0.5, quote: '„Okay, ging so."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 1, quote: '„Mehr Spaß, spannender."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Bisschen mehr schon."' }
+                ]
+            },
+            {
+                id: 'groupWish',
+                title: 'Gruppenwunsch',
+                question: 'Hättest du dir gewünscht, in der anderen Gruppe zu sein?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 1, quote: '„Nee."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 1, quote: '„Nee."' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 1, quote: '„Nein, weil ich so besser veranschauliche."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 1, quote: '„Nee, das ist auch so spannend, das ist was Neues."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 0.5, quote: '„Meiner Meinung nach sind die Ergebnisse der anderen Gruppe wahrscheinlich besser. Aber okay, dann doch nicht."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 0, quote: '„Ja." (würde VR wählen)' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 1, quote: '„Nee, ich fand das eigentlich ganz cool mit der Tafel."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0, quote: '„Ja." (würde VR wählen)' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0, quote: '„Wenn ich nochmal die Wahl hätte, würde ich wahrscheinlich schon lieber VR nehmen."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0.5, quote: '„Vielleicht."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0, quote: '„Ja, VR wäre interessant."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0, quote: '„Ja, hätte VR probiert."' }
+                ]
+            },
+            {
+                id: 'feedback',
+                title: 'Generelles Feedback',
+                question: 'Was fandest du gut/schlecht? Generelles Feedback?',
+                responses: [
+                    { name: 'Marlon', group: 'VR', score: 14.0, rating: 1, quote: '„Wirklich sehr guter Unterricht, sehr gut erklärt. Besser als viele Lehrer. VR-Brille war auch sehr cool."' },
+                    { name: 'Floyd', group: 'VR', score: 14.0, rating: 0.5, quote: '„Nö." (kein besonderes Feedback)' },
+                    { name: 'Konstantin', group: 'VR', score: 12.5, rating: 0.5, quote: '„Gut, dass man das mit 3D-Dingen machen kann. Was mir nicht gefallen hat: man kann es nicht nachlesen."' },
+                    { name: 'Louis', group: 'VR', score: 17.0, rating: 0.5, quote: '„Das war gut, spannend, was Neues. Aber man hatte zu wenig Zeit, um das Thema wirklich zu verstehen."' },
+                    { name: 'Henri', group: 'VR', score: 17.5, rating: 0.5, quote: '„Sehr interessant. Ging relativ schnell. Wenn ich mir das länger hätte angucken können, wäre es besser."' },
+                    { name: 'Leni', group: 'Non-VR', score: 8.0, rating: 1, quote: '„Ihr habt es eigentlich ganz gut erklärt."' },
+                    { name: 'Quentin', group: 'Non-VR', score: 8.5, rating: 1, quote: '„Gut, dass ihr das selber geprüft habt. Gut mit den Folien und unterschiedlichen Bildern."' },
+                    { name: 'Tilly', group: 'Non-VR', score: 9.5, rating: 0.5, quote: '„Eigentlich echt gut erklärt. Bisschen schwierig für neue Sachen. Zeit war auch gewiss."' },
+                    { name: 'Alex', group: 'Non-VR', score: 9.0, rating: 0.5, quote: '„Vielleicht einfach bisschen länger erklären. Viele gute, verständliche Beispiele."' },
+                    { name: 'Sophia', group: 'Non-VR', score: 11.5, rating: 0.5, quote: '„Zu wenig Zeit für so viel Stoff."' },
+                    { name: 'Farah', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„War okay insgesamt."' },
+                    { name: 'Lucia', group: 'Non-VR', score: 7.0, rating: 0.5, quote: '„Mehr auf Keilstrich eingehen wäre gut."' }
+                ]
+            }
+        ];
+
+        // Calculate average rating per question per group
+        function calculateAvgRating(question, group) {
+            const responses = question.responses.filter(r => r.group === group);
+            const avg = responses.reduce((sum, r) => sum + r.rating, 0) / responses.length;
+            return Math.round(avg * 100);
+        }
+
+        const vrInterviews = interviewQuestions[0].responses.filter(r => r.group === 'VR');
+        const nonVrInterviews = interviewQuestions[0].responses.filter(r => r.group === 'Non-VR');
+
+        // Build qualitative dashboard with 8 questions layout - ALL 12 quotes per question
+        function buildQualitativeDashboard() {
+            const container = document.getElementById('qualContainer');
+            
+            let html = `
+                <div class="qual-main-grid">
+            `;
+
+            // Create 8 question cards (4x2 grid)
+            interviewQuestions.forEach((q, idx) => {
+                const vrAvg = calculateAvgRating(q, 'VR');
+                const nonVrAvg = calculateAvgRating(q, 'Non-VR');
+                
+                // Sort responses: VR first, then Non-VR
+                const vrResponses = q.responses.filter(r => r.group === 'VR');
+                const nonVrResponses = q.responses.filter(r => r.group === 'Non-VR');
+
+                // Build all quotes HTML
+                const allQuotesHtml = [...vrResponses, ...nonVrResponses].map(r => `
+                    <div class="qual-quote ${r.group === 'VR' ? 'vr' : 'non-vr'}">
+                        <div class="qual-quote-text">${r.quote}</div>
+                        <div class="qual-quote-meta">
+                            <span class="qual-quote-name">${r.name}</span>
+                            <span class="qual-quote-badge ${r.group === 'VR' ? 'vr' : 'non-vr'}">${r.group}</span>
+                            <span class="qual-quote-score">${r.score}/20</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                html += `
+                    <div class="qual-q-card">
+                        <div class="qual-q-header">
+                            <span class="qual-q-number">${idx + 1}</span>
+                            <div class="qual-q-title-wrap">
+                                <div class="qual-q-title">${q.title}</div>
+                                <div class="qual-q-question">${q.question}</div>
+                            </div>
+                        </div>
+                        <div class="qual-q-stats">
+                            <div class="qual-q-stat">
+                                <div class="qual-q-stat-bar">
+                                    <div class="qual-q-stat-fill vr" style="width: ${vrAvg}%"></div>
+                                </div>
+                                <div class="qual-q-stat-info">
+                                    <span class="qual-q-stat-label">VR (n=5)</span>
+                                    <span class="qual-q-stat-value vr">${vrAvg}%</span>
+                                </div>
+                            </div>
+                            <div class="qual-q-stat">
+                                <div class="qual-q-stat-bar">
+                                    <div class="qual-q-stat-fill non-vr" style="width: ${nonVrAvg}%"></div>
+                                </div>
+                                <div class="qual-q-stat-info">
+                                    <span class="qual-q-stat-label">Non-VR (n=7)</span>
+                                    <span class="qual-q-stat-value non-vr">${nonVrAvg}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="qual-q-quotes">
+                            ${allQuotesHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // Dashboard navigation
+        function showDashboard(view) {
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`${view}-view`).classList.add('active');
+
+            const title = document.getElementById('dashboardTitle');
+            if (view === 'quantitative') {
+                title.textContent = 'Quantitative Analyse';
+                // Resize quantitative charts
+                Plotly.Plots.resize('violinPlot');
+                Plotly.Plots.resize('difficultyChart');
+                Plotly.Plots.resize('competencyChart');
+                Plotly.Plots.resize('taskBarChart');
+                Plotly.Plots.resize('heatmap');
+            } else if (view === 'qualitative') {
+                title.textContent = 'Qualitative Analyse — Interviews (n=12)';
+                // Build qualitative dashboard
+                buildQualitativeDashboard();
+            } else if (view === 'triangulation') {
+                title.textContent = 'Triangulation — Mixed Methods';
+                // Build triangulation dashboard
+                buildTriangulationDashboard();
+            }
+        }
+
+        // Triangulation Dashboard - combines quantitative and qualitative data
+        function buildTriangulationDashboard() {
+            const container = document.getElementById('triContainer');
+            
+            // Get interviewed participants with their test scores AND Transfer scores (Task_5a, 5b, 6a, 6b)
+            // Transfer max = 2+2+3+2 = 9 points
+            const interviewedParticipants = [
+                { name: 'Marlon', fullName: 'Marlon Burg', group: 'VR', score: 11.0, transferScore: 6.0, funRating: 95, understandingRating: 90 },
+                { name: 'Floyd', fullName: 'Floyd', group: 'VR', score: 14.0, transferScore: 6.0, funRating: 92, understandingRating: 65 },
+                { name: 'Konstantin', fullName: 'Konstantin Romanie', group: 'VR', score: 12.5, transferScore: 3.0, funRating: 88, understandingRating: 55 },
+                { name: 'Louis', fullName: 'Louis Plettner', group: 'VR', score: 17.0, transferScore: 7.0, funRating: 85, understandingRating: 25 },
+                { name: 'Henri', fullName: 'Henri Olufemi', group: 'VR', score: 17.5, transferScore: 6.0, funRating: 90, understandingRating: 85 },
+                { name: 'Leni', fullName: 'Leni Koschinsky', group: 'Non-VR', score: 8.0, transferScore: 3.0, funRating: 25, understandingRating: 20 },
+                { name: 'Quentin', fullName: 'Quentin Lumbondl', group: 'Non-VR', score: 8.5, transferScore: 3.0, funRating: 80, understandingRating: 75 },
+                { name: 'Tilly', fullName: 'Tilly Marr', group: 'Non-VR', score: 9.5, transferScore: 2.0, funRating: 45, understandingRating: 55 },
+                { name: 'Alex', fullName: 'Alex Orthen', group: 'Non-VR', score: 9.0, transferScore: 3.0, funRating: 50, understandingRating: 15 },
+                { name: 'Sophia', fullName: 'Sophia Kessler', group: 'Non-VR', score: 11.5, transferScore: 2.0, funRating: 55, understandingRating: 60 },
+                { name: 'Farah', fullName: 'Farah Raad', group: 'Non-VR', score: 7.0, transferScore: 3.0, funRating: 75, understandingRating: 45 },
+                { name: 'Lucia', fullName: 'Lucia Naverth', group: 'Non-VR', score: 7.0, transferScore: 1.0, funRating: 40, understandingRating: 50 }
+            ];
+
+            // All 12 triangulation cases with detailed analysis
+            const triangulationCases = [
+                {
+                    name: 'Louis',
+                    group: 'VR',
+                    score: 17.0,
+                    transferScore: 7.0,
+                    tag: 'paradox',
+                    tagLabel: 'Paradox',
+                    quant: 'Zweitbester Score (17/20), Transfer: 7/9 (78%) — starke räumliche Leistung',
+                    qual: '„Noch nicht wirklich verstanden... müsste länger anschauen" — nur 25% Verständnis-Rating',
+                    insight: 'Hohe Performance ≠ wahrgenommenes Tiefenverständnis (Dunning-Kruger invers?)'
+                },
+                {
+                    name: 'Henri',
+                    group: 'VR',
+                    score: 17.5,
+                    transferScore: 6.0,
+                    tag: 'expected',
+                    tagLabel: 'Konsistent',
+                    quant: 'Bester Score (17.5/20), Transfer: 6/9 (67%) — stark in allen Bereichen',
+                    qual: '„Anschaulicheres und im Alltag nutzbares Verständnis bekommen" — 85% Verständnis',
+                    insight: 'Idealer VR-Lerneffekt: Hohe Leistung + hohe Selbstreflexion'
+                },
+                {
+                    name: 'Marlon',
+                    group: 'VR',
+                    score: 11.0,
+                    transferScore: 6.0,
+                    tag: 'vr-boost',
+                    tagLabel: 'VR-Effekt',
+                    quant: 'Mittlerer Score (11/20), aber Transfer: 6/9 (67%) — stark bei 3D-Aufgaben!',
+                    qual: '„Noten sehr schlecht. Aber jetzt habe ich es verstanden" — 90% Verständnis!',
+                    insight: 'VR kompensiert Schwächen: Starker Transfer trotz schwacher Grundlagen'
+                },
+                {
+                    name: 'Floyd',
+                    group: 'VR',
+                    score: 14.0,
+                    transferScore: 6.0,
+                    tag: 'expected',
+                    tagLabel: 'Konsistent',
+                    quant: 'Guter Score (14/20), Transfer: 6/9 (67%)',
+                    qual: '„Gut verstanden, wurde gut erklärt" — 65% Verständnis, 92% Spaß',
+                    insight: 'Solide Performance mit angemessener Selbsteinschätzung'
+                },
+                {
+                    name: 'Konstantin',
+                    group: 'VR',
+                    score: 12.5,
+                    transferScore: 3.0,
+                    tag: 'paradox',
+                    tagLabel: 'Paradox',
+                    quant: 'Mittlerer Score (12.5/20), aber schwacher Transfer: 3/9 (33%)',
+                    qual: '„Fast verstanden, noch nicht ganz" — 55% Verständnis',
+                    insight: 'Selbstwahrnehmung korrekt: Transfer-Schwäche spiegelt unvollständiges Verständnis'
+                },
+                {
+                    name: 'Sophia',
+                    group: 'Non-VR',
+                    score: 11.5,
+                    transferScore: 2.0,
+                    tag: 'paradox',
+                    tagLabel: 'Paradox',
+                    quant: 'Beste Non-VR (11.5/20), aber schwächster Transfer: 2/9 (22%)',
+                    qual: '„Vier Jahre Stoff in einer Minute" — 60% Verständnis trotz Transfer-Schwäche',
+                    insight: 'Ohne VR: Gute Grundlagen, aber 3D-Transfer scheitert'
+                },
+                {
+                    name: 'Quentin',
+                    group: 'Non-VR',
+                    score: 8.5,
+                    transferScore: 3.0,
+                    tag: 'paradox',
+                    tagLabel: 'Paradox',
+                    quant: 'Niedriger Score (8.5/20), Transfer: 3/9 (33%)',
+                    qual: '„Schon einer meiner besseren Fächer" — 75% Verständnis, 80% Spaß!',
+                    insight: 'Hohe Motivation ≠ hohe Leistung (Grundwissen limitiert Transfer)'
+                },
+                {
+                    name: 'Tilly',
+                    group: 'Non-VR',
+                    score: 9.5,
+                    transferScore: 2.0,
+                    tag: 'expected',
+                    tagLabel: 'Konsistent',
+                    quant: 'Niedriger Score (9.5/20), sehr schwacher Transfer: 2/9 (22%)',
+                    qual: '„Das Wichtigste verstanden, aber nicht alles" — 55% Verständnis',
+                    insight: 'Realistische Selbsteinschätzung: Erkennt eigene Grenzen'
+                },
+                {
+                    name: 'Alex',
+                    group: 'Non-VR',
+                    score: 9.0,
+                    transferScore: 3.0,
+                    tag: 'paradox',
+                    tagLabel: 'Paradox',
+                    quant: 'Niedriger Score (9/20), Transfer: 3/9 (33%)',
+                    qual: '„Nicht wirklich verstanden" + „Besser durch Ankreuzaufgaben" — 15% Verständnis',
+                    insight: 'Testformat-Kritik: MC-Fragen können wahres Wissen verschleiern'
+                },
+                {
+                    name: 'Leni',
+                    group: 'Non-VR',
+                    score: 8.0,
+                    transferScore: 3.0,
+                    tag: 'expected',
+                    tagLabel: 'Konsistent',
+                    quant: 'Schwacher Score (8/20), Transfer: 3/9 (33%)',
+                    qual: '„Nicht so richtig verstanden" — nur 20% Verständnis, 25% Spaß',
+                    insight: 'Konsistent schwach: Niedrige Leistung + niedrige Motivation + Selbstbewusstsein'
+                },
+                {
+                    name: 'Farah',
+                    group: 'Non-VR',
+                    score: 7.0,
+                    transferScore: 3.0,
+                    tag: 'paradox',
+                    tagLabel: 'Paradox',
+                    quant: 'Schwacher Score (7/20), Transfer: 3/9 (33%)',
+                    qual: '„Teilweise verstanden" — 45% Verständnis, aber 75% Spaß!',
+                    insight: 'Motiviert trotz Schwäche: Spaß am Lernen unabhängig vom Erfolg'
+                },
+                {
+                    name: 'Lucia',
+                    group: 'Non-VR',
+                    score: 7.0,
+                    transferScore: 1.0,
+                    tag: 'expected',
+                    tagLabel: 'Konsistent',
+                    quant: 'Schwächster Score (7/20), schwächster Transfer: 1/9 (11%)',
+                    qual: '„Keilstrich kompliziert... man sollte mehr darauf eingehen" — 50% Verständnis',
+                    insight: 'Ohne VR: Keilstrich-Darstellung bleibt abstrakt und schwer verständlich'
+                }
+            ];
+
+            // Calculate group averages for transfer
+            const vrTransferAvg = interviewedParticipants.filter(p => p.group === 'VR').reduce((s,p) => s + p.transferScore, 0) / 5;
+            const nonVrTransferAvg = interviewedParticipants.filter(p => p.group === 'Non-VR').reduce((s,p) => s + p.transferScore, 0) / 7;
+
+            let html = `
+                <div class="tri-header">
+                    <div class="tri-insight">
+                        <div class="tri-insight-icon finding">📊</div>
+                        <div class="tri-insight-content">
+                            <div class="tri-insight-title">Transfer-Aufgaben</div>
+                            <div class="tri-insight-desc">VR: Ø ${vrTransferAvg.toFixed(1)}/9 (${(vrTransferAvg/9*100).toFixed(0)}%) | Non-VR: Ø ${nonVrTransferAvg.toFixed(1)}/9 (${(nonVrTransferAvg/9*100).toFixed(0)}%) — VR zeigt deutlich stärkeren 3D-Transfer</div>
+                        </div>
+                    </div>
+                    <div class="tri-insight">
+                        <div class="tri-insight-icon paradox">🔍</div>
+                        <div class="tri-insight-content">
+                            <div class="tri-insight-title">Performance-Verständnis-Gap</div>
+                            <div class="tri-insight-desc">Louis: Transfer 78% aber nur 25% gefühltes Verständnis | Marlon: 67% Transfer trotz "schlechter Chemie-Schüler"</div>
+                        </div>
+                    </div>
+                    <div class="tri-insight">
+                        <div class="tri-insight-icon vr-effect">🎮</div>
+                        <div class="tri-insight-content">
+                            <div class="tri-insight-title">VR-Motivation</div>
+                            <div class="tri-insight-desc">VR-Spaß: Ø ${(interviewedParticipants.filter(p => p.group === 'VR').reduce((s,p) => s + p.funRating, 0) / 5).toFixed(0)}% | Non-VR: Ø ${(interviewedParticipants.filter(p => p.group === 'Non-VR').reduce((s,p) => s + p.funRating, 0) / 7).toFixed(0)}% — VR steigert Lernfreude signifikant</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tri-panel">
+                    <div class="tri-panel-title">📈 Lernspaß vs. Gesamtscore</div>
+                    <div class="tri-panel-content">
+                        <div class="tri-chart" id="triScatterChart"></div>
+                    </div>
+                </div>
+
+                <div class="tri-panel">
+                    <div class="tri-panel-title">🧠 Verständnis (Interview) vs. Transfer-Aufgaben (Test)</div>
+                    <div class="tri-panel-content">
+                        <div class="tri-chart" id="triTransferChart"></div>
+                    </div>
+                </div>
+
+                <div class="tri-panel" style="grid-column: 1 / -1;">
+                    <div class="tri-panel-title">🔗 Alle 12 Triangulations-Fälle — Quantitativ + Qualitativ</div>
+                    <div class="tri-panel-content">
+                        <div class="tri-profiles" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 12px;">
+                            ${triangulationCases.map(c => `
+                                <div class="tri-case">
+                                    <div class="tri-case-header">
+                                        <span class="tri-case-name">${c.name} (${c.group}) — ${c.score}/20 | Transfer: ${c.transferScore}/9</span>
+                                        <span class="tri-case-tag ${c.tag}">${c.tagLabel}</span>
+                                    </div>
+                                    <div class="tri-case-content">
+                                        <div class="tri-case-quant"><strong>Quantitativ:</strong> ${c.quant}</div>
+                                        <div class="tri-case-qual"><strong>Qualitativ:</strong> ${c.qual}</div>
+                                    </div>
+                                    <div class="tri-profile-quote" style="margin-top: 6px; color: #10b981;">→ ${c.insight}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            // Create charts
+            setTimeout(() => {
+                const vrParticipants = interviewedParticipants.filter(p => p.group === 'VR');
+                const nonVrParticipants = interviewedParticipants.filter(p => p.group === 'Non-VR');
+
+                // Chart 1: Score vs. Fun Rating
+                Plotly.newPlot('triScatterChart', [
+                    {
+                        x: vrParticipants.map(p => p.score),
+                        y: vrParticipants.map(p => p.funRating),
+                        mode: 'markers+text',
+                        type: 'scatter',
+                        name: 'VR',
+                        text: vrParticipants.map(p => p.name),
+                        textposition: 'top center',
+                        textfont: { size: 8, color: '#e2e8f0' },
+                        marker: {
+                            color: '#3b82f6',
+                            size: 14,
+                            line: { color: 'white', width: 1 }
+                        },
+                        hovertemplate: '<b>%{text}</b><br>Score: %{x}/20<br>Lernspaß: %{y}%<extra>VR</extra>'
+                    },
+                    {
+                        x: nonVrParticipants.map(p => p.score),
+                        y: nonVrParticipants.map(p => p.funRating),
+                        mode: 'markers+text',
+                        type: 'scatter',
+                        name: 'Non-VR',
+                        text: nonVrParticipants.map(p => p.name),
+                        textposition: 'top center',
+                        textfont: { size: 8, color: '#e2e8f0' },
+                        marker: {
+                            color: '#ec4899',
+                            size: 14,
+                            line: { color: 'white', width: 1 }
+                        },
+                        hovertemplate: '<b>%{text}</b><br>Score: %{x}/20<br>Lernspaß: %{y}%<extra>Non-VR</extra>'
+                    }
+                ], {
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: '#e2e8f0', size: 9 },
+                    margin: { l: 50, r: 20, t: 30, b: 50 },
+                    xaxis: {
+                        title: { text: 'Gesamtscore (Punkte)', font: { size: 10 } },
+                        gridcolor: '#2d3748',
+                        range: [5, 20],
+                        tickfont: { size: 9 }
+                    },
+                    yaxis: {
+                        title: { text: 'Lernspaß (%)', font: { size: 10 } },
+                        gridcolor: '#2d3748',
+                        range: [0, 105],
+                        tickfont: { size: 9 }
+                    },
+                    legend: {
+                        orientation: 'h',
+                        y: 1.12,
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: { size: 9 }
+                    },
+                    autosize: true,
+                    shapes: [
+                        { type: 'line', x0: 5, x1: 20, y0: 70, y1: 70, line: { color: '#475569', width: 1, dash: 'dot' } }
+                    ],
+                    annotations: [
+                        { x: 18, y: 98, text: 'VR: Hoher Spaß unabhängig vom Score', showarrow: false, font: { size: 8, color: '#3b82f6' } },
+                        { x: 8, y: 30, text: 'Non-VR: Große Streuung', showarrow: false, font: { size: 8, color: '#ec4899' } }
+                    ]
+                }, {responsive: true, displayModeBar: false});
+
+                // Chart 2: Understanding Rating vs. Transfer Score
+                Plotly.newPlot('triTransferChart', [
+                    {
+                        x: vrParticipants.map(p => p.understandingRating),
+                        y: vrParticipants.map(p => (p.transferScore / 9) * 100),
+                        mode: 'markers+text',
+                        type: 'scatter',
+                        name: 'VR',
+                        text: vrParticipants.map(p => p.name),
+                        textposition: 'top center',
+                        textfont: { size: 8, color: '#e2e8f0' },
+                        marker: {
+                            color: '#3b82f6',
+                            size: 14,
+                            symbol: 'diamond',
+                            line: { color: 'white', width: 1 }
+                        },
+                        hovertemplate: '<b>%{text}</b><br>Verständnis: %{x}%<br>Transfer: %{y:.0f}%<extra>VR</extra>'
+                    },
+                    {
+                        x: nonVrParticipants.map(p => p.understandingRating),
+                        y: nonVrParticipants.map(p => (p.transferScore / 9) * 100),
+                        mode: 'markers+text',
+                        type: 'scatter',
+                        name: 'Non-VR',
+                        text: nonVrParticipants.map(p => p.name),
+                        textposition: 'top center',
+                        textfont: { size: 8, color: '#e2e8f0' },
+                        marker: {
+                            color: '#ec4899',
+                            size: 14,
+                            symbol: 'diamond',
+                            line: { color: 'white', width: 1 }
+                        },
+                        hovertemplate: '<b>%{text}</b><br>Verständnis: %{x}%<br>Transfer: %{y:.0f}%<extra>Non-VR</extra>'
+                    }
+                ], {
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: '#e2e8f0', size: 9 },
+                    margin: { l: 50, r: 20, t: 30, b: 50 },
+                    xaxis: {
+                        title: { text: 'Wahrgenommenes Verständnis (Interview %)', font: { size: 10 } },
+                        gridcolor: '#2d3748',
+                        range: [0, 100],
+                        tickfont: { size: 9 }
+                    },
+                    yaxis: {
+                        title: { text: 'Transfer-Aufgaben (Test %)', font: { size: 10 } },
+                        gridcolor: '#2d3748',
+                        range: [0, 100],
+                        tickfont: { size: 9 }
+                    },
+                    legend: {
+                        orientation: 'h',
+                        y: 1.12,
+                        x: 0.5,
+                        xanchor: 'center',
+                        font: { size: 9 }
+                    },
+                    autosize: true,
+                    shapes: [
+                        { type: 'line', x0: 0, x1: 100, y0: 0, y1: 100, line: { color: '#475569', width: 1, dash: 'dot' } }
+                    ],
+                    annotations: [
+                        { x: 25, y: 78, text: 'Louis: ⬆️ Transfer,<br>⬇️ Verständnis', showarrow: true, arrowhead: 2, arrowcolor: '#f59e0b', font: { size: 8, color: '#f59e0b' }, ax: -40, ay: 20 },
+                        { x: 90, y: 67, text: 'Marlon: ⬆️ beides', showarrow: true, arrowhead: 2, arrowcolor: '#10b981', font: { size: 8, color: '#10b981' }, ax: 30, ay: -20 },
+                        { x: 60, y: 22, text: 'Sophia: ⬇️ Transfer<br>trotz Verständnis', showarrow: true, arrowhead: 2, arrowcolor: '#ef4444', font: { size: 8, color: '#ef4444' }, ax: 40, ay: 20 },
+                        { x: 85, y: 8, text: 'Diagonale = Perfekte<br>Übereinstimmung', showarrow: false, font: { size: 7, color: '#64748b' } }
+                    ]
+                }, {responsive: true, displayModeBar: false});
+            }, 100);
+        }
+
+        // Make showDashboard globally accessible
+        window.showDashboard = showDashboard;
     </script>
 </body>
 </html>
