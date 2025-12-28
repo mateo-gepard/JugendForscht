@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d7272087260ba146afaa30dcfd85f1d, type: 3}
+  m_Name: Step03_Molekuelgeometrie
+  m_EditorClassIdentifier: 
+  stepName: "Schritt 3 - Molek\xFClgeometrie"
+  description: "Verschiedene r\xE4umliche Strukturen: Linear, Gewinkelt, Trigonal-planar,
+    Trigonal-pyramidal, Tetraedrisch"
+  videoClip: {fileID: 32900000, guid: 3e318c679fc9947498a2e662f156a6c7, type: 3}
+  videoPosition: {x: 0, y: 0, z: 0}
+  videoScale: 0.5
+  events:
+  - triggerTime: 21
+    eventType: 0
+    targetObjectName: CO2Linear
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 23
+    eventType: 1
+    targetObjectName: CO2Linear
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 23
+    eventType: 0
+    targetObjectName: H2OGewinkelt
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 25
+    eventType: 1
+    targetObjectName: H2OGewinkelt
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 25
+    eventType: 0
+    targetObjectName: BF3TrigonalPlanar
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 27
+    eventType: 1
+    targetObjectName: BF3TrigonalPlanar
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 27
+    eventType: 0
+    targetObjectName: NH3TrigonalPyramidal
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 29
+    eventType: 1
+    targetObjectName: NH3TrigonalPyramidal
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 29
+    eventType: 0
+    targetObjectName: CH4Tetraedrisch
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  autoAdvance: 0
+  continueDelay: 0.5

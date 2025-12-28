@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molekül-Steuerung</title>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        h1 { 
+            color: #333; 
+            margin-bottom: 10px; 
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .status { 
+            color: #666; 
+            font-size: 14px; 
+        }
+        
+        .search-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-status {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .tutorial-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .tutorial-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .tutorial-nav {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        button:active { 
+            background: #5568d3; 
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn-success {
+            background: #22c55e;
+        }
+        
+        .btn-success:active {
+            background: #16a34a;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+        }
+        
+        .btn-danger:active {
+            background: #dc2626;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+        }
+        
+        .btn-warning:active {
+            background: #d97706;
+        }
+        
+        .molecules {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .mol-btn {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .mol-btn:active { 
+            transform: scale(0.95); 
+        }
+        
+        .connected { 
+            color: #22c55e; 
+        }
+        
+        .disconnected { 
+            color: #ef4444; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Molekül-Betrachter</h1>
+            <div class="status">
+                <span id="status" class="disconnected">● Verbinde...</span>
+            </div>
+        </div>
+        
+        <!-- Tutorial Section -->
+        <div class="tutorial-box">
+            <h2>📚 Tutorial</h2>
+            <div id="tutorialStatus" class="tutorial-status">
+                Tutorial nicht gestartet
+            </div>
+            <div class="tutorial-controls">
+                <button id="btnStart" class="btn-success" onclick="tutorialStart()">▶️ Starten</button>
+                <button id="btnClose" class="btn-danger" onclick="tutorialClose()" style="display:none;">⏹️ Beenden</button>
+            </div>
+            <div class="tutorial-nav">
+                <button id="btnPrev" class="btn-warning" onclick="tutorialPrev()" style="display:none;">⬅️ Zurück</button>
+                <button id="btnNext" class="btn-success" onclick="tutorialNext()" style="display:none;">Weiter ➡️</button>
+            </div>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Molekülname eingeben...">
+            <button onclick="searchMolecule()">Molekül laden</button>
+        </div>
+        
+        <div class="molecules" id="molecules">
+            <div class="mol-btn" onclick="loadMolecule('water')">Wasser</div>
+            <div class="mol-btn" onclick="loadMolecule('ethanol')">Ethanol</div>
+            <div class="mol-btn" onclick="loadMolecule('benzene')">Benzol</div>
+            <div class="mol-btn" onclick="loadMolecule('methane')">Methan</div>
+            <div class="mol-btn" onclick="loadMolecule('propanon')">Propanon</div>
+            <div class="mol-btn" onclick="loadMolecule('ammonia')">Ammoniak</div>
+        </div>
+    </div>
+    
+    <script>
+        let ws;
+        const statusEl = document.getElementById('status');
+        const tutorialStatusEl = document.getElementById('tutorialStatus');
+        const btnStart = document.getElementById('btnStart');
+        const btnClose = document.getElementById('btnClose');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        
+        let tutorialActive = false;
+        let currentStep = 0;
+        let totalSteps = 9; // Anzahl der Tutorial-Schritte
+        
+        function connect() {
+            const wsUrl = 'ws://' + window.location.host + '/ws';
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                statusEl.textContent = '● Verbunden';
+                statusEl.className = 'connected';
+            };
+            
+            ws.onclose = () => {
+                statusEl.textContent = '● Getrennt';
+                statusEl.className = 'disconnected';
+                setTimeout(connect, 2000);
+            };
+            
+            ws.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'loaded') {
+                        statusEl.textContent = `● Geladen: ${data.molecule} (${data.atoms} Atome)`;
+                    } else if (data.type === 'error') {
+                        statusEl.textContent = `● Fehler: ${data.message}`;
+                    } else if (data.type === 'status') {
+                        statusEl.textContent = `● ${data.message}`;
+                    } else if (data.type === 'tutorial') {
+                        handleTutorialUpdate(data);
+                    }
+                } catch (err) {
+                    console.error('Nachricht konnte nicht geparst werden:', err);
+                }
+            };
+            
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+            };
+        }
+        
+        function handleTutorialUpdate(data) {
+            if (data.status === 'started') {
+                tutorialActive = true;
+                currentStep = 1;
+                updateTutorialUI();
+            } else if (data.status === 'closed') {
+                tutorialActive = false;
+                currentStep = 0;
+                updateTutorialUI();
+            } else if (data.status === 'continued') {
+                currentStep++;
+                if (currentStep > totalSteps) {
+                    tutorialActive = false;
+                    currentStep = 0;
+                }
+                updateTutorialUI();
+            } else if (data.status === 'previous') {
+                currentStep--;
+                if (currentStep < 1) currentStep = 1;
+                updateTutorialUI();
+            } else if (data.step !== undefined) {
+                currentStep = data.step;
+                updateTutorialUI();
+            }
+        }
+        
+        function updateTutorialUI() {
+            if (tutorialActive) {
+                tutorialStatusEl.className = 'tutorial-status active';
+                tutorialStatusEl.textContent = `Schritt ${currentStep} von ${totalSteps}`;
+                btnStart.disabled = true;
+                btnStart.style.display = 'none';
+                btnClose.disabled = false;
+                btnClose.style.display = 'block';
+                btnPrev.disabled = (currentStep <= 1);
+                btnPrev.style.display = 'block';
+                btnNext.disabled = false;
+                btnNext.style.display = 'block';
+                btnNext.textContent = (currentStep >= totalSteps) ? '✅ Fertig' : 'Weiter ➡️';
+            } else {
+                tutorialStatusEl.className = 'tutorial-status';
+                tutorialStatusEl.textContent = 'Tutorial nicht gestartet';
+                btnStart.disabled = false;
+                btnStart.style.display = 'block';
+                btnClose.disabled = true;
+                btnClose.style.display = 'none';
+                btnPrev.disabled = true;
+                btnPrev.style.display = 'none';
+                btnNext.disabled = true;
+                btnNext.style.display = 'none';
+                btnNext.textContent = 'Weiter ➡️';
+            }
+        }
+        
+        function tutorialStart() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'tutorial', action: 'start' }));
+            }
+        }
+        
+        function tutorialClose() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'tutorial', action: 'close' }));
+            }
+        }
+        
+        function tutorialNext() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                if (currentStep >= totalSteps) {
+                    // Tutorial beenden wenn am Ende
+                    ws.send(JSON.stringify({ type: 'tutorial', action: 'close' }));
+                } else {
+                    ws.send(JSON.stringify({ type: 'tutorial', action: 'continue' }));
+                }
+            }
+        }
+        
+        function tutorialPrev() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'tutorial', action: 'previous' }));
+            }
+        }
+        
+        function loadMolecule(name) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'load', molecule: name }));
+                statusEl.textContent = `● Lade ${name}...`;
+            } else {
+                statusEl.textContent = '● Nicht verbunden!';
+                statusEl.className = 'disconnected';
+            }
+        }
+        
+        function searchMolecule() {
+            const input = document.getElementById('searchInput');
+            const name = input.value.trim();
+            if (name) {
+                loadMolecule(name);
+                input.value = '';
+            }
+        }
+        
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchMolecule();
+            }
+        });
+        
+        // Initialize
+        updateTutorialUI();
+        connect();
+    </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+# =============== #
+# Unity generated #
+# =============== #
+Temp/
+Obj/
+UnityGenerated/
+Library/
+obj/
+build/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+ScriptingBackend/
+
+# ============= #
+# Visual Studio #
+# ============= #
+.vs/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# ===== #
+# Rider #
+# ===== #
+.idea/
+*.sln.iml
+
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ========= #
+# Packaging #
+# ========= #
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.exe
+
+# ============ #
+# Crashlytics #
+# ============ #
+crashlytics-build.properties
+sysinfo.txt
+
+# ============ #
+# Addressables #
+# ============ #
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# ====== #
+# Gradle #
+# ====== #
+*.gradle
+.gradle/
+
+# ===== #
+# Cache #
+# ===== #
+*.cache
+
+# ============ #
+# Plastic SCM  #
+# ============ #
+.plastic/
+.plastic
+plastic.selector
+
+# ======= #
+# Node.js #
+# ======= #
+node_modules/
+.vercel/
+
+# ============= #
+# Backup files  #
+# ============= #
+*.bak
+*~
+
+# =================== #
+# Unity Package Cache #
+# =================== #
+# Uncomment if you want to version packages
+# Library/PackageCache/

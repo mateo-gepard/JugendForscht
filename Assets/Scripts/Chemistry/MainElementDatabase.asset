@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffaa78861a4bd314d96f483cd29b8ba3, type: 3}
+  m_Name: MainElementDatabase
+  m_EditorClassIdentifier: 
+  elements:
+  - symbol: H
+    name: Hydrogen
+    atomicNumber: 1
+    cpkColor: {r: 1, g: 1, b: 1, a: 1}
+    vdwRadius: 1.2
+    covalentRadius: 0.31
+    displayScale: 0.7
+  - symbol: C
+    name: Carbon
+    atomicNumber: 6
+    cpkColor: {r: 0.56, g: 0.56, b: 0.56, a: 1}
+    vdwRadius: 1.7
+    covalentRadius: 0.76
+    displayScale: 0.7
+  - symbol: N
+    name: Nitrogen
+    atomicNumber: 7
+    cpkColor: {r: 0.19, g: 0.31, b: 0.97, a: 1}
+    vdwRadius: 1.55
+    covalentRadius: 0.71
+    displayScale: 0.7
+  - symbol: O
+    name: Oxygen
+    atomicNumber: 8
+    cpkColor: {r: 1, g: 0.05, b: 0.05, a: 1}
+    vdwRadius: 1.52
+    covalentRadius: 0.66
+    displayScale: 0.7
+  - symbol: F
+    name: Fluorine
+    atomicNumber: 9
+    cpkColor: {r: 0.56, g: 0.88, b: 0.31, a: 1}
+    vdwRadius: 1.47
+    covalentRadius: 0.57
+    displayScale: 0.7
+  - symbol: P
+    name: Phosphorus
+    atomicNumber: 15
+    cpkColor: {r: 1, g: 0.5, b: 0, a: 1}
+    vdwRadius: 1.8
+    covalentRadius: 1.07
+    displayScale: 0.7
+  - symbol: S
+    name: Sulfur
+    atomicNumber: 16
+    cpkColor: {r: 1, g: 1, b: 0.19, a: 1}
+    vdwRadius: 1.8
+    covalentRadius: 1.05
+    displayScale: 0.7
+  - symbol: Cl
+    name: Chlorine
+    atomicNumber: 17
+    cpkColor: {r: 0.12, g: 0.94, b: 0.12, a: 1}
+    vdwRadius: 1.75
+    covalentRadius: 1.02
+    displayScale: 0.7
+  - symbol: Br
+    name: Bromine
+    atomicNumber: 35
+    cpkColor: {r: 0.65, g: 0.16, b: 0.16, a: 1}
+    vdwRadius: 1.85
+    covalentRadius: 1.2
+    displayScale: 0.7
+  - symbol: I
+    name: Iodine
+    atomicNumber: 53
+    cpkColor: {r: 0.58, g: 0, b: 0.58, a: 1}
+    vdwRadius: 1.98
+    covalentRadius: 1.39
+    displayScale: 0.7
+  - symbol: Fe
+    name: Iron
+    atomicNumber: 26
+    cpkColor: {r: 0.88, g: 0.4, b: 0.2, a: 1}
+    vdwRadius: 2
+    covalentRadius: 1.32
+    displayScale: 0.7
+  - symbol: Cu
+    name: Copper
+    atomicNumber: 29
+    cpkColor: {r: 0.78, g: 0.5, b: 0.2, a: 1}
+    vdwRadius: 1.96
+    covalentRadius: 1.22
+    displayScale: 0.7
+  - symbol: Zn
+    name: Zinc
+    atomicNumber: 30
+    cpkColor: {r: 0.49, g: 0.5, b: 0.69, a: 1}
+    vdwRadius: 2.01
+    covalentRadius: 1.22
+    displayScale: 0.7

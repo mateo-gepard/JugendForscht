@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "name": "jugend-forscht",
+  "builds": [
+    {
+      "src": "Visualisierungen+Websiten/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/Visualisierungen+Websiten/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/Visualisierungen+Websiten/DatenVisualisierung.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}
