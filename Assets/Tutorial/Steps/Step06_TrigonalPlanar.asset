@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d7272087260ba146afaa30dcfd85f1d, type: 3}
+  m_Name: Step06_TrigonalPlanar
+  m_EditorClassIdentifier: 
+  stepName: Trigonal Planar
+  description: "Trigonal-planarer Molek\xFClbau am Beispiel BF\u2083"
+  videoClip: {fileID: 32900000, guid: f2863a0a123474848be688fb36920f75, type: 3}
+  videoPosition: {x: 0, y: 0, z: 0}
+  videoScale: 0.5
+  events:
+  - triggerTime: 3
+    eventType: 0
+    targetObjectName: BF3TrigonalPlanar
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  - triggerTime: 11
+    eventType: 0
+    targetObjectName: BF3TrigonalPlanarHighlight
+    position: {x: 0.35, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    duration: 1
+    textContent: 
+    moleculeName: 
+    hasTriggered: 0
+  autoAdvance: 0
+  continueDelay: 0.5

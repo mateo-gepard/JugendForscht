@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Results Dashboard - VR vs Non-VR</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --vr-color: #3b82f6;
+            --non-vr-color: #ec4899;
+            --bg: #0f1419;
+            --bg-card: #1a1f2e;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #2d3748;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        header {
+            text-align: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            color: var(--text);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .stat {
+            background: var(--bg-card);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .charts {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .chart {
+            background: var(--bg-card);
+            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart.span-2 {
+            grid-column: span 2;
+        }
+
+        .chart-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .chart-content {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @media (max-width: 1400px) {
+            .charts {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+            }
+            .chart.span-2 {
+                grid-column: span 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Exam Results Analysis</h1>
+            <p class="subtitle">VR vs Non-VR Learning Groups</p>
+        </header>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="charts">
+            <div class="chart">
+                <h2 class="chart-title">Gesamtpunkte</h2>
+                <div class="chart-content" id="violinPlot"></div>
+            </div>
+
+            <div class="chart">
+                <h2 class="chart-title">Schwierigkeit</h2>
+                <div class="chart-content" id="difficultyChart"></div>
+            </div>
+
+            <div class="chart">
+                <h2 class="chart-title">Kompetenzen</h2>
+                <div class="chart-content" id="competencyChart"></div>
+            </div>
+
+            <div class="chart span-2">
+                <h2 class="chart-title">Leistung pro Aufgabe</h2>
+                <div class="chart-content" id="taskBarChart"></div>
+            </div>
+
+            <div class="chart">
+                <h2 class="chart-title">Heatmap</h2>
+                <div class="chart-content" id="heatmap"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Parse CSV data - NEW LARGER DATASET
+        const csvData = `Name,Group,Task_1a,Task_1b,Task_1c,Task_2,Task_3,Task_4a,Task_4b,Task_5a,Task_5b,Task_6a,Task_6b
+Konstantin Romanie,VR,1,1,1,1,1,0,0,0,0,0.5,1
+Louis Plettner,VR,1,1,1,1,1,0,0,1,1,1,0.5
+Henri Olufemi,VR,1,1,1,1,1,1,1,1,1,0.5,0.5
+Floyd,VR,1,1,1,1,0.5,0,0,1,1,1,0
+Marlon Burg,VR,0,0,0,0,1,0,0,1,0,1,1
+VR_06,VR,1,1,1,1,1,1,0.5,1,1,1,0.5
+VR_07,VR,1,1,1,1,0.5,0.5,1,1,1,0.5,0.5
+VR_08,VR,1,1,1,0.5,1,1,1,1,1,1,1
+VR_09,VR,1,0.5,1,1,1,0.5,0.5,1,1,1,0.5
+VR_10,VR,0.5,1,1,1,1,1,0.5,0.5,1,1,0.5
+VR_11,VR,1,1,1,1,0.5,0.5,1,1,1,0.5,0
+VR_12,VR,1,1,1,1,1,1,1,1,1,1,1
+VR_13,VR,1,1,0.5,1,1,0.5,0.5,1,1,0.5,0.5
+VR_14,VR,1,1,1,0.5,1,1,1,1,1,1,1
+VR_15,VR,0.5,1,1,1,0.5,0.5,0.5,0.5,1,1,0.5
+Sophia Kessler,Non-VR,1,1,1,1,0.5,1,1,0,0.5,0.5,0
+Farah Raad,Non-VR,0,0,0,0,0.5,1,1,1,0.5,0,0
+Tilly Marr,Non-VR,1,1,1,0,0.5,1,1,0,0,0.5,0.5
+Quentin Lumbondl,Non-VR,1,0,0,1,0,1,1,1,0,0.5,0
+Alex Orthen,Non-VR,0,0,0,0,1,1,1,1,0.5,0,0
+Lucia Naverth,Non-VR,1,0,0,0,1,1,0,0,0.5,0,0
+Leni Koschinsky,Non-VR,1,0,0,1,0.5,0,0,1,0,0,0.5
+NV_08,Non-VR,1,1,1,1,0.5,1,1,1,0.5,0,0
+NV_09,Non-VR,0.5,1,0.5,1,0.5,1,1,1,0,0.5,0
+NV_10,Non-VR,1,1,1,1,1,1,1,0.5,0.5,0.5,0
+NV_11,Non-VR,0,0.5,0,0.5,0.5,1,1,1,0,0,0
+NV_12,Non-VR,1,1,1,1,0.5,1,1,1,0.5,0.5,0
+NV_13,Non-VR,0.5,0.5,0.5,1,0.5,1,1,0.5,0,0,0
+NV_14,Non-VR,1,1,1,1,0.5,1,1,1,0.5,0.5,0
+NV_15,Non-VR,0,0,0,0,0.5,1,1,1,0,0,0`;
+
+        const rows = csvData.split('\n');
+        const headers = rows[0].split(',');
+        const taskHeaders = headers.slice(2);
+        
+        // Maximum points per task
+        const maxPoints = {
+            'Task_1a': 1,
+            'Task_1b': 1,
+            'Task_1c': 1,
+            'Task_2': 2,
+            'Task_3': 4,
+            'Task_4a': 1,
+            'Task_4b': 1,
+            'Task_5a': 2,
+            'Task_5b': 2,
+            'Task_6a': 3,
+            'Task_6b': 2
+        };
+        
+        const students = rows.slice(1).map(row => {
+            const values = row.split(',');
+            const student = {
+                name: values[0],
+                group: values[1],
+                tasks: {}
+            };
+            taskHeaders.forEach((task, i) => {
+                const percentage = parseFloat(values[i + 2]);
+                student.tasks[task] = percentage * maxPoints[task];
+            });
+            return student;
+        });
+
+        students.forEach(student => {
+            student.totalPoints = Object.values(student.tasks).reduce((sum, val) => sum + val, 0);
+        });
+
+        const vrStudents = students.filter(s => s.group === 'VR');
+        const nonVrStudents = students.filter(s => s.group === 'Non-VR');
+
+        const vrTotal = vrStudents.reduce((sum, s) => sum + s.totalPoints, 0) / vrStudents.length;
+        const nonVrTotal = nonVrStudents.reduce((sum, s) => sum + s.totalPoints, 0) / nonVrStudents.length;
+        const overallAvg = students.reduce((sum, s) => sum + s.totalPoints, 0) / students.length;
+
+        const statsHtml = `
+            <div class="stat">
+                <div class="stat-value">${students.length}</div>
+                <div class="stat-label">Teilnehmende</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">${vrStudents.length}</div>
+                <div class="stat-label">VR Gruppe</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">${nonVrStudents.length}</div>
+                <div class="stat-label">Non-VR Gruppe</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">${vrTotal.toFixed(1)}</div>
+                <div class="stat-label">VR Ø Punkte (von 20)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">${nonVrTotal.toFixed(1)}</div>
+                <div class="stat-label">Non-VR Ø Punkte (von 20)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">20</div>
+                <div class="stat-label">Max. Punkte</div>
+            </div>
+        `;
+        document.getElementById('stats').innerHTML = statsHtml;
+
+        // Chart theme - optimized for compact display
+        const theme = {
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#e2e8f0', size: 9, family: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif' },
+            margin: { l: 45, r: 25, t: 10, b: 35 },
+            showlegend: true,
+            legend: { 
+                orientation: 'h', 
+                y: -0.2,
+                x: 0.5, 
+                xanchor: 'center',
+                bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#94a3b8', size: 9 }
+            },
+            xaxis: { gridcolor: '#2d3748', zerolinecolor: '#2d3748', tickfont: { size: 8 } },
+            yaxis: { gridcolor: '#2d3748', zerolinecolor: '#2d3748', tickfont: { size: 8 } }
+        };
+
+        const config = {responsive: true, displayModeBar: false};
+
+        // 1. Violin/Box Plot
+        Plotly.newPlot('violinPlot', [
+            {
+                type: 'box',
+                y: vrStudents.map(s => s.totalPoints),
+                name: 'VR',
+                marker: { color: '#3b82f6', size: 3 },
+                boxmean: 'sd',
+                fillcolor: 'rgba(59, 130, 246, 0.3)',
+                line: { color: '#3b82f6', width: 1.5 }
+            },
+            {
+                type: 'box',
+                y: nonVrStudents.map(s => s.totalPoints),
+                name: 'Non-VR',
+                marker: { color: '#ec4899', size: 3 },
+                boxmean: 'sd',
+                fillcolor: 'rgba(236, 72, 153, 0.3)',
+                line: { color: '#ec4899', width: 1.5 }
+            }
+        ], {
+            ...theme,
+            yaxis: { ...theme.yaxis, title: { text: 'Punkte', font: { size: 9 } } },
+            autosize: true
+        }, config);
+
+        // 2. Item Difficulty
+        const difficulty = taskHeaders.map(task => {
+            const total = students.reduce((sum, s) => sum + s.tasks[task], 0);
+            const maxPossible = students.length * maxPoints[task];
+            return (total / maxPossible) * 100;
+        });
+
+        Plotly.newPlot('difficultyChart', [{
+            x: taskHeaders,
+            y: difficulty,
+            type: 'bar',
+            marker: {
+                color: difficulty.map(d => {
+                    if (d >= 75) return '#ef4444';
+                    if (d >= 50) return '#f59e0b';
+                    return '#10b981';
+                })
+            },
+            text: difficulty.map(d => d.toFixed(0)),
+            textposition: 'outside',
+            textfont: { color: '#e2e8f0', size: 8 },
+            hovertemplate: '%{x}: %{y:.1f}%<extra></extra>'
+        }], {
+            ...theme,
+            yaxis: { ...theme.yaxis, title: { text: '%', font: { size: 9 } }, range: [0, 110] },
+            showlegend: false,
+            autosize: true
+        }, config);
+
+        // 3. Competency Mapping
+        const competencies = {
+            'Symbol': ['Task_1a', 'Task_1b', 'Task_1c'],
+            '2D→3D': ['Task_2', 'Task_3'],
+            'Regeln': ['Task_4a', 'Task_4b'],
+            'Transfer': ['Task_5a', 'Task_5b', 'Task_6a', 'Task_6b']
+        };
+
+        const competencyVR = {};
+        const competencyNonVR = {};
+
+        Object.entries(competencies).forEach(([comp, tasks]) => {
+            const vrSum = vrStudents.reduce((sum, s) => {
+                return sum + tasks.reduce((tSum, task) => tSum + s.tasks[task], 0);
+            }, 0);
+            const nonVrSum = nonVrStudents.reduce((sum, s) => {
+                return sum + tasks.reduce((tSum, task) => tSum + s.tasks[task], 0);
+            }, 0);
+            
+            const maxPossibleVR = vrStudents.length * tasks.reduce((sum, task) => sum + maxPoints[task], 0);
+            const maxPossibleNonVR = nonVrStudents.length * tasks.reduce((sum, task) => sum + maxPoints[task], 0);
+            
+            competencyVR[comp] = (vrSum / maxPossibleVR) * 100;
+            competencyNonVR[comp] = (nonVrSum / maxPossibleNonVR) * 100;
+        });
+
+        Plotly.newPlot('competencyChart', [
+            {
+                x: Object.keys(competencies),
+                y: Object.values(competencyVR),
+                name: 'VR',
+                type: 'bar',
+                marker: { color: '#3b82f6' },
+                text: Object.values(competencyVR).map(v => v.toFixed(0) + '%'),
+                textposition: 'outside',
+                textfont: { color: '#e2e8f0', size: 8 }
+            },
+            {
+                x: Object.keys(competencies),
+                y: Object.values(competencyNonVR),
+                name: 'Non-VR',
+                type: 'bar',
+                marker: { color: '#ec4899' },
+                text: Object.values(competencyNonVR).map(v => v.toFixed(0) + '%'),
+                textposition: 'outside',
+                textfont: { color: '#e2e8f0', size: 8 }
+            }
+        ], {
+            ...theme,
+            barmode: 'group',
+            yaxis: { ...theme.yaxis, title: { text: '%', font: { size: 9 } }, range: [0, 110] },
+            autosize: true
+        }, config);
+
+        // 4. Bar Chart - Average per Task
+        const taskAvgVR = {};
+        const taskAvgNonVR = {};
+        
+        taskHeaders.forEach(task => {
+            const vrSum = vrStudents.reduce((sum, s) => sum + s.tasks[task], 0);
+            const nonVrSum = nonVrStudents.reduce((sum, s) => sum + s.tasks[task], 0);
+            const vrMaxPossible = vrStudents.length * maxPoints[task];
+            const nonVrMaxPossible = nonVrStudents.length * maxPoints[task];
+            taskAvgVR[task] = (vrSum / vrMaxPossible) * 100;
+            taskAvgNonVR[task] = (nonVrSum / nonVrMaxPossible) * 100;
+        });
+
+        Plotly.newPlot('taskBarChart', [
+            {
+                x: taskHeaders,
+                y: Object.values(taskAvgVR),
+                name: 'VR',
+                type: 'bar',
+                marker: { color: '#3b82f6' }
+            },
+            {
+                x: taskHeaders,
+                y: Object.values(taskAvgNonVR),
+                name: 'Non-VR',
+                type: 'bar',
+                marker: { color: '#ec4899' }
+            }
+        ], {
+            ...theme,
+            barmode: 'group',
+            yaxis: { ...theme.yaxis, title: { text: '%', font: { size: 9 } }, range: [0, 105] },
+            autosize: true
+        }, config);
+
+        // 5. Heatmap - optimized for 30 participants
+        const heatmapData = students.map(s => taskHeaders.map(task => s.tasks[task]));
+        const heatmapDataPercent = students.map(s => taskHeaders.map(task => (s.tasks[task] / maxPoints[task]) * 100));
+        const maxPointsArray = taskHeaders.map(task => maxPoints[task]);
+        
+        Plotly.newPlot('heatmap', [{
+            z: heatmapDataPercent,
+            x: taskHeaders,
+            y: students.map(s => s.name),
+            type: 'heatmap',
+            colorscale: [
+                [0, '#1e293b'],
+                [0.25, '#dc2626'],
+                [0.5, '#f59e0b'],
+                [0.75, '#84cc16'],
+                [1, '#10b981']
+            ],
+            text: heatmapData.map((row, i) => row.map((val, j) => {
+                const max = maxPointsArray[j];
+                return val === 0 ? '0' : val === max ? max.toString() : val.toFixed(1);
+            })),
+            texttemplate: '%{text}',
+            textfont: { size: 6, color: '#e2e8f0' },
+            colorbar: {
+                title: { text: '%', side: 'right', font: { size: 7 } },
+                tickvals: [0, 50, 100],
+                ticktext: ['0', '50', '100'],
+                len: 0.3,
+                thickness: 8,
+                tickfont: { color: '#94a3b8', size: 6 },
+                titlefont: { color: '#94a3b8', size: 7 }
+            },
+            hovertemplate: '<b>%{y}</b><br>%{x}: %{text}<extra></extra>',
+            zmin: 0,
+            zmax: 100
+        }], {
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#e2e8f0', size: 7 },
+            margin: { l: 80, r: 30, t: 5, b: 35 },
+            xaxis: { side: 'bottom', gridcolor: '#2d3748', tickfont: { size: 6 } },
+            yaxis: { gridcolor: '#2d3748', tickfont: { size: 6 }, dtick: 1 },
+            autosize: true
+        }, config);
+    </script>
+</body>
+</html>
