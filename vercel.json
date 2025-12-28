@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/Visualisierungen+Websiten/DatenVisualisierung.html"
+      "destination": "/Visualisierungen+Websiten/DateienVisualisierung.html"
     },
     {
       "source": "/:path*",
