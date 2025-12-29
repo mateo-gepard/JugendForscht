@@ -756,6 +756,65 @@
             }
         }
 
+        /* iPad Pro and Tablets */
+        @media (max-width: 1194px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .nav-toggle {
+                position: static;
+                transform: none;
+                margin-top: 12px;
+            }
+            
+            header {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .charts {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: auto;
+                flex: none;
+            }
+            
+            .chart {
+                min-height: 300px;
+            }
+            
+            .chart.span-2 {
+                grid-column: span 2;
+            }
+        }
+
+        /* iPad Mini and smaller tablets */
+        @media (max-width: 1024px) {
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .charts {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .qual-main-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         /* Tablet Portrait and smaller */
         @media (max-width: 900px) {
             body {
@@ -1281,7 +1340,13 @@ NV_15,Non-VR,0,0,0,0,0.5,1,1,1,0,0,0`;
             yaxis: { gridcolor: '#2d3748', zerolinecolor: '#2d3748', tickfont: { size: 8 } }
         };
 
-        const config = {responsive: true, displayModeBar: false};
+        const config = {
+            responsive: true, 
+            displayModeBar: false,
+            staticPlot: true,
+            scrollZoom: false,
+            doubleClick: false
+        };
 
         // 1. Violin/Box Plot
         Plotly.newPlot('violinPlot', [
@@ -2040,7 +2105,7 @@ NV_15,Non-VR,0,0,0,0,0.5,1,1,1,0,0,0`;
                         { x: 18, y: 98, text: 'VR: Hoher Spaß unabhängig vom Score', showarrow: false, font: { size: 8, color: '#3b82f6' } },
                         { x: 8, y: 25, text: 'Non-VR: Große Streuung', showarrow: false, font: { size: 8, color: '#ec4899' } }
                     ]
-                }, {responsive: true, displayModeBar: false});
+                }, {responsive: true, displayModeBar: false, staticPlot: true, scrollZoom: false, doubleClick: false});
 
                 // Chart 2: Understanding Rating vs. Transfer Score
                 Plotly.newPlot('triTransferChart', [
@@ -2114,7 +2179,7 @@ NV_15,Non-VR,0,0,0,0,0.5,1,1,1,0,0,0`;
                         { x: 62, y: 22, text: 'Sophia: ⬇️ Transfer<br>trotz Verständnis', showarrow: true, arrowhead: 2, arrowcolor: '#ef4444', font: { size: 8, color: '#ef4444' }, ax: 40, ay: 20 },
                         { x: 85, y: 8, text: 'Diagonale = Perfekte<br>Übereinstimmung', showarrow: false, font: { size: 7, color: '#64748b' } }
                     ]
-                }, {responsive: true, displayModeBar: false});
+                }, {responsive: true, displayModeBar: false, staticPlot: true, scrollZoom: false, doubleClick: false});
             }, 100);
         }
 
