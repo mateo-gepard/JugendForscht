@@ -755,6 +755,340 @@
                 overflow-y: auto;
             }
         }
+
+        /* Tablet Portrait and smaller */
+        @media (max-width: 900px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .container {
+                height: auto;
+                min-height: 100vh;
+                padding: 10px;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px 0;
+            }
+            
+            .nav-toggle {
+                position: static;
+                transform: none;
+                width: 100%;
+                justify-content: center;
+                margin-top: 10px;
+            }
+            
+            .nav-btn {
+                flex: 1;
+                padding: 10px 8px;
+                font-size: 0.7rem;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            
+            .stat {
+                padding: 8px 6px;
+            }
+            
+            .stat-value {
+                font-size: 1.1rem;
+            }
+            
+            .stat-label {
+                font-size: 0.55rem;
+            }
+            
+            .charts {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                gap: 8px;
+                flex: none;
+                min-height: auto;
+            }
+            
+            .chart {
+                min-height: 280px;
+            }
+            
+            .chart.span-2 {
+                grid-column: span 1;
+            }
+            
+            .qual-main-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                overflow-y: auto;
+            }
+            
+            .qual-q-card {
+                min-height: 300px;
+            }
+            
+            .tri-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+                overflow-y: auto;
+            }
+            
+            .tri-header {
+                grid-column: span 1;
+            }
+            
+            .tri-panel {
+                min-height: 350px;
+            }
+            
+            .tri-insight {
+                padding: 10px 12px;
+            }
+            
+            .tri-insight-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            .tri-profile-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Mobile Landscape */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.1rem;
+            }
+            
+            .subtitle {
+                font-size: 0.7rem;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .qual-legend {
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+            }
+            
+            .qual-legend-item {
+                font-size: 0.65rem;
+            }
+            
+            .qual-q-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .qual-q-number {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+            
+            .qual-q-title {
+                font-size: 0.8rem;
+            }
+            
+            .qual-q-question {
+                font-size: 0.65rem;
+            }
+            
+            .tri-case-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mobile Portrait */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            header {
+                padding: 12px 0;
+            }
+            
+            h1 {
+                font-size: 1rem;
+            }
+            
+            .subtitle {
+                font-size: 0.65rem;
+            }
+            
+            .nav-toggle {
+                flex-direction: column;
+                border-radius: 6px;
+            }
+            
+            .nav-btn {
+                padding: 12px 8px;
+                font-size: 0.7rem;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .nav-btn:last-child {
+                border-bottom: none;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+            }
+            
+            .stat {
+                padding: 8px 4px;
+            }
+            
+            .stat-value {
+                font-size: 1rem;
+            }
+            
+            .stat-label {
+                font-size: 0.5rem;
+            }
+            
+            .chart {
+                min-height: 250px;
+                padding: 8px;
+            }
+            
+            .chart-title {
+                font-size: 0.65rem;
+            }
+            
+            .qual-q-card {
+                padding: 10px;
+                min-height: 280px;
+            }
+            
+            .qual-q-stats {
+                padding: 6px;
+            }
+            
+            .qual-quote {
+                padding: 5px 6px;
+            }
+            
+            .qual-quote-text {
+                font-size: 0.55rem;
+            }
+            
+            .tri-insight {
+                padding: 10px;
+            }
+            
+            .tri-insight-title {
+                font-size: 0.65rem;
+            }
+            
+            .tri-insight-desc {
+                font-size: 0.55rem;
+            }
+            
+            .tri-panel {
+                padding: 10px;
+                min-height: 300px;
+            }
+            
+            .tri-panel-title {
+                font-size: 0.7rem;
+            }
+            
+            .tri-profile {
+                padding: 8px 10px;
+            }
+            
+            .tri-profile-name {
+                font-size: 0.65rem;
+            }
+            
+            .tri-profile-score-value {
+                font-size: 0.95rem;
+            }
+            
+            .tri-profile-details {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+            }
+            
+            .tri-profile-detail-value {
+                font-size: 0.6rem;
+            }
+            
+            .tri-profile-detail-label {
+                font-size: 0.4rem;
+            }
+            
+            .tri-case {
+                padding: 8px;
+            }
+            
+            .tri-case-name {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 360px) {
+            .container {
+                padding: 6px;
+            }
+            
+            h1 {
+                font-size: 0.9rem;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .stat-value {
+                font-size: 0.9rem;
+            }
+            
+            .chart {
+                min-height: 220px;
+            }
+            
+            .nav-btn {
+                font-size: 0.65rem;
+                padding: 10px 6px;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-btn {
+                min-height: 44px;
+            }
+            
+            .qual-q-card:hover {
+                border-color: var(--border);
+                transform: none;
+            }
+            
+            .qual-quote {
+                padding: 8px 10px;
+            }
+            
+            .tri-profile {
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
