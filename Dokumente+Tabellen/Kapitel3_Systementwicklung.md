@@ -1,351 +1,370 @@
 # 3. Systementwicklung
 
-Die Entwicklung des VR-Lernsystems für Molekülgeometrien stellte eine interdisziplinäre Herausforderung dar, die Aspekte der Softwareentwicklung, Hardwareintegration, chemiedidaktischen Konzeption und User-Experience-Optimierung vereinte. Im Folgenden werden die einzelnen Entwicklungsbereiche detailliert erläutert, wobei besonderer Wert auf die Begründung von Designentscheidungen, aufgetretene Probleme und deren iterative Lösung gelegt wird.
+Die Entwicklung unserer VR-Lernanwendung für Molekülgeometrien folgte einem nutzerzentrierten Ansatz: Zunächst definierten wir, *was* Schüler lernen sollen (Programmkonzept), dann *womit* sie lernen (Hardware), und schließlich *wie* die technische Umsetzung erfolgt. Dieser rote Faden – vom pädagogischen Ziel über die Gerätewahl bis zur Implementierung – strukturiert die folgende Dokumentation.
 
 ---
 
-## 3.1 Hardware-Setup (Quest 3, iPad-UI, Tracking)
+## 3.1 Unser Programm kurz erklärt
 
-### 3.1.1 Wahl der VR-Hardware: Meta Quest 3
+Unsere Anwendung besteht aus zwei Kernmodulen, die unterschiedliche Lernphasen adressieren: Das **Tutorial** vermittelt strukturiertes Wissen über Molekülgeometrien durch geführte Lektionen, während der **Molekülviewer** freies Explorieren ermöglicht. Diese Zweiteilung entspricht dem pädagogischen Prinzip "erst verstehen, dann anwenden".
 
-Die Entscheidung für die Meta Quest 3 als Zielplattform basierte auf mehreren technischen und praktischen Überlegungen:
+### 3.1.1 Tutorial
 
-**Standalone-Fähigkeit:** Im Gegensatz zu PC-gebundenen VR-Systemen (z.B. HTC Vive, Valve Index) ermöglicht die Quest 3 einen kabellosen Betrieb ohne externe Rechnerinfrastruktur. Dies war für den schulischen Einsatz essentiell, da weder leistungsstarke Gaming-PCs noch komplexe Verkabelungen in Klassenzimmern vorausgesetzt werden können. Die Standalone-Architektur reduziert zudem potenzielle Fehlerquellen und verkürzt die Setup-Zeit erheblich.
+Das Tutorial ist das Herzstück der Lernerfahrung. Es führt Schüler schrittweise durch die Konzepte der Molekülgeometrie – von einfachen Bindungstypen bis zu komplexen räumlichen Strukturen.
 
-**Mixed-Reality-Passthrough:** Die Quest 3 verfügt über hochauflösende Farbkameras, die eine Echtzeit-Durchsicht der physischen Umgebung ermöglichen (Passthrough-Technologie). Diese Funktion war für das pädagogische Konzept von zentraler Bedeutung: Lernende sollten nicht vollständig von ihrer Umgebung isoliert werden, sondern die virtuellen Molekülmodelle in ihrem realen Lernkontext betrachten können. Die Integration wurde über die `PassthroughManager`-Klasse realisiert, die den Passthrough-Layer zur Laufzeit aktiviert und konfiguriert.
+**Didaktisches Konzept:**
 
-**Inside-Out-Tracking:** Die Quest 3 verwendet sechs integrierte Kameras für das Positions-Tracking ohne externe Sensoren (Inside-Out-Tracking). Dies eliminiert die Notwendigkeit von Basisstationen und ermöglicht eine flexible Nutzung in verschiedenen Räumlichkeiten. Die Tracking-Genauigkeit erwies sich für die Manipulation von Molekülmodellen als ausreichend präzise.
+Der Aufbau folgt dem Scaffolding-Prinzip: Jede Lektion baut auf der vorherigen auf, sodass Komplexität graduell zunimmt. Ein Schüler beginnt mit der Frage "Was ist eine chemische Bindung?" und endet mit dem Verständnis, warum Methan tetraedrisch und Wasser gewinkelt ist.
 
-**Problemstellung und Iteration:** Initial traten Probleme mit dem Clipping von 3D-Objekten auf, wenn diese zu nah an die Kamera gebracht wurden. Die Standard-Near-Clipping-Plane der Unity-Kamera war für Desktop-Anwendungen optimiert und schnitt Objekte im Nahbereich ab. Dies wurde durch Anpassung der `VRClippingDebugger`-Komponente behoben, die die Near-Clipping-Plane dynamisch auf 0.01m reduziert – ein Wert, der physisch sinnvoll ist, da Objekte näher als 1cm am Auge nicht mehr fokussiert werden können.
+**Die neun Lernschritte im Überblick:**
 
-### 3.1.2 iPad als Operator-Interface
+| Schritt | Thema | Lernziel |
+|---------|-------|----------|
+| 1 | Bindungstypen | Unterscheidung von Einfach-, Doppel- und Dreifachbindungen |
+| 2 | Keilstrich-Schreibweise | Interpretation von 2D-Strukturformeln als 3D-Modelle |
+| 3 | Molekülgeometrie-Konzept | Verständnis, dass Moleküle räumliche Strukturen haben |
+| 4 | Linearer Bau | CO₂ als Beispiel für 180°-Geometrie |
+| 5 | Gewinkelter Bau | H₂O mit 104,5°-Bindungswinkel |
+| 6 | Trigonal-planar | BF₃ mit 120°-Winkeln in einer Ebene |
+| 7 | Trigonal-pyramidal | NH₃ – warum freie Elektronenpaare die Geometrie beeinflussen |
+| 8 | Tetraedrisch | CH₄ mit dem charakteristischen 109,5°-Winkel |
+| 9 | Zusammenfassung | Verknüpfung aller Konzepte |
 
-Parallel zur VR-Anwendung wurde ein Tablet-basiertes Kontrollsystem entwickelt, das es einer Lehrkraft ermöglicht, die VR-Erfahrung von außen zu steuern.
+**Multimediale Präsentation:**
 
-**Technische Umsetzung:** Die Kommunikation zwischen iPad und Quest 3 erfolgt über einen WebSocket-Server, der in der Unity-Anwendung implementiert wurde (`WebSocketServer.cs`). Das iPad verbindet sich über eine Web-Oberfläche mit dem Server und kann Befehle wie Molekülauswahl, Tutorial-Navigation und Systemsteuerung übermitteln.
+Jeder Schritt kombiniert drei Elemente:
+1. **Erklärvideo:** Eine vorproduzierte Videosequenz (mit Greenscreen-Chroma-Keying in die VR-Umgebung integriert) erläutert das Konzept verbal und visuell.
+2. **3D-Molekülmodell:** Das besprochene Molekül erscheint als interaktives Modell neben dem Video. Schüler können es drehen, von allen Seiten betrachten und die räumliche Struktur erfassen.
+3. **Winkelvisualisierung:** Bei relevanten Schritten werden Bindungswinkel durch farbige Bögen und Gradangaben hervorgehoben.
 
-**Begründung:** Das Operator-Konzept adressiert mehrere pädagogische Anforderungen:
-1. Lehrkräfte können den Unterrichtsverlauf steuern, ohne selbst ein VR-Headset tragen zu müssen
-2. Synchrone Lernerfahrungen werden ermöglicht, bei denen alle Schüler dasselbe Molekül betrachten
-3. Die URL-Anzeige (`TabletURLDisplay.cs`) zeigt die Verbindungsadresse direkt im VR-Interface an, was die Erstverbindung vereinfacht
+Diese Kombination adressiert verschiedene Lerntypen: auditive Lerner profitieren vom Video, visuelle vom 3D-Modell, und kinästhetische von der Interaktion.
 
-**Iterationen:** Die erste Implementierung verwendete HTTP-Polling, was zu spürbaren Latenzen führte. Die Umstellung auf WebSockets ermöglichte eine nahezu verzögerungsfreie bidirektionale Kommunikation mit Latenzzeiten unter 50ms im lokalen Netzwerk.
+**Navigationsmöglichkeiten:**
 
-### 3.1.3 Tracking-Konfiguration
+Schüler können:
+- Mit Vorwärts-/Rückwärts-Buttons zwischen Schritten wechseln
+- Das aktuelle Video pausieren und wiederholen
+- Moleküle während des Videos bereits manipulieren
+- (Optional) Über das Operator-Tablet von der Lehrkraft durch das Tutorial geführt werden
 
-Die Tracking-Konfiguration erfolgt über die XR-Plugin-Architektur von Unity in Kombination mit dem Meta XR SDK:
+### 3.1.2 Molekülviewer
 
-- **OculusLoader.asset:** Konfiguriert den Oculus-spezifischen XR-Loader für Quest-Hardware
-- **OpenXRLoader.asset:** Bietet Fallback-Unterstützung für andere OpenXR-kompatible Geräte
-- **XRGeneralSettingsPerBuildTarget.asset:** Definiert plattformspezifische XR-Einstellungen
+Der Molekülviewer ist das "Freiflug-Modul": Nach dem strukturierten Tutorial können Schüler hier eigenständig Moleküle erkunden.
 
-Die Tracking-Einstellungen wurden iterativ optimiert, um einen Kompromiss zwischen Tracking-Genauigkeit und Rechenleistung zu finden. Die finale Konfiguration nutzt 6DoF-Tracking (Six Degrees of Freedom) für Kopf und Hände bei einer Aktualisierungsrate von 72Hz, was der nativen Bildwiederholrate der Quest 3 entspricht.
+**Funktionsumfang:**
 
----
+- **Molekülsuche:** Über eine virtuelle Tastatur können Molekülnamen eingegeben werden (z.B. "Ethanol", "Benzol", "Ammoniak")
+- **Vordefinierte Bibliothek:** Eine kuratierte Sammlung der curriculumsrelevanten Moleküle steht ohne Suche bereit
+- **PubChem-Integration:** Für fortgeschrittene Nutzer: Zugriff auf die NIH-Datenbank mit über 100 Millionen Molekülstrukturen
+- **Freie Manipulation:** Drehen, Vergrößern, Verkleinern – alles durch intuitive Handgesten
 
-## 3.2 Interaktion (Finger- und Controller-Tracking)
+**Pädagogischer Mehrwert:**
 
-### 3.2.1 Dual-Input-Strategie
-
-Die Anwendung unterstützt sowohl Controller-basierte als auch Hand-Tracking-basierte Interaktion. Diese Entscheidung wurde aus folgenden Gründen getroffen:
-
-**Hand-Tracking (primär):** Die Quest 3 verfügt über fortschrittliches Hand-Tracking, das individuelle Fingerbewegungen erkennt. Für die intuitive Manipulation von Molekülmodellen bietet dies erhebliche Vorteile: Nutzer können Moleküle "greifen" und drehen, als würden sie ein physisches Modell in den Händen halten. Die natürliche Interaktion senkt die Einstiegshürde für VR-Neulinge erheblich.
-
-**Controller-Tracking (sekundär):** Controller bieten präzisere Eingaben und haptisches Feedback durch Vibrationsmotoren. Für Nutzer, die Schwierigkeiten mit dem Hand-Tracking haben, oder in Situationen mit schwierigen Lichtverhältnissen (Hand-Tracking basiert auf Kamerabildern), stellen Controller eine zuverlässige Alternative dar.
-
-### 3.2.2 Implementierung der Molekülrotation
-
-Die Rotation von Molekülmodellen wurde in der `MoleculeRotationController.cs`-Klasse implementiert:
-
-**Greif-Geste:** Ein Molekül wird "gegriffen", wenn eine Pinch-Geste (Daumen und Zeigefinger zusammen) oder der Grip-Button eines Controllers erkannt wird. Der `XR Interaction Toolkit` von Unity stellt hierfür standardisierte Events bereit (`selectEntered`, `selectExited`).
-
-**Rotationsberechnung:** Die Rotation erfolgt relativ zur Handbewegung. Die Differenz zwischen der aktuellen und der vorherigen Handorientierung wird auf das Molekül übertragen. Dies wurde in mehreren Iterationen verfeinert:
-
-- *Iteration 1:* Direkte Übertragung der Handrotation führte zu ruckartigen Bewegungen
-- *Iteration 2:* Einführung eines Smoothing-Algorithmus (Lerp mit Faktor 0.15) für flüssigere Bewegungen
-- *Iteration 3:* Implementierung einer "Dead Zone" von 2°, um unbeabsichtigte Mikrorotationen durch Hand-Zittern zu filtern
-
-**Positions-Lock:** Die `MoleculePositionLock.cs`-Komponente verhindert, dass Moleküle beim Rotieren versehentlich verschoben werden. Die Position wird beim Greifen fixiert und erst beim Loslassen wieder freigegeben.
-
-### 3.2.3 Hand-Rotation-Controller
-
-Der `HandRotationController.cs` erweitert die Interaktionsmöglichkeiten um eine zweihändige Manipulation:
-
-**Zwei-Hand-Skalierung:** Wenn beide Hände ein Molekül greifen, wird der Abstand zwischen den Händen zur Skalierung des Moleküls verwendet. Dies ermöglicht ein intuitives "Auseinanderziehen" zum Vergrößern.
-
-**Problemstellung:** Initial führte die gleichzeitige Rotation und Skalierung zu inkonsistentem Verhalten. Die Lösung bestand in einer Priorisierung: Bei Zwei-Hand-Interaktion wird ausschließlich skaliert, während Rotation nur bei Ein-Hand-Interaktion aktiv ist.
-
-### 3.2.4 Ray-Interaktion für UI-Elemente
-
-Für die Interaktion mit 2D-UI-Elementen (Buttons, Menüs) wurde eine Ray-basierte Interaktion implementiert:
-
-**Technische Umsetzung:** Von der Handposition ausgehend wird ein virtueller Strahl projiziert. Der Schnittpunkt mit UI-Elementen wird berechnet und visuell durch einen Laser-Pointer dargestellt. Die `RayInteractorDebug.cs`-Komponente diente während der Entwicklung zur Visualisierung und Fehlerdiagnose des Ray-Castings.
-
-**Begründung:** Während direktes Berühren für 3D-Objekte intuitiv ist, eignen sich Rays besser für UI-Elemente, da diese oft außerhalb der direkten Reichweite positioniert sind und präzisere Selektion erfordern.
+Der Viewer ermöglicht entdeckendes Lernen: Ein Schüler kann selbst herausfinden, dass alle Alkane tetraedrische Kohlenstoffatome haben, oder vergleichen, wie sich die Geometrie ändert, wenn Wasserstoff durch Fluor ersetzt wird. Diese Selbsterkundung festigt das im Tutorial erworbene Wissen.
 
 ---
 
-## 3.3 Molekülbibliothek und Suchfunktion
+## 3.2 Hardwarewahl
 
-### 3.3.1 Architektur der Moleküldatenbank
+Die Wahl der Hardware war eine kritische Entscheidung, die den gesamten Projekterfolg beeinflusste. Wir mussten abwägen zwischen technischen Möglichkeiten, Kosten, Praktikabilität im Schulalltag und Lerneffektivität.
 
-Die Molekülbibliothek wurde als hierarchisches System konzipiert:
+### 3.2.1 Meta Quest 3
 
-**ElementData.cs:** Definiert die Grundeigenschaften chemischer Elemente (Symbol, Name, Atommasse, Atomradius, CPK-Farbe nach dem Corey-Pauling-Koltun-Farbschema). Diese Daten sind als ScriptableObjects implementiert, was eine einfache Bearbeitung im Unity-Editor ermöglicht.
+Nach Evaluierung verschiedener VR-Systeme (HTC Vive, PlayStation VR, Valve Index) entschieden wir uns für die Meta Quest 3. Die Gründe:
 
-**ElementDatabase.cs:** Aggregiert alle ElementData-Objekte zu einer durchsuchbaren Datenbank. Die `MainElementDatabase.asset` enthält Einträge für die im Chemieunterricht relevanten Elemente (H, C, N, O, F, B, Cl, etc.).
+**Standalone-Betrieb:**
 
-**MoleculeData.cs:** Beschreibt vollständige Moleküle mit:
-- Liste der enthaltenen Atome und deren 3D-Positionen
-- Bindungsinformationen (Einfach-, Doppel-, Dreifachbindungen)
-- Molekülgeometrie-Klassifikation (linear, gewinkelt, trigonal-planar, trigonal-pyramidal, tetraedrisch)
-- Optionale Metadaten (IUPAC-Name, Summenformel, Strukturformel)
+Die Quest 3 benötigt keinen externen Computer. Dies ist für den Schuleinsatz entscheidend:
+- Kein IT-Administrator muss Gaming-PCs warten
+- Keine Verkabelung, die Stolperfallen erzeugt
+- Setup-Zeit unter 2 Minuten (Headset aufsetzen, fertig)
+- Transport zwischen Räumen problemlos möglich
 
-**MoleculeLibrary.cs:** Verwaltet die Sammlung aller verfügbaren Moleküle und stellt Suchmethoden bereit.
+Technisch basiert die Quest 3 auf einem Qualcomm Snapdragon XR2 Gen 2 Prozessor – im Wesentlichen ein leistungsstarkes Smartphone-SoC, das VR-Rendering ohne externe Hardware ermöglicht.
 
-### 3.3.2 PubChem-API-Integration
+**Mixed-Reality-Passthrough:**
 
-Um über die vordefinierten Moleküle hinaus flexibel auf chemische Strukturdaten zugreifen zu können, wurde eine Integration mit der PubChem-Datenbank des NIH (National Institutes of Health) implementiert:
+Die Quest 3 verfügt über hochauflösende Farbkameras, die die physische Umgebung in Echtzeit ins Headset übertragen. Für unsere Anwendung nutzen wir dies, um Moleküle in den realen Klassenzimmer-Kontext einzubetten. Schüler sehen nicht eine komplett virtuelle Welt, sondern ihre gewohnte Umgebung mit "schwebenden" Molekülmodellen.
 
-**PubChemAPI.cs:** Diese Klasse kapselt HTTP-Anfragen an die PubChem-REST-API. Moleküle können nach Name, Summenformel oder CID (Compound Identifier) gesucht werden. Die API liefert Strukturdaten im SDF-Format (Structure Data File).
+Vorteile des Passthrough-Ansatzes:
+- Reduzierte Desorientierung und Motion Sickness
+- Schüler können ihre Mitschüler und die Lehrkraft wahrnehmen
+- Einfacherer Wechsel zwischen VR-Nutzung und normalem Unterricht
 
-**SDFParser.cs:** Parst SDF-Dateien und extrahiert:
-- Atomkoordinaten (x, y, z)
-- Atomtypen (Elementnummern)
-- Bindungsmatrix (welche Atome sind verbunden, Bindungsordnung)
+**Inside-Out-Tracking:**
 
-**Problemstellungen und Lösungen:**
+Sechs integrierte Kameras erfassen die Umgebung und berechnen daraus die Position des Headsets im Raum (6 Freiheitsgrade: 3 für Position, 3 für Rotation). Gleichzeitig wird die Position der Hände des Nutzers erkannt.
 
-1. *Asynchrone Anfragen:* HTTP-Anfragen blockieren den Hauptthread und würden die VR-Erfahrung unterbrechen. Lösung: Verwendung von Unity Coroutines (`IEnumerator`) für nicht-blockierende Netzwerkanfragen.
+Dies eliminiert die Notwendigkeit externer Tracking-Stationen, die bei anderen Systemen (z.B. HTC Vive) im Raum montiert werden müssen. Für einen flexiblen Schuleinsatz wäre eine solche Installation unpraktisch.
 
-2. *3D-Koordinaten-Transformation:* PubChem liefert Koordinaten in Ångström (10⁻¹⁰ m), während Unity Meter verwendet. Zusätzlich musste das Koordinatensystem angepasst werden (PubChem: Y-up, rechthändig; Unity: Y-up, linkshändig).
+**Hand-Tracking:**
 
-3. *Fehlerbehandlung:* Netzwerkfehler, ungültige Molekülnamen und Timeout-Situationen werden abgefangen und dem Nutzer verständlich kommuniziert.
+Die Quest 3 erkennt individuelle Fingerbewegungen ohne zusätzliche Controller. Schüler können Moleküle "greifen", indem sie Daumen und Zeigefinger zusammenführen – eine intuitive Geste, die keine Einarbeitung erfordert.
 
-### 3.3.3 Molekül-Rendering
+Wir unterstützen dennoch auch Controller-Eingabe als Alternative:
+- Bei schwierigen Lichtverhältnissen (Hand-Tracking basiert auf Kamerabildern)
+- Für Nutzer, die haptisches Feedback bevorzugen
+- Bei motorischen Einschränkungen, die präzise Fingergesten erschweren
 
-Der `MoleculeRenderer.cs` ist für die visuelle Darstellung der Molekülstrukturen verantwortlich:
+**Technische Spezifikationen:**
 
-**Ball-and-Stick-Modell:** Atome werden als Kugeln dargestellt, deren Radius proportional zum Atomradius ist. Bindungen werden als Zylinder zwischen den Atompositionen gerendert.
+| Parameter | Wert |
+|-----------|------|
+| Display-Auflösung | 2064 × 2208 Pixel pro Auge |
+| Bildwiederholrate | 72/90/120 Hz |
+| Sichtfeld (FoV) | ~110° horizontal |
+| Tracking | 6DoF (Inside-Out) |
+| Akkulaufzeit | ca. 2 Stunden aktive Nutzung |
+| Gewicht | 515 g |
 
-**Shader-Entwicklung:** Der custom `MoleculeUnlit.shader` wurde entwickelt, um eine einheitliche, nicht-beleuchtungsabhängige Darstellung zu gewährleisten. Dies verhindert Schatteneffekte, die bei der Betrachtung aus verschiedenen Winkeln die Farbwahrnehmung verfälschen könnten.
+### 3.2.2 iPad-Interface
 
-**Farbcodierung:** Die CPK-Farbkonvention wird verwendet:
-- Wasserstoff: Weiß
-- Kohlenstoff: Grau/Schwarz
-- Stickstoff: Blau
-- Sauerstoff: Rot
-- Fluor: Grün
-- Bor: Rosa
+Ein fundamentales Problem beim VR-Einsatz im Unterricht: Die Lehrkraft kann nicht sehen, was die Schüler sehen, und hat keine Kontrolle über den Ablauf. Unsere Lösung: Ein Tablet als "Fernbedienung".
 
-**Performance-Optimierung:** Für komplexe Moleküle mit vielen Atomen wurde ein LOD-System (Level of Detail) implementiert. Ab einer Entfernung von 2m werden vereinfachte Geometrien verwendet, um die Framerate stabil bei 72 FPS zu halten.
+**Das Operator-Konzept:**
 
-### 3.3.4 Molekül-Suchanzeige
+Die Lehrkraft hält ein iPad in der Hand und kann darüber:
+- Das Tutorial für alle Schüler synchron starten und pausieren
+- Zwischen Lektionen navigieren (vor/zurück)
+- Bestimmte Moleküle für alle laden
+- Den Passthrough-Modus ein- und ausschalten
+- Den Systemstatus überwachen
 
-Die `MoleculeSearchUI.cs` implementiert eine VR-native Suchoberfläche:
+**Technische Realisierung:**
 
-**Virtuelle Tastatur:** Eine in der VR-Umgebung schwebende Tastatur ermöglicht die Texteingabe durch Zeigen und Auswählen. Die Anordnung entspricht dem QWERTZ-Layout für deutschsprachige Nutzer.
+Das iPad verbindet sich über WLAN mit dem VR-Headset. Die Kommunikation erfolgt über das WebSocket-Protokoll:
 
-**Autovervollständigung:** Nach Eingabe von mindestens drei Zeichen werden passende Molekülnamen aus der lokalen Datenbank vorgeschlagen. Dies reduziert Tippfehler und beschleunigt die Navigation.
+1. Die VR-Anwendung startet einen lokalen Server auf Port 8080
+2. Das iPad öffnet eine Web-App im Browser (keine Installation nötig)
+3. Über WebSockets werden Befehle in Echtzeit übertragen (Latenz <50ms)
+4. Die IP-Adresse wird als QR-Code im VR-Interface angezeigt – die Lehrkraft scannt ihn zum Verbinden
 
-**Ergebnisanzeige:** Gefundene Moleküle werden als interaktive 3D-Vorschaukarten dargestellt, die bei Auswahl das vollständige Molekülmodell laden.
+**Warum ein iPad?**
 
----
+- An vielen Schulen bereits vorhanden (Dienstgeräte für Lehrkräfte)
+- Keine Installation erforderlich – Web-App läuft im Browser
+- Große Bildschirmfläche für übersichtliche Bedienung
+- Andere Tablets (Android) funktionieren ebenfalls
 
-## 3.4 VR-Tutorial und Unterrichtsmodul
+**Pädagogischer Nutzen:**
 
-### 3.4.1 Didaktisches Konzept
+Das Operator-Konzept ermöglicht verschiedene Unterrichtsszenarien:
 
-Das Tutorial-System wurde nach konstruktivistischen Lernprinzipien entwickelt:
+1. **Geführter Unterricht:** Lehrkraft steuert, alle Schüler sehen dasselbe
+2. **Halboffene Exploration:** Lehrkraft gibt Molekül vor, Schüler explorieren frei
+3. **Vollständig offen:** Schüler arbeiten selbstständig, Lehrkraft beobachtet nur
 
-**Scaffolding:** Der Lerninhalt wird in aufeinander aufbauende Schritte gegliedert, wobei jeder Schritt auf dem Vorwissen des vorherigen aufbaut. Die Komplexität steigt graduell von einfachen Bindungstypen zu komplexen Molekülgeometrien.
-
-**Aktives Lernen:** Passive Informationsaufnahme wird durch interaktive Elemente ergänzt. Lernende können Moleküle manipulieren, Bindungswinkel selbst messen und Hypothesen durch Exploration überprüfen.
-
-**Multimodale Präsentation:** Informationen werden visuell (3D-Modelle, Texteinblendungen), auditiv (Erklärvideos) und kinästhetisch (Manipulation) präsentiert, um verschiedene Lerntypen anzusprechen.
-
-### 3.4.2 Tutorial-Architektur
-
-**TutorialStep.cs (ScriptableObject):** Jeder Tutorial-Schritt ist als ScriptableObject definiert mit:
-- Titel und Beschreibungstext
-- Zugehöriges Video (VideoClip-Referenz)
-- Liste der anzuzeigenden Molekül-Prefabs
-- Optionale Highlight-Bereiche (z.B. Winkelmarkierungen)
-- Bedingungen für den Fortschritt zum nächsten Schritt
-
-**TutorialManager.cs:** Koordiniert den Ablauf des Tutorials:
-- Lädt und entlädt Schritte dynamisch
-- Verwaltet den Video-Player (`VideoPlayer`-Komponente)
-- Synchronisiert Molekül-Spawning mit Video-Timestamps
-- Implementiert Vorwärts/Rückwärts-Navigation
-
-**TutorialEvent.cs:** Definiert Events, die während des Tutorials ausgelöst werden können (OnStepStarted, OnStepCompleted, OnMoleculeSpawned), um externe Systeme zu benachrichtigen.
-
-### 3.4.3 Video-Integration
-
-Die Integration von Erklärvideos stellte eine besondere technische Herausforderung dar:
-
-**Chroma-Key-Shader:** Videos wurden vor einem Greenscreen aufgenommen. Der `ChromaKeyShader.shader` entfernt die grüne Hintergrundfarbe in Echtzeit, sodass Videos als schwebende Präsentation in der VR-Umgebung erscheinen. Die Farbtoleranz wurde empirisch auf einen HSV-Bereich von 100-140° (Grün) mit einer Toleranz von ±15° optimiert.
-
-**Render-Texture-Pipeline:** Videos werden nicht direkt auf UI-Elemente gerendert, sondern zunächst in eine `TutorialVideoRT.renderTexture` geschrieben. Diese Textur wird dann auf eine 3D-Plane im Raum projiziert. Dieser Umweg ermöglicht:
-- Anwendung von Post-Processing-Effekten (Chroma-Key)
-- Flexible Positionierung und Skalierung der Video-Plane
-- Unabhängigkeit von der UI-Render-Pipeline
-
-**Problemstellung Video-Material:** Ein persistentes Problem war das "Pink-Material"-Phänomen: Nach dem Laden einer neuen Szene verlor die Video-Plane ihre Material-Referenz und erschien pink (Unity's Fallback für fehlende Shader). Die Lösung bestand darin, das Material als Asset zu speichern (`TutorialVideoMat.mat`) statt es zur Laufzeit zu generieren, sowie eine explizite Material-Zuweisung in `Awake()` zu erzwingen.
-
-### 3.4.4 Implementierte Tutorial-Schritte
-
-Die Tutorial-Sequenz umfasst neun Schritte, die in `Assets/Tutorial/Steps/` als ScriptableObjects gespeichert sind:
-
-| Schritt | Datei | Inhalt |
-|---------|-------|--------|
-| 1 | Step01_BondIntroduction.asset | Einführung in Bindungstypen (Einfach-, Doppel-, Dreifachbindung) |
-| 2 | Step02_MethanKeilstrich.asset | Keilstrich-Schreibweise am Beispiel Methan |
-| 3 | Step03_Molekuelgeometrie.asset | Konzept der räumlichen Molekülstruktur |
-| 4 | Step04_LinearerBau.asset | Linearer Molekülbau (CO₂, 180°) |
-| 5 | Step05_GewinkelterBau.asset | Gewinkelter Bau (H₂O, 104.5°) |
-| 6 | Step06_TrigonalPlanar.asset | Trigonal-planare Geometrie (BF₃, 120°) |
-| 7 | Step07_TrigonalPyramidal.asset | Trigonal-pyramidale Geometrie (NH₃, 107°) |
-| 8 | Step08_Tetraedrisch.asset | Tetraedrische Geometrie (CH₄, 109.5°) |
-| 9 | Step09_Abschluss.asset | Zusammenfassung und Abschlusstest |
-
-### 3.4.5 Dynamisches Molekül-Spawning
-
-Die Positionierung der Molekülmodelle während des Tutorials wurde iterativ optimiert:
-
-**Initiale Implementierung:** Moleküle wurden an festen Weltkoordinaten gespawnt. Problem: Bei unterschiedlichen Startpositionen der Nutzer waren Moleküle möglicherweise außerhalb des Sichtfeldes.
-
-**Iteration 2:** Moleküle werden relativ zur Kamera-Position gespawnt (0.6m vor dem Nutzer). Problem: Bei schnellen Kopfbewegungen "verfolgten" Moleküle den Nutzer, was Desorientierung verursachte.
-
-**Finale Lösung:** Moleküle werden bei Step-Beginn an einer Position 0.35m vor der aktuellen Blickrichtung gespawnt und dort fixiert. Die `MoleculePlaneAlignment.cs`-Komponente richtet planare Moleküle automatisch zur Kamera aus, sodass sie optimal sichtbar sind. Zusätzlich wurde eine Outline-Visualisierung für die Molekülebene implementiert, um die räumliche Ausdehnung zu verdeutlichen.
-
-**Überlappungsvermeidung:** Die Methode `GetNonOverlappingPosition()` prüft vor dem Spawning, ob die Zielposition mit bereits vorhandenen Molekülen oder UI-Elementen kollidiert, und verschiebt das neue Objekt gegebenenfalls.
-
-### 3.4.6 Winkel-Visualisierung
-
-Für das Verständnis von Bindungswinkeln wurde ein visuelles Hilfssystem entwickelt:
-
-**Winkel-Indikator:** Die `CreateAngleIndicator()`-Methode erzeugt einen bogenförmigen Mesh zwischen zwei Bindungen, der den Winkel visuell hervorhebt. Der Bogen wird prozedural generiert und passt sich dynamisch an verschiedene Winkelgrößen an.
-
-**Material-Persistenz:** Das Material für Winkelmarkierungen (`TutorialAngleMaterial.mat`) wird als Asset gespeichert, um das Pink-Material-Problem zu vermeiden (siehe 3.4.3).
-
-**Beschriftung:** Winkelwerte werden als TextMeshPro-Elemente in der Nähe des Bogens angezeigt. Die `FixOverlappingLabels()`-Methode verhindert, dass sich Beschriftungen gegenseitig überdecken.
+Die Trennung von Steuerung (Lehrkraft) und Erleben (Schüler) entspricht klassischen Unterrichtsrollen und erleichtert die Integration in bestehende didaktische Konzepte.
 
 ---
 
-## 3.5 Operator-Konzept und Stabilität
+## 3.3 Technische Umsetzung
 
-### 3.5.1 Rationale des Operator-Konzepts
+Nach der Klärung von "Was" (Programmkonzept) und "Womit" (Hardware) folgt nun das "Wie": Die softwaretechnische Implementierung.
 
-Das Operator-Konzept adressiert eine fundamentale Herausforderung des VR-Einsatzes im Unterricht: Die Lehrkraft muss den Lernprozess beobachten und steuern können, ohne selbst in der virtuellen Realität "gefangen" zu sein.
+Die Anwendung wurde in **Unity** entwickelt, einer Game-Engine, die auch für VR-Anwendungen weit verbreitet ist. Unity bietet:
+- Plattformübergreifende Entwicklung (Quest, PC, potenziell andere VR-Systeme)
+- Umfangreiche XR-Bibliotheken (XR Interaction Toolkit)
+- C# als Programmiersprache (robust, gut dokumentiert)
+- Visual Scripting für schnelle Prototypen
 
-**Pädagogische Begründung:**
-1. *Klassenmanagement:* Lehrkräfte müssen das Verhalten aller Schüler im Blick behalten, auch wenn diese VR-Headsets tragen
-2. *Synchronisation:* Gemeinsame Lernerfahrungen erfordern, dass alle Schüler denselben Inhalt sehen
-3. *Intervention:* Bei Verständnisproblemen muss die Lehrkraft gezielt eingreifen können
-4. *Assessment:* Die Beobachtung des Lernfortschritts erfordert Einblick in die Nutzeraktionen
+Die Projektstruktur umfasst ca. 25 C#-Skripte, organisiert in Module: Chemistry (Moleküllogik), Tutorial (Lernsequenz), VR (Interaktion), UI (Bedienoberfläche).
 
-### 3.5.2 WebSocket-Server-Implementierung
+### 3.3.1 Interaktivität
 
-Der WebSocket-Server (`WebSocketServer.cs`) bildet das Rückgrat der Operator-Kommunikation:
+Die Interaktion zwischen Nutzer und virtuellen Objekten ist das Kernmerkmal einer VR-Anwendung. Wir haben zwei Interaktionsebenen implementiert: **direkte Manipulation** für 3D-Objekte und **Ray-Casting** für UI-Elemente.
 
-**Architektur:** Der Server läuft als separater Thread innerhalb der Unity-Anwendung und lauscht auf Port 8080. Verbindungen werden über das WebSocket-Protokoll (RFC 6455) etabliert, das Full-Duplex-Kommunikation über eine einzelne TCP-Verbindung ermöglicht.
+**Direkte Manipulation (Moleküle):**
 
-**Befehlsprotokoll:** Befehle werden als JSON-Objekte übertragen:
-```json
-{
-  "command": "loadMolecule",
-  "parameters": {
-    "moleculeName": "methane",
-    "position": [0, 1.5, 2]
-  }
-}
+Molekülmodelle können durch "Greifen" manipuliert werden. Der technische Ablauf:
+
+1. **Gestenerkennung:** Das XR Interaction Toolkit erkennt eine "Pinch"-Geste (Daumen + Zeigefinger < 2cm Abstand) oder einen gedrückten Grip-Button am Controller.
+
+2. **Kollisionsprüfung:** Ein unsichtbarer Kollisions-Collider um die Hand prüft, ob sie ein Molekül berührt.
+
+3. **Attachment:** Bei erkanntem Griff wird das Molekül an die Hand "geheftet" – es folgt der Handbewegung.
+
+4. **Rotationsberechnung:** Die Differenz der Handorientierung zwischen Frames wird auf das Molekül übertragen. Ein Smoothing-Algorithmus (lineare Interpolation mit Faktor 0.15) verhindert ruckartige Bewegungen.
+
+5. **Release:** Beim Loslassen wird das Molekül an seiner aktuellen Position fixiert.
+
+**Implementierte Optimierungen:**
+
+- **Dead Zone:** Rotationen unter 2° werden ignoriert, um Hand-Zittern herauszufiltern
+- **Position Lock:** Während der Rotation bleibt die Position fixiert – kein versehentliches Verschieben
+- **Zwei-Hand-Skalierung:** Greifen mit beiden Händen ermöglicht Vergrößern/Verkleinern durch Auseinanderziehen
+
+**Ray-Casting (UI-Elemente):**
+
+Für Buttons, Menüs und Texteingaben eignet sich direkte Berührung weniger – die Elemente sind oft weiter entfernt oder erfordern präzise Selektion. Hier projizieren wir einen virtuellen "Laserstrahl" von der Hand:
+
+1. Von der Handfläche ausgehend wird ein Strahl in Blickrichtung berechnet
+2. Der erste Schnittpunkt mit einem UI-Element wird markiert (visuelles Feedback: Punkt auf dem Element)
+3. Eine Pinch-Geste an dieser Position löst einen "Klick" aus
+
+Dieser Ansatz ist von TV-Fernbedienungen inspiriert und intuitiv verständlich.
+
+**Controller-Fallback:**
+
+Alle Interaktionen funktionieren auch mit Controllern:
+- Trigger-Taste ersetzt Pinch-Geste
+- Grip-Taste ersetzt Greif-Geste
+- Thumbstick ermöglicht zusätzliche Navigation
+
+Die automatische Erkennung wechselt nahtlos zwischen Hand-Tracking und Controller-Modus.
+
+### 3.3.2 Tutorial-Element
+
+Das Tutorial-System koordiniert die Abfolge von Videos, Molekülen und Interaktionen. Die Architektur ist modular aufgebaut:
+
+**ScriptableObjects für Lektionen:**
+
+Jede Lektion ist als "ScriptableObject" definiert – eine Unity-Datenstruktur, die im Editor bearbeitet werden kann, ohne Code zu schreiben. Eine Lektion enthält:
+
+```
+TutorialStep:
+  - Titel: "Tetraedrischer Bau"
+  - Beschreibung: "Methan (CH₄) als Beispiel..."
+  - VideoClip: [Referenz auf MP4-Datei]
+  - MolekülPrefabs: [CH4Tetraedrisch, CH4Highlight]
+  - Winkelmarkierungen: [109.5° zwischen C-H-Bindungen]
+  - AutoAdvance: false (Nutzer muss manuell weiterklicken)
 ```
 
-**Implementierte Befehle:**
-- `loadMolecule`: Lädt ein Molekül in die Szene
-- `nextStep` / `previousStep`: Tutorial-Navigation
-- `resetPosition`: Setzt Molekülpositionen zurück
-- `togglePassthrough`: Aktiviert/deaktiviert Passthrough
-- `getStatus`: Fragt den aktuellen Systemzustand ab
+Dieser Ansatz ermöglicht es, neue Lektionen hinzuzufügen oder bestehende zu modifizieren, ohne den Programmcode zu ändern.
 
-**Thread-Sicherheit:** Da Unity nicht thread-safe ist, werden eingehende Befehle in eine Queue eingereiht und im Hauptthread (via `Update()`) verarbeitet. Dies verhindert Race Conditions und Abstürze.
+**TutorialManager – der Dirigent:**
 
-### 3.5.3 URL-Display-System
+Eine zentrale Komponente (`TutorialManager.cs`) koordiniert den Ablauf:
 
-Die `TabletURLDisplay.cs`-Komponente löst ein praktisches Problem: Wie erfährt die Lehrkraft die IP-Adresse des VR-Headsets, um sich zu verbinden?
+1. **Schritt laden:** Liest die ScriptableObject-Daten, instantiiert das Molekül-Prefab, startet das Video
+2. **Positionierung:** Moleküle erscheinen 35cm vor dem Nutzer (dynamisch berechnet basierend auf aktueller Kopfposition)
+3. **Synchronisation:** Video und Molekül-Highlights können zeitlich abgestimmt werden
+4. **Navigation:** Reagiert auf Nutzereingaben (Weiter/Zurück) oder Operator-Befehle
+5. **Cleanup:** Beim Schrittwechsel werden alte Moleküle entfernt, Ressourcen freigegeben
 
-**Lösung:** Die lokale IP-Adresse wird automatisch ermittelt und als QR-Code sowie als lesbarer Text im VR-Interface angezeigt. Die Lehrkraft kann diesen Code mit dem Tablet scannen, um die Verbindung herzustellen.
+**Video-Integration mit Chroma-Key:**
 
-**Netzwerk-Discovery:** Für Netzwerke mit dynamischer IP-Vergabe wurde ein mDNS-basierter Discovery-Mechanismus implementiert, der das VR-Headset unter einem festen Hostnamen (z.B. `vr-classroom.local`) erreichbar macht.
+Die Erklärvideos wurden vor einem Greenscreen aufgenommen. Ein selbstentwickelter Shader entfernt die grüne Farbe in Echtzeit:
 
-### 3.5.4 Stabilitätsmaßnahmen
+```
+// Pseudocode des Chroma-Key-Algorithmus:
+für jeden Pixel:
+  wenn (Farbton zwischen 100° und 140°) UND (Sättigung > 0.3):
+    setze Alpha = 0 (transparent)
+  sonst:
+    behalte Original
+```
 
-Die Stabilität des Systems wurde durch mehrere Maßnahmen sichergestellt:
+Das Ergebnis: Das Video "schwebt" frei im Raum, ohne störenden Hintergrund. Die Toleranzwerte wurden empirisch optimiert, um Randartefakte (grüne Ränder um Personen) zu minimieren.
+
+**Winkel-Visualisierung:**
+
+Bei Geometrie-Lektionen werden Bindungswinkel visuell hervorgehoben:
+
+1. **Bogen-Mesh:** Ein prozedural generierter Kreisbogen zwischen zwei Bindungen
+2. **Textlabel:** Die Gradzahl (z.B. "109,5°") schwebt neben dem Bogen
+3. **Farbcodierung:** Unterschiedliche Farben für verschiedene Winkeltypen
+
+Die Berechnung des Bogens erfolgt mathematisch: Gegeben zwei Vektoren (Bindungsrichtungen) vom Zentralatom wird der Winkel per Skalarprodukt bestimmt und ein Mesh aus Dreiecken aufgespannt.
+
+**Dynamisches Spawning:**
+
+Ein technisches Detail mit großer Auswirkung auf die User Experience: Wo erscheinen Moleküle?
+
+- **Problem:** Bei fixen Weltkoordinaten wären Moleküle je nach Startposition des Nutzers unterschiedlich weit entfernt oder gar außerhalb des Sichtfelds
+- **Lösung:** Moleküle erscheinen relativ zur aktuellen Kamera (Kopf) Position: 35cm vor dem Nutzer, leicht nach unten versetzt
+
+Zusätzlich prüft ein Algorithmus, ob die Zielposition bereits belegt ist (z.B. durch ein vorheriges Molekül) und verschiebt das neue Objekt gegebenenfalls.
+
+### 3.3.3 Molekülviewer
+
+Der Molekülviewer ist technisch komplexer als das Tutorial, da er dynamisch Moleküle aus verschiedenen Quellen laden und darstellen muss.
+
+**Datenarchitektur – vom Periodensystem zum Molekül:**
+
+Die Moleküldarstellung basiert auf einer dreistufigen Hierarchie:
+
+1. **ElementData:** Eigenschaften einzelner Elemente
+   - Symbol (H, C, N, O, ...)
+   - Atomradius (für die Kugelgröße im Modell)
+   - CPK-Farbe (standardisierte Farbkonvention: H=weiß, C=grau, N=blau, O=rot, ...)
+
+2. **MoleculeData:** Beschreibung eines konkreten Moleküls
+   - Liste der Atome mit 3D-Positionen (x, y, z)
+   - Bindungsmatrix (welche Atome sind verbunden, mit welcher Bindungsordnung)
+   - Metadaten (Name, Summenformel, Geometrie-Klassifikation)
+
+3. **MoleculeRenderer:** Visuelle Darstellung
+   - Erzeugt Kugeln für Atome (Radius proportional zum Atomradius)
+   - Erzeugt Zylinder für Bindungen (zwischen verbundenen Atomen)
+   - Wendet Materialien mit CPK-Farben an
+
+**Ball-and-Stick-Modell:**
+
+Wir verwenden das "Ball-and-Stick"-Modell (Kugelstab-Modell), das in der Chemiedidaktik weit verbreitet ist:
+- Atome als farbige Kugeln
+- Bindungen als graue Zylinder
+- Größenverhältnisse näherungsweise proportional zu realen Atomradien
+
+Alternativen wie das Kalottenmodell (raumfüllend) wurden verworfen, da Bindungen dort nicht sichtbar sind – für das Verständnis von Molekülgeometrie aber essentiell.
+
+**PubChem-Integration:**
+
+Für fortgeschrittene Nutzer haben wir einen Zugang zur PubChem-Datenbank des NIH (National Institutes of Health) integriert:
+
+1. **Suchanfrage:** Der Nutzer gibt einen Molekülnamen ein (z.B. "Aspirin")
+2. **API-Aufruf:** Eine HTTP-Anfrage an `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/SDF` ruft die Strukturdaten ab
+3. **SDF-Parsing:** Das zurückgegebene Structure Data File (SDF) wird geparst:
+   - Atomzeilen enthalten: x-Koordinate, y-Koordinate, z-Koordinate, Elementsymbol
+   - Bindungszeilen enthalten: Atom1-Index, Atom2-Index, Bindungsordnung
+4. **Koordinatentransformation:** PubChem-Koordinaten (Ångström, rechtshändiges System) werden in Unity-Koordinaten (Meter, linkshändiges System) umgerechnet
+5. **Rendering:** Das `MoleculeRenderer`-Modul erzeugt die visuelle Darstellung
 
 **Fehlerbehandlung:**
-- Try-Catch-Blöcke um kritische Operationen (Netzwerk, Datei-I/O)
-- Graceful Degradation: Bei Verbindungsverlust arbeitet die VR-Anwendung standalone weiter
-- Automatischer Reconnect: Der WebSocket-Client versucht alle 5 Sekunden, die Verbindung wiederherzustellen
 
-**Memory Management:**
-- Explizites Cleanup von Molekül-GameObjects beim Szenenwechsel (`ClearPlane()`-Methode)
-- Object Pooling für häufig instanziierte Objekte (Atome, Bindungen)
-- Texture-Komprimierung für Video-Assets zur Reduzierung des GPU-Speicherverbrauchs
+Netzwerkanfragen können fehlschlagen. Implementierte Absicherungen:
+- Timeout nach 10 Sekunden
+- Benutzerfreundliche Fehlermeldung bei ungültigem Molekülnamen
+- Offline-Fallback auf lokale Bibliothek
+- Retry-Mechanismus bei temporären Netzwerkproblemen
 
-**Performance-Monitoring:**
-- Die `RendererDebugger.cs`-Komponente protokolliert Frame-Zeiten und warnt bei Drops unter 72 FPS
-- Automatische LOD-Anpassung bei Performance-Problemen
-- Shader-Fallbacks für ältere GPU-Architekturen
+**Shader und Rendering:**
 
-### 3.5.5 Iterationen und Problembehebung
+Für eine konsistente Darstellung haben wir einen eigenen Shader entwickelt (`MoleculeUnlit.shader`):
 
-Die Entwicklung durchlief mehrere Iterationen, in denen kritische Probleme identifiziert und behoben wurden:
+- **Unlit (nicht beleuchtet):** Die Farben sind unabhängig von Lichtquellen immer gleich – wichtig für korrekte Farbwahrnehmung
+- **Mobile-optimiert:** Reduzierte Shader-Komplexität für flüssige Darstellung auf dem mobilen Quest-Chip
+- **Fallback:** Bei älteren GPUs wird automatisch ein einfacherer Shader verwendet
 
-**Problem 1: VR-Plane nicht sichtbar**
-*Symptom:* Die Molekülebene (Outline) war in manchen Situationen unsichtbar.
-*Ursache:* Die Berechnung der Molekülgröße (`moleculeRadius`) ergab bei einatomigen Molekülen 0, was zu einer Outline mit Größe 0 führte.
-*Lösung:* Implementierung eines Mindestradius von 0.1m und Fallback-Logik.
+**Performance-Optimierungen:**
 
-**Problem 2: Text-Überlappung**
-*Symptom:* Beschriftungen mehrerer Moleküle oder Winkel überlagerten sich und waren unleserlich.
-*Ursache:* Keine Kollisionserkennung bei der Text-Positionierung.
-*Lösung:* Implementierung von `FixOverlappingLabels()`, die alle TextMeshPro-Komponenten in der Szene findet und überlappende Elemente verschiebt.
+VR erfordert konstant hohe Frameraten (mindestens 72 FPS), sonst entsteht Motion Sickness. Unsere Maßnahmen:
 
-**Problem 3: Prefab-Positionierung**
-*Symptom:* Molekül-Prefabs erschienen zu weit rechts vom Video-Player.
-*Ursache:* Fester X-Offset, der nicht zur Videoposition passte.
-*Lösung:* Reduzierung des X-Offsets um 50% und Berechnung relativ zur Video-Plane-Position.
+1. **Level of Detail (LOD):** Ab 2m Entfernung werden vereinfachte Molekülgeometrien verwendet
+2. **Object Pooling:** Häufig verwendete Objekte (Atom-Kugeln, Bindungs-Zylinder) werden wiederverwendet statt ständig neu erzeugt
+3. **Texture-Komprimierung:** Videotexturen werden GPU-effizient komprimiert (ASTC-Format)
+4. **Draw Call Batching:** Ähnliche Objekte werden in einem einzigen Renderaufruf zusammengefasst
 
-**Problem 4: WebSocket-Verbindungsabbrüche**
-*Symptom:* Die Verbindung zum Operator-Tablet brach nach einigen Minuten Inaktivität ab.
-*Ursache:* TCP-Keep-Alive war nicht konfiguriert, und NAT-Router schlossen inaktive Verbindungen.
-*Lösung:* Implementierung von Ping-Pong-Frames alle 30 Sekunden gemäß WebSocket-Protokoll.
+**Benutzeroberfläche:**
 
-**Problem 5: Shader-Kompilierung auf Quest**
-*Symptom:* Pink-Material auf der Quest, während es im Editor funktionierte.
-*Ursache:* Der Shader verwendete Desktop-spezifische Features, die auf der mobilen GPU (Adreno) nicht verfügbar waren.
-*Lösung:* Entwicklung des `MoleculeUnlit.shader` mit explizitem Mobile-Target und Fallback-Subshader.
-
-### 3.5.6 Build-Konfiguration
-
-Der Build-Prozess wurde durch `BuildSetup.cs` im Editor automatisiert:
-
-**Android-Konfiguration:** Die Quest 3 läuft auf einer Android-Basis. Die Build-Einstellungen umfassen:
-- Minimum API Level: Android 10 (API 29)
-- Target API Level: Android 12 (API 31)
-- Scripting Backend: IL2CPP für bessere Performance
-- Architecture: ARM64
-
-**XR-Plug-ins:** Die Build-Pipeline aktiviert automatisch die korrekten XR-Loader (Oculus, OpenXR) basierend auf der Zielplattform.
-
-**Asset-Bundles:** Video-Assets werden als separate Asset-Bundles gebaut, um die initiale APK-Größe zu reduzieren. Downloads erfolgen bei Bedarf über den StreamingAssets-Ordner.
+Die Suchoberfläche im Molekülviewer umfasst:
+- Eine schwebende virtuelle Tastatur (QWERTZ-Layout für deutsche Nutzer)
+- Autovervollständigung nach 3 eingegebenen Zeichen
+- Ergebnisliste als scrollbare 3D-Karten mit Molekül-Vorschau
+- Kategoriefilter (organisch, anorganisch, curriculumsrelevant)
 
 ---
 
-## Zusammenfassung
+## Zusammenfassung des roten Fadens
 
-Die Systementwicklung des VR-Lernsystems für Molekülgeometrien war ein iterativer Prozess, der technische Herausforderungen mit pädagogischen Anforderungen in Einklang bringen musste. Die Wahl der Meta Quest 3 als Plattform ermöglichte einen flexiblen, kabellosen Einsatz im Klassenzimmer. Die Dual-Input-Strategie (Hand-Tracking und Controller) gewährleistet Zugänglichkeit für verschiedene Nutzergruppen. Die Molekülbibliothek mit PubChem-Integration bietet sowohl vorgefertigte Inhalte als auch Erweiterbarkeit. Das Tutorial-System verbindet multimediale Präsentation mit interaktiver Exploration. Schließlich ermöglicht das Operator-Konzept eine effektive Integration in den Unterrichtsablauf.
+Die Systementwicklung folgte einer klaren Logik:
 
-Die dokumentierten Iterationen und Problemlösungen verdeutlichen den experimentellen Charakter der Entwicklung und liefern wertvolle Erkenntnisse für zukünftige VR-Lernprojekte.
+1. **Pädagogisches Ziel definieren:** Schüler sollen Molekülgeometrien räumlich verstehen
+2. **Programmkonzept ableiten:** Tutorial für strukturiertes Lernen + Viewer für freie Exploration
+3. **Hardware wählen:** Meta Quest 3 für Standalone-VR + iPad für Lehrkraft-Kontrolle
+4. **Technisch umsetzen:** Unity-Engine mit modularer Architektur, intuitive Interaktion, robuste Moleküldarstellung
+
+Jede Entscheidung wurde durch die vorherige begründet: Die Wahl des Hand-Trackings folgt aus dem Ziel intuitiver Bedienung, dieses wiederum aus dem Wunsch, Einarbeitungszeit zu minimieren, was für den Schuleinsatz essentiell ist.
+
+Das Ergebnis ist eine Anwendung, die technische Komplexität vor dem Nutzer verbirgt und stattdessen eine nahtlose Lernerfahrung bietet – genau das, was gute Bildungstechnologie ausmacht.
