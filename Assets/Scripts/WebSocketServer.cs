@@ -526,275 +526,79 @@ public class WebSocketServer : MonoBehaviour
     private string GetEmbeddedHTML()
     {
         return @"<!DOCTYPE html>
-<html>
+<html lang=""de"">
 <head>
-    <meta charset=""UTF-8"">
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-    <title>Molecule Controller</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 600px; margin: 0 auto; }
-        .header {
-            background: rgba(255,255,255,0.95);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
-        }
-        h1 { color: #333; margin-bottom: 10px; }
-        .status { color: #666; font-size: 14px; }
-        .tutorial-box {
-            background: rgba(255,255,255,0.95);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .tutorial-box h2 { color: #333; margin-bottom: 15px; font-size: 18px; }
-        .tutorial-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .tutorial-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-start {
-            background: #22c55e;
-            color: white;
-        }
-        .btn-continue {
-            background: #3b82f6;
-            color: white;
-            display: none;
-        }
-        .btn-continue.visible { display: block; }
-        .btn-close {
-            background: #ef4444;
-            color: white;
-            display: none;
-        }
-        .btn-close.visible { display: block; }
-        .search-box {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        button:active { background: #5568d3; }
-        .molecules {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        .mol-btn {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            cursor: pointer;
-            font-weight: 600;
-            color: #333;
-        }
-        .mol-btn:active { transform: scale(0.95); }
-        .connected { color: #22c55e; }
-        .disconnected { color: #ef4444; }
-    </style>
+<meta charset=""UTF-8""><meta name=""viewport"" content=""width=device-width,initial-scale=1,user-scalable=no"">
+<title>Molek&uuml;l-Betrachter</title>
+<style>
+:root{--bg:#0f1117;--card:#1a1d27;--el:#252937;--acc:#6c8aff;--ok:#34d399;--err:#f87171;--t1:#e8eaed;--t2:#9aa0b0;--t3:#5c6378;--brd:rgba(255,255,255,.06);--r:14px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--bg);color:var(--t1);min-height:100dvh;padding:16px;-webkit-font-smoothing:antialiased}
+.c{max-width:520px;margin:0 auto}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:20px 0 24px}
+.br{display:flex;align-items:center;gap:12px}
+.bi{width:40px;height:40px;background:linear-gradient(135deg,var(--acc),#a78bfa);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(108,138,255,.3)}
+.br h1{font-size:20px;font-weight:700}.br span{display:block;font-size:12px;color:var(--t3);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+.sb{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--card);border:1px solid var(--brd)}
+.sd{width:7px;height:7px;border-radius:50%;background:var(--err)}
+.sb.on .sd{background:var(--ok);box-shadow:0 0 8px rgba(52,211,153,.5)}.sb.on{border-color:rgba(52,211,153,.2);background:rgba(52,211,153,.12)}
+.cd{background:var(--card);border:1px solid var(--brd);border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+.cl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:14px}
+.btn{flex:1;padding:14px 16px;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.3;pointer-events:none}
+.ba{background:linear-gradient(135deg,var(--acc),#8b7cf6);color:#fff;box-shadow:0 4px 12px rgba(108,138,255,.3)}
+.bc{background:linear-gradient(135deg,var(--ok),#2dd4a0);color:#064e36;box-shadow:0 4px 12px rgba(52,211,153,.3);font-size:16px}
+.bg{background:var(--el);color:var(--t2);border:1px solid var(--brd)}
+.bd{background:rgba(248,113,113,.12);color:var(--err);border:1px solid rgba(248,113,113,.15)}
+.row{display:flex;gap:10px}
+.sr{display:flex;gap:10px}
+.si{flex:1;padding:13px 16px;background:var(--el);border:1px solid var(--brd);border-radius:var(--r);color:var(--t1);font-size:15px;font-family:inherit;outline:none}
+.si:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(108,138,255,.25)}
+.si::placeholder{color:var(--t3)}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mt{background:var(--el);border:1px solid var(--brd);border-radius:var(--r);padding:16px 10px;text-align:center;cursor:pointer;transition:.2s}
+.mt:active{transform:scale(.95)}.mt .e{font-size:28px;margin-bottom:6px;display:block}.mt .n{font-size:13px;font-weight:600}.mt .f{font-size:11px;color:var(--t3);margin-top:2px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card);border:1px solid var(--brd);color:var(--t1);padding:12px 20px;border-radius:var(--r);font-size:14px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:100;pointer-events:none}
+.toast.v{transform:translateX(-50%) translateY(0)}
+.ft{text-align:center;padding:16px 0 8px;font-size:11px;color:var(--t3)}
+</style>
 </head>
 <body>
-    <div class=""container"">
-        <div class=""header"">
-            <h1>🧪 Molecule Viewer</h1>
-            <div class=""status"">
-                <span id=""status"" class=""disconnected"">● Connecting...</span>
-            </div>
-        </div>
-        
-        <div class=""tutorial-box"">
-            <h2>📚 Tutorial</h2>
-            <div class=""tutorial-buttons"">
-                <button class=""tutorial-btn btn-start"" id=""btnStart"" onclick=""tutorialStart()"">▶ Start Tutorial</button>
-                <button class=""tutorial-btn btn-continue"" id=""btnContinue"" onclick=""tutorialContinue()"">➡ Continue</button>
-                <button class=""tutorial-btn btn-close"" id=""btnClose"" onclick=""tutorialClose()"">✕ Close</button>
-            </div>
-        </div>
-        
-        <div class=""search-box"">
-            <input type=""text"" id=""searchInput"" placeholder=""Enter molecule name..."">
-            <button onclick=""searchMolecule()"">Load Molecule</button>
-        </div>
-        
-        <div class=""molecules"">
-            <div class=""mol-btn"" onclick=""loadMolecule('water')"">Water</div>
-            <div class=""mol-btn"" onclick=""loadMolecule('ethanol')"">Ethanol</div>
-            <div class=""mol-btn"" onclick=""loadMolecule('benzene')"">Benzene</div>
-            <div class=""mol-btn"" onclick=""loadMolecule('methane')"">Methane</div>
-            <div class=""mol-btn"" onclick=""loadMolecule('propanon')"">Propanon</div>
-            <div class=""mol-btn"" onclick=""loadMolecule('ammonia')"">Ammonia</div>
-        </div>
-    </div>
-    
-    <script>
-        console.log('[TABLET] Script loaded at', new Date().toISOString());
-        let ws;
-        let tutorialActive = false;
-        const statusEl = document.getElementById('status');
-        const btnStart = document.getElementById('btnStart');
-        const btnContinue = document.getElementById('btnContinue');
-        const btnClose = document.getElementById('btnClose');
-        console.log('[TABLET] Elements found:', {statusEl, btnStart, btnContinue, btnClose});
-        
-        function connect() {
-            // Connect to same host but with ws protocol (no specific path needed)
-            const wsUrl = 'ws://' + window.location.host;
-            console.log('Attempting WebSocket connection to:', wsUrl);
-            
-            try {
-                ws = new WebSocket(wsUrl);
-            } catch (err) {
-                console.error('Failed to create WebSocket:', err);
-                statusEl.textContent = '● Connection failed';
-                statusEl.className = 'disconnected';
-                setTimeout(connect, 2000);
-                return;
-            }
-            
-            ws.onopen = () => {
-                console.log('WebSocket connected');
-                statusEl.textContent = '● Connected';
-                statusEl.className = 'connected';
-            };
-            
-            ws.onclose = () => {
-                console.log('WebSocket closed');
-                statusEl.textContent = '● Disconnected';
-                statusEl.className = 'disconnected';
-                setTimeout(connect, 2000);
-            };
-            
-            ws.onmessage = (e) => {
-                console.log('Received message:', e.data);
-                try {
-                    const data = JSON.parse(e.data);
-                    if (data.type === 'loaded') {
-                        statusEl.textContent = '● Loaded: ' + data.molecule + ' (' + data.atoms + ' atoms)';
-                    } else if (data.type === 'error') {
-                        statusEl.textContent = '● Error: ' + data.message;
-                    } else if (data.type === 'status') {
-                        statusEl.textContent = '● ' + data.message;
-                    } else if (data.type === 'tutorial') {
-                        handleTutorialStatus(data);
-                    } else if (data.type === 'tutorialContinue') {
-                        btnContinue.classList.add('visible');
-                    }
-                } catch (err) {
-                    console.error('Parse error:', err);
-                }
-            };
-            
-            ws.onerror = (err) => {
-                console.error('WebSocket error:', err);
-                statusEl.textContent = '● Connection error';
-                statusEl.className = 'disconnected';
-            };
-        }
-        
-        function handleTutorialStatus(data) {
-            if (data.status === 'started') {
-                tutorialActive = true;
-                btnStart.style.display = 'none';
-                btnClose.classList.add('visible');
-                statusEl.textContent = '● Tutorial started';
-            } else if (data.status === 'closed') {
-                tutorialActive = false;
-                btnStart.style.display = 'block';
-                btnContinue.classList.remove('visible');
-                btnClose.classList.remove('visible');
-                statusEl.textContent = '● Tutorial closed';
-            } else if (data.status === 'continued') {
-                btnContinue.classList.remove('visible');
-            } else if (data.status === 'waitingContinue') {
-                btnContinue.classList.add('visible');
-            }
-        }
-        
-        function tutorialStart() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'tutorial', action: 'start' }));
-            }
-        }
-        
-        function tutorialContinue() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'tutorial', action: 'continue' }));
-            }
-        }
-        
-        function tutorialClose() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'tutorial', action: 'close' }));
-            }
-        }
-        
-        function loadMolecule(name) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'load', molecule: name }));
-                statusEl.textContent = '● Loading ' + name + '...';
-            } else {
-                statusEl.textContent = '● Not connected!';
-                statusEl.className = 'disconnected';
-            }
-        }
-        
-        function searchMolecule() {
-            const input = document.getElementById('searchInput');
-            const name = input.value.trim();
-            if (name) {
-                loadMolecule(name);
-                input.value = '';
-            }
-        }
-        
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchMolecule();
-            }
-        });
-        
-        connect();
-    </script>
+<div class=""c"">
+<div class=""hd""><div class=""br""><div class=""bi"">&#9883;</div><div><h1>Molek&uuml;l-Betrachter</h1><span>VR Lernumgebung</span></div></div><div class=""sb"" id=""sb""><div class=""sd""></div><span id=""st"">Verbinde&hellip;</span></div></div>
+<div class=""cd""><div class=""cl"">Tutorial</div>
+<div id=""idle"" class=""row""><button class=""btn ba"" onclick=""tS()"">&#9654; Tutorial starten</button></div>
+<div id=""act"" style=""display:none""><div class=""row"" style=""margin-bottom:10px""><button class=""btn bg"" id=""bp"" onclick=""tP()"">&lsaquo; Zur&uuml;ck</button><button class=""btn bc"" id=""bn"" onclick=""tN()"">Weiter &rsaquo;</button></div><button class=""btn bd"" onclick=""tC()"" style=""width:100%"">Tutorial beenden</button></div>
+</div>
+<div class=""cd""><div class=""cl"">Molek&uuml;l laden</div><div class=""sr""><input class=""si"" type=""text"" id=""q"" placeholder=""z.B. Aspirin, Glucose&hellip;"" autocomplete=""off""><button class=""btn ba"" onclick=""sM()"" style=""flex-shrink:0;padding:13px 20px"">Laden</button></div></div>
+<div class=""cd""><div class=""cl"">Schnellauswahl</div><div class=""mg"">
+<div class=""mt"" onclick=""lM('water')""><span class=""e"">&#128167;</span><div class=""n"">Wasser</div><div class=""f"">H&#8322;O</div></div>
+<div class=""mt"" onclick=""lM('ethanol')""><span class=""e"">&#129514;</span><div class=""n"">Ethanol</div><div class=""f"">C&#8322;H&#8325;OH</div></div>
+<div class=""mt"" onclick=""lM('benzene')""><span class=""e"">&#11041;</span><div class=""n"">Benzol</div><div class=""f"">C&#8326;H&#8326;</div></div>
+<div class=""mt"" onclick=""lM('methane')""><span class=""e"">&#128311;</span><div class=""n"">Methan</div><div class=""f"">CH&#8324;</div></div>
+<div class=""mt"" onclick=""lM('propanon')""><span class=""e"">&#9879;</span><div class=""n"">Propanon</div><div class=""f"">C&#8323;H&#8326;O</div></div>
+<div class=""mt"" onclick=""lM('ammonia')""><span class=""e"">&#128168;</span><div class=""n"">Ammoniak</div><div class=""f"">NH&#8323;</div></div>
+</div></div>
+<div class=""ft"">Jugend Forscht &middot; Meta Quest 3 &middot; Molekulare Geometrie</div>
+</div>
+<div class=""toast"" id=""toast""></div>
+<script>
+var ws,ta=false,cu=0,tu=11,wc=false;
+function cn(){var u='ws://'+location.host+'/ws';ws=new WebSocket(u);
+ws.onopen=function(){document.getElementById('sb').className='sb on';document.getElementById('st').textContent='Verbunden'};
+ws.onclose=function(){document.getElementById('sb').className='sb';document.getElementById('st').textContent='Getrennt';setTimeout(cn,2000)};
+ws.onmessage=function(e){try{var d=JSON.parse(e.data);if(d.type==='loaded')sT(d.molecule+' geladen');else if(d.type==='error')sT('Fehler: '+d.message);else if(d.type==='status')sT(d.message);else if(d.type==='tutorial'){if(d.status==='started'){ta=true;cu=1;wc=false;uU()}else if(d.status==='closed'){ta=false;cu=0;wc=false;uU()}else if(d.status==='continued'){cu++;wc=false;if(cu>tu){ta=false;cu=0}uU()}else if(d.status==='previous'){cu=Math.max(1,cu-1);wc=false;uU()}else if(d.status==='waitingContinue'){wc=true;if(d.unit!==undefined)cu=d.unit+1;uU()}}}catch(x){}};ws.onerror=function(){}}
+function uU(){if(ta){document.getElementById('idle').style.display='none';document.getElementById('act').style.display='block';document.getElementById('bp').disabled=cu<=1;document.getElementById('bn').disabled=!wc;document.getElementById('bn').innerHTML=cu>=tu?'\u2713 Fertig':'Weiter \u203A'}else{document.getElementById('idle').style.display='flex';document.getElementById('act').style.display='none'}}
+function sd(o){if(ws&&ws.readyState===1){ws.send(JSON.stringify(o));return true}sT('Keine Verbindung');return false}
+function tS(){sd({type:'tutorial',action:'start'})}function tC(){sd({type:'tutorial',action:'close'})}
+function tN(){cu>=tu?sd({type:'tutorial',action:'close'}):sd({type:'tutorial',action:'continue'})}
+function tP(){sd({type:'tutorial',action:'previous'})}
+function lM(n){if(sd({type:'load',molecule:n}))sT('Lade '+n+'\u2026')}
+function sM(){var n=document.getElementById('q').value.trim();if(n){lM(n);document.getElementById('q').value=''}}
+document.getElementById('q').addEventListener('keypress',function(e){if(e.key==='Enter')sM()});
+var tt;function sT(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('v');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('v')},2500)}
+uU();cn();
+</script>
 </body>
 </html>";
     }

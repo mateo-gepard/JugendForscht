@@ -1,9 +1,17 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections.Generic;
 
 /// <summary>
 /// Rendert ein Molekül als 3D-Objekt (Ball-and-Stick Model)
 /// Mit Unterstützung für stereochemische Darstellung (Keil/Strich)
+/// 
+/// Quest 3 Performance-Optimierungen:
+///   - Low-poly Meshes (Icosphere 42v statt Unity Sphere 515v)
+///   - Atom Mesh-Combining (alle Atome gleichen Elements → 1 Draw Call)
+///   - Keine Bond-Collider (nur Atoms haben Collider)
+///   - Debounced Bond Re-Rendering (max 5×/s statt jedes Frame)
+///   - GPU Instancing auf allen Materials
 /// </summary>
 public class MoleculeRenderer : MonoBehaviour
 {
@@ -39,11 +47,20 @@ public class MoleculeRenderer : MonoBehaviour
     private MoleculeData currentMolecule;
     private List<GameObject> atomObjects = new List<GameObject>();
     private List<GameObject> bondObjects = new List<GameObject>();
-    
+    private List<GameObject> combinedAtomObjects = new List<GameObject>();
+
     // Cached materials to prevent grey flashes
     private Material cachedBondMaterial;
     private Material cachedDashedMaterial;
-    
+
+    // Bond re-render debounce
+    private float lastBondRerenderTime;
+    private const float BOND_RERENDER_INTERVAL = 0.2f; // max 5×/s
+    private bool bondRerenderPending;
+
+    // Atom data cache for O(1) lookup
+    private Dictionary<int, AtomData> atomLookup;
+
     /// <summary>
     /// Gets the current molecule data
     /// </summary>
@@ -71,13 +88,15 @@ public class MoleculeRenderer : MonoBehaviour
 
         currentMolecule = moleculeData;
 
+        // Build O(1) atom lookup dictionary
+        BuildAtomLookup();
+
         Debug.Log($"[MoleculeRenderer] Rendering {moleculeData.name}: {moleculeData.atoms.Count} atoms, {moleculeData.bonds.Count} bonds");
 
         // Calculate scale based on atom count
-        // 5 atoms = 100%, 50 atoms = 50%, decrease 5% per 5 atoms
         float scale = CalculateMoleculeScale(moleculeData.atoms.Count);
         transform.localScale = Vector3.one * scale;
-        
+
         Debug.Log($"[MoleculeRenderer] Molecule scale: {scale:F2}x for {moleculeData.atoms.Count} atoms");
 
         // Render Atoms
@@ -92,13 +111,16 @@ public class MoleculeRenderer : MonoBehaviour
             planeAlignment.InitializeForMolecule(moleculeData);
         }
 
-        // Render Bonds (mit Stereo-Klassifikation falls aktiviert)
+        // Render Bonds
         foreach (var bond in moleculeData.bonds)
         {
             RenderBond(bond);
         }
 
-        Debug.Log($"[MoleculeRenderer] Successfully rendered molecule");
+        // ── Performance: Combine atom meshes per material ──
+        CombineAtomMeshes();
+
+        Debug.Log($"[MoleculeRenderer] Rendered: {combinedAtomObjects.Count} combined atom batches, {bondObjects.Count} bond objects");
     }
 
     /// <summary>
@@ -107,47 +129,78 @@ public class MoleculeRenderer : MonoBehaviour
     /// </summary>
     private float CalculateMoleculeScale(int atomCount)
     {
-        // Base atom count (no scaling)
         const int baseAtomCount = 5;
-        
-        // Scale reduction per 5 atoms: 25% reduction per 5-atom step
-        // Every 5 atoms reduces scale by 25% (more aggressive)
         int atomSteps = (atomCount - baseAtomCount) / 5;
-        
-        // Calculate scale: reduce by 25% for each 5-atom step
         float scale = 1.0f - (atomSteps * 0.25f);
-        
-        // Clamp to reasonable range (minimum 15%, maximum 100%)
         scale = Mathf.Clamp(scale, 0.15f, 1.0f);
-        
-        // Round to nearest 5% step for cleaner values
-        scale = Mathf.Round(scale * 20f) / 20f; // Round to 0.05 increments
-        
-        Debug.Log($"[MoleculeScale] Atoms: {atomCount}, Steps: {atomSteps}, Scale: {scale:P0}");
-        
+        scale = Mathf.Round(scale * 20f) / 20f;
         return scale;
     }
 
+    // ════════════════════════════════════════════════════════════
+    // ATOM LOOKUP (O(1) instead of O(n))
+    // ════════════════════════════════════════════════════════════
+
+    private void BuildAtomLookup()
+    {
+        atomLookup = new Dictionary<int, AtomData>(currentMolecule.atoms.Count);
+        foreach (var atom in currentMolecule.atoms)
+        {
+            atomLookup[atom.id] = atom;
+        }
+    }
+
+    private AtomData GetAtomFast(int id)
+    {
+        if (atomLookup != null && atomLookup.TryGetValue(id, out AtomData atom))
+            return atom;
+        // Fallback to linear search
+        return currentMolecule.GetAtom(id);
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // BOND RE-RENDER DEBOUNCE
+    // ════════════════════════════════════════════════════════════
+
+    private void Update()
+    {
+        if (bondRerenderPending && Time.time - lastBondRerenderTime >= BOND_RERENDER_INTERVAL)
+        {
+            bondRerenderPending = false;
+            DoRerenderBonds();
+        }
+    }
+
     /// <summary>
-    /// Re-renders only the bonds without reinitializing the plane
-    /// Used during rotation to update bond stereochemistry
+    /// Re-renders only the bonds without reinitializing the plane.
+    /// Debounced to max 5×/second to avoid GC pressure on Quest 3.
     /// </summary>
     public void RerenderBondsOnly()
     {
         if (currentMolecule == null) return;
 
-        // Disable renderers first to prevent flashing, then destroy immediately
-        foreach (var bondObj in bondObjects)
+        // Debounce: only re-render at most every BOND_RERENDER_INTERVAL seconds
+        if (Time.time - lastBondRerenderTime < BOND_RERENDER_INTERVAL)
         {
-            if (bondObj != null)
+            bondRerenderPending = true;
+            return;
+        }
+
+        DoRerenderBonds();
+    }
+
+    private void DoRerenderBonds()
+    {
+        lastBondRerenderTime = Time.time;
+
+        // Destroy existing bonds
+        for (int i = bondObjects.Count - 1; i >= 0; i--)
+        {
+            if (bondObjects[i] != null)
             {
-                // Disable renderer before destroying to prevent grey flash
-                Renderer renderer = bondObj.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.enabled = false;
-                }
-                DestroyImmediate(bondObj);
+                var r = bondObjects[i].GetComponent<Renderer>();
+                if (r != null) r.enabled = false;
+                Destroy(bondObjects[i]);
             }
         }
         bondObjects.Clear();
@@ -159,164 +212,201 @@ public class MoleculeRenderer : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Rendert ein einzelnes Atom
-    /// </summary>
+    // ════════════════════════════════════════════════════════════
+    // ATOM RENDERING (low-poly + mesh combining)
+    // ════════════════════════════════════════════════════════════
+
     private void RenderAtom(AtomData atom)
     {
-        if (atomSpherePrefab == null)
-        {
-            atomSpherePrefab = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            atomSpherePrefab.SetActive(false);
-        }
-
         // Get element data
         ElementData element = elementDatabase.GetElement(atom.element);
+        Material mat = ShaderIncluder.GetMaterialForElement(atom.element);
 
-        // Instantiate sphere
-        GameObject atomObj = Instantiate(atomSpherePrefab, transform);
-        atomObj.name = $"Atom_{atom.id}_{atom.element}";
-        atomObj.SetActive(true);
+        // Create lightweight GameObject with low-poly mesh (no prefab needed)
+        GameObject atomObj = new GameObject($"Atom_{atom.id}_{atom.element}");
+        atomObj.transform.SetParent(transform, false);
 
-        // Position (Angström → Meter, mit Bond-Length-Multiplikator)
+        MeshFilter mf = atomObj.AddComponent<MeshFilter>();
+        mf.sharedMesh = LowPolyMeshes.GetSphere();
+
+        MeshRenderer mr = atomObj.AddComponent<MeshRenderer>();
+        mr.sharedMaterial = mat;
+        mr.shadowCastingMode = ShadowCastingMode.Off;
+        mr.receiveShadows = false;
+        mr.lightProbeUsage = LightProbeUsage.Off;
+        mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+        // Position (Angström → Meter)
         atomObj.transform.localPosition = atom.position * angstromToMeter * bondLengthMultiplier;
 
         // Size (Van der Waals radius)
         float displayRadius = element.vdwRadius * atomScaleFactor * angstromToMeter;
-        atomObj.transform.localScale = Vector3.one * displayRadius * 2f; // Diameter
+        atomObj.transform.localScale = Vector3.one * displayRadius * 2f;
 
-        // Color (use ShaderIncluder for standalone-safe materials)
-        Renderer renderer = atomObj.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            // Use ShaderIncluder for guaranteed shader availability in standalone builds
-            renderer.sharedMaterial = ShaderIncluder.GetMaterialForElement(atom.element);
-        }
+        // Add a small sphere collider for interaction (optional)
+        SphereCollider collider = atomObj.AddComponent<SphereCollider>();
+        collider.radius = 0.5f;
 
         atomObjects.Add(atomObj);
     }
 
-    /// <summary>
-    /// Rendert eine Bindung zwischen zwei Atomen
-    /// Mit optionaler stereochemischer Darstellung
-    /// </summary>
-    private void RenderBond(BondData bond)
-    {
-        // Get atom positions
-        AtomData atomA = currentMolecule.GetAtom(bond.atomA_ID);
-        AtomData atomB = currentMolecule.GetAtom(bond.atomB_ID);
+    // ════════════════════════════════════════════════════════════
+    // ATOM MESH COMBINING (reduces draw calls dramatically)
+    // ════════════════════════════════════════════════════════════
 
-        if (atomA == null || atomB == null)
+    private void CombineAtomMeshes()
+    {
+        if (atomObjects.Count == 0) return;
+
+        // Group atoms by material
+        var groups = new Dictionary<Material, List<CombineInstance>>();
+
+        foreach (var atomObj in atomObjects)
         {
-            Debug.LogWarning($"[MoleculeRenderer] Bond references invalid atoms: {bond.atomA_ID} -> {bond.atomB_ID}");
-            return;
+            if (atomObj == null) continue;
+            MeshFilter mf = atomObj.GetComponent<MeshFilter>();
+            MeshRenderer mr = atomObj.GetComponent<MeshRenderer>();
+            if (mf == null || mf.sharedMesh == null || mr == null) continue;
+
+            Material mat = mr.sharedMaterial;
+            if (!groups.ContainsKey(mat))
+                groups[mat] = new List<CombineInstance>();
+
+            groups[mat].Add(new CombineInstance
+            {
+                mesh = mf.sharedMesh,
+                transform = transform.worldToLocalMatrix * atomObj.transform.localToWorldMatrix
+            });
         }
 
-        // Stereo-Klassifikation falls aktiviert
+        // Create one combined mesh per material
+        foreach (var kvp in groups)
+        {
+            GameObject combined = new GameObject("CombinedAtoms_" + kvp.Key.name);
+            combined.transform.SetParent(transform, false);
+            combined.transform.localPosition = Vector3.zero;
+            combined.transform.localRotation = Quaternion.identity;
+            combined.transform.localScale = Vector3.one;
+
+            MeshFilter mf = combined.AddComponent<MeshFilter>();
+            MeshRenderer mr = combined.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = kvp.Key;
+            mr.shadowCastingMode = ShadowCastingMode.Off;
+            mr.receiveShadows = false;
+            mr.lightProbeUsage = LightProbeUsage.Off;
+            mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+            Mesh mesh = new Mesh();
+            // Use 32-bit indices for large molecules (>65k vertices)
+            if (kvp.Value.Count * 42 > 65000)
+                mesh.indexFormat = IndexFormat.UInt32;
+
+            mesh.CombineMeshes(kvp.Value.ToArray(), true, true);
+            mesh.RecalculateBounds();
+            mf.sharedMesh = mesh;
+
+            combinedAtomObjects.Add(combined);
+        }
+
+        // Destroy individual atom GameObjects (no longer needed)
+        foreach (var obj in atomObjects)
+        {
+            if (obj != null) Destroy(obj);
+        }
+        atomObjects.Clear();
+
+        Debug.Log($"[MoleculeRenderer] Combined atoms into {combinedAtomObjects.Count} draw calls");
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // BOND RENDERING (low-poly, no colliders)
+    // ════════════════════════════════════════════════════════════
+
+    private void RenderBond(BondData bond)
+    {
+        AtomData atomA = GetAtomFast(bond.atomA_ID);
+        AtomData atomB = GetAtomFast(bond.atomB_ID);
+
+        if (atomA == null || atomB == null) return;
+
+        // Stereo classification
         BondStereo stereoType = bond.stereo;
-        
-        // Debug: Check stereo display conditions
-        Debug.Log($"[MoleculeRenderer] Bond {bond.atomA_ID}->{bond.atomB_ID}: enableStereoDisplay={enableStereoDisplay}, planeAlignment={(planeAlignment != null ? "present" : "NULL")}");
-        
         if (enableStereoDisplay && planeAlignment != null)
         {
             stereoType = planeAlignment.ClassifyBond(bond);
         }
-        else
-        {
-            Debug.LogWarning($"[MoleculeRenderer] Skipping stereo classification - enableStereoDisplay={enableStereoDisplay}, planeAlignment={(planeAlignment != null ? "present" : "NULL")}");
-        }
 
-        // Get element data for radius calculation
         ElementData elementA = elementDatabase.GetElement(atomA.element);
         ElementData elementB = elementDatabase.GetElement(atomB.element);
 
         Vector3 posA = atomA.position * angstromToMeter * bondLengthMultiplier;
         Vector3 posB = atomB.position * angstromToMeter * bondLengthMultiplier;
 
-        // Calculate display radii
         float radiusA = elementA.vdwRadius * atomScaleFactor * angstromToMeter;
         float radiusB = elementB.vdwRadius * atomScaleFactor * angstromToMeter;
 
-        // Direction and distance
         Vector3 direction = posB - posA;
         float fullDistance = direction.magnitude;
-        Vector3 directionNormalized = direction.normalized;
+        Vector3 dirNorm = direction.normalized;
 
-        // Shorten bond to stop at atom surfaces
-        Vector3 bondStart = posA + directionNormalized * radiusA;
-        Vector3 bondEnd = posB - directionNormalized * radiusB;
+        Vector3 bondStart = posA + dirNorm * radiusA;
+        Vector3 bondEnd = posB - dirNorm * radiusB;
         float bondLength = (bondEnd - bondStart).magnitude;
 
-        // Safety check: if atoms overlap, don't render bond
-        if (bondLength <= 0)
-        {
-            return;
-        }
+        if (bondLength <= 0) return;
 
-        // Render basierend auf Stereo-Typ
         switch (stereoType)
         {
             case BondStereo.Up:
-                RenderWedgeBond(bondStart, bondEnd, directionNormalized, bondLength);
+                RenderWedgeBond(bondStart, bondEnd, dirNorm, bondLength);
                 break;
             case BondStereo.Down:
-                RenderDashedBond(bondStart, bondEnd, directionNormalized, bondLength);
+                RenderDashedBond(bondStart, bondEnd, dirNorm, bondLength);
                 break;
             default:
-                RenderNormalBond(bondStart, bondEnd, directionNormalized, bondLength);
+                RenderNormalBond(bondStart, bondEnd, dirNorm, bondLength);
                 break;
         }
     }
 
     /// <summary>
-    /// Normal Bond (Zylinder)
+    /// Creates a bond cylinder using low-poly mesh (no collider).
     /// </summary>
+    private GameObject CreateBondCylinder(string name)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(transform, false);
+
+        MeshFilter mf = obj.AddComponent<MeshFilter>();
+        mf.sharedMesh = LowPolyMeshes.GetCylinder();
+
+        MeshRenderer mr = obj.AddComponent<MeshRenderer>();
+        mr.shadowCastingMode = ShadowCastingMode.Off;
+        mr.receiveShadows = false;
+        mr.lightProbeUsage = LightProbeUsage.Off;
+        mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+        if (cachedBondMaterial == null)
+            cachedBondMaterial = ShaderIncluder.GetBondMaterial();
+        mr.sharedMaterial = cachedBondMaterial;
+
+        return obj;
+    }
+
     private void RenderNormalBond(Vector3 start, Vector3 end, Vector3 direction, float length)
     {
-        if (bondCylinderPrefab == null)
-        {
-            bondCylinderPrefab = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            bondCylinderPrefab.SetActive(false);
-        }
-
-        GameObject bondObj = Instantiate(bondCylinderPrefab, transform);
-        bondObj.name = $"Bond_Normal";
-        bondObj.SetActive(true);
+        GameObject bondObj = CreateBondCylinder("Bond_Normal");
 
         Vector3 midpoint = (start + end) / 2f;
         bondObj.transform.localPosition = midpoint;
         bondObj.transform.localRotation = Quaternion.FromToRotation(Vector3.up, direction);
         bondObj.transform.localScale = new Vector3(bondRadius, length / 2f, bondRadius);
 
-        Renderer renderer = bondObj.GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            if (cachedBondMaterial == null)
-            {
-                cachedBondMaterial = ShaderIncluder.GetBondMaterial();
-            }
-            renderer.sharedMaterial = cachedBondMaterial;
-        }
-        
-        // Make collider only cover middle 10% of bond
-        CapsuleCollider collider = bondObj.GetComponent<CapsuleCollider>();
-        if (collider != null)
-        {
-            collider.height = 0.1f; // 10% of original height (which is 1.0 in local space)
-            // Collider stays centered, so middle 10% is covered
-        }
-
         bondObjects.Add(bondObj);
     }
 
-    /// <summary>
-    /// Wedge Bond (Keil - vorne)
-    /// Wird breiter zum Ende hin
-    /// </summary>
     private void RenderWedgeBond(Vector3 start, Vector3 end, Vector3 direction, float length)
     {
-        // Erstelle einen Keil mit mehreren gestaffelten Zylindern
         int segments = 5;
         for (int i = 0; i < segments; i++)
         {
@@ -324,102 +414,75 @@ public class MoleculeRenderer : MonoBehaviour
             Vector3 pos = Vector3.Lerp(start, end, t);
             float radius = Mathf.Lerp(bondRadius * 0.5f, bondRadius * 2f, t);
 
-            GameObject segment = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            segment.transform.parent = transform;
+            GameObject segment = CreateBondCylinder("Bond_Wedge");
             segment.transform.localPosition = pos;
             segment.transform.localRotation = Quaternion.FromToRotation(Vector3.up, direction);
             segment.transform.localScale = new Vector3(radius, length / (segments * 2), radius);
-
-            Renderer renderer = segment.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                if (cachedBondMaterial == null)
-                {
-                    cachedBondMaterial = ShaderIncluder.GetBondMaterial();
-                }
-                renderer.sharedMaterial = cachedBondMaterial;
-            }
-            
-            // Make collider only cover middle 10% of segment
-            CapsuleCollider collider = segment.GetComponent<CapsuleCollider>();
-            if (collider != null)
-            {
-                collider.height = 0.1f; // 10% of original
-            }
 
             bondObjects.Add(segment);
         }
     }
 
-    /// <summary>
-    /// Dashed Bond (Gestrichelt - hinten)
-    /// </summary>
     private void RenderDashedBond(Vector3 start, Vector3 end, Vector3 direction, float length)
     {
-        // Erstelle gestrichelte Linie mit kleinen Segmenten
         int dashes = 6;
         float dashLength = length / (dashes * 2);
+
+        if (cachedDashedMaterial == null)
+            cachedDashedMaterial = ShaderIncluder.GetBondMaterial();
 
         for (int i = 0; i < dashes; i++)
         {
             float t1 = (float)(i * 2) / (dashes * 2);
             float t2 = (float)(i * 2 + 1) / (dashes * 2);
 
-            Vector3 dashStart = Vector3.Lerp(start, end, t1);
-            Vector3 dashEnd = Vector3.Lerp(start, end, t2);
-            Vector3 dashMid = (dashStart + dashEnd) / 2f;
+            Vector3 dashMid = (Vector3.Lerp(start, end, t1) + Vector3.Lerp(start, end, t2)) / 2f;
 
-            GameObject dash = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            dash.transform.parent = transform;
+            GameObject dash = CreateBondCylinder("Bond_Dash");
             dash.transform.localPosition = dashMid;
             dash.transform.localRotation = Quaternion.FromToRotation(Vector3.up, direction);
             dash.transform.localScale = new Vector3(bondRadius * 0.7f, dashLength / 2f, bondRadius * 0.7f);
 
-            Renderer renderer = dash.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                if (cachedDashedMaterial == null)
-                {
-                    cachedDashedMaterial = ShaderIncluder.GetBondMaterial();
-                }
-                renderer.sharedMaterial = cachedDashedMaterial;
-            }
-            
-            // Make collider only cover middle 30% of dash
-            CapsuleCollider collider = dash.GetComponent<CapsuleCollider>();
-            if (collider != null)
-            {
-                collider.height = 0.1f; // 10% of original
-            }
+            MeshRenderer mr = dash.GetComponent<MeshRenderer>();
+            if (mr != null) mr.sharedMaterial = cachedDashedMaterial;
 
             bondObjects.Add(dash);
         }
     }
 
-    /// <summary>
-    /// Entfernt aktuelles Molekül
-    /// </summary>
+    // ════════════════════════════════════════════════════════════
+    // CLEANUP
+    // ════════════════════════════════════════════════════════════
+
     public void ClearMolecule()
     {
         foreach (var obj in atomObjects)
-        {
             if (obj != null) Destroy(obj);
-        }
 
         foreach (var obj in bondObjects)
-        {
             if (obj != null) Destroy(obj);
+
+        foreach (var obj in combinedAtomObjects)
+        {
+            if (obj != null)
+            {
+                // Destroy combined meshes to free memory
+                MeshFilter mf = obj.GetComponent<MeshFilter>();
+                if (mf != null && mf.sharedMesh != null)
+                    Destroy(mf.sharedMesh);
+                Destroy(obj);
+            }
         }
 
         atomObjects.Clear();
         bondObjects.Clear();
+        combinedAtomObjects.Clear();
         currentMolecule = null;
-        
-        // Also clear the plane visualization
+        atomLookup = null;
+        bondRerenderPending = false;
+
         if (planeAlignment != null)
-        {
             planeAlignment.ClearPlane();
-        }
     }
 
     private void OnDestroy()

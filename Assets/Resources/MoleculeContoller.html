@@ -1,379 +1,677 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Molekül-Steuerung</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Molekül-Betrachter</title>
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
+        :root {
+            --bg-primary: #0f1117;
+            --bg-card: #1a1d27;
+            --bg-card-hover: #222636;
+            --bg-elevated: #252937;
+            --accent: #6c8aff;
+            --accent-glow: rgba(108, 138, 255, 0.25);
+            --accent-dim: #4a63cc;
+            --success: #34d399;
+            --success-bg: rgba(52, 211, 153, 0.12);
+            --danger: #f87171;
+            --danger-bg: rgba(248, 113, 113, 0.12);
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0b0;
+            --text-muted: #5c6378;
+            --border: rgba(255,255,255,0.06);
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-card: 0 2px 16px rgba(0,0,0,0.3);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            min-height: 100dvh;
+            padding: 16px;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
         }
-        
+
+        /* ── Header ─────────────────────────────────── */
         .header {
-            background: rgba(255,255,255,0.95);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0 24px;
         }
-        
-        h1 { 
-            color: #333; 
-            margin-bottom: 10px; 
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
-        h2 {
-            color: #333;
-            margin-bottom: 15px;
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 20px;
+            box-shadow: 0 4px 12px rgba(108, 138, 255, 0.3);
         }
-        
-        .status { 
-            color: #666; 
-            font-size: 14px; 
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
         }
-        
-        .search-box {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+
+        .brand span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 1px;
         }
-        
-        .tutorial-box {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        
-        .tutorial-status {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            text-align: center;
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
-            color: #666;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
         }
-        
-        .tutorial-status.active {
-            background: #d4edda;
-            color: #155724;
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--danger);
+            transition: background var(--transition);
         }
-        
-        .tutorial-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+
+        .status-badge.connected .status-dot {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+        }
+
+        .status-badge.connected {
+            border-color: rgba(52, 211, 153, 0.2);
+            background: var(--success-bg);
+        }
+
+        /* ── Cards ──────────────────────────────────── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        /* ── Tutorial Section ───────────────────────── */
+        .tutorial-progress {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .tutorial-progress .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .tutorial-progress .value {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .tutorial-progress.active {
+            border-color: rgba(108, 138, 255, 0.2);
+            background: linear-gradient(135deg, rgba(108,138,255,0.08) 0%, rgba(167,139,250,0.06) 100%);
+        }
+
+        .tutorial-progress.active .value {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tutorial-progress.waiting {
+            border-color: rgba(52, 211, 153, 0.25);
+            background: rgba(52, 211, 153, 0.06);
+            animation: pulse-border 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(52, 211, 153, 0.15); }
+            50% { border-color: rgba(52, 211, 153, 0.4); }
+        }
+
+        .tutorial-progress.waiting .value {
+            color: var(--success);
+        }
+
+        .unit-name {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .progress-bar-track {
+            height: 3px;
+            background: var(--bg-primary);
+            border-radius: 2px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            border-radius: 2px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .btn-row {
+            display: flex;
             gap: 10px;
-            margin-bottom: 10px;
         }
-        
-        .tutorial-nav {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
-        button {
-            width: 100%;
-            padding: 15px;
-            background: #667eea;
-            color: white;
+
+        /* ── Buttons ────────────────────────────────── */
+        .btn {
+            flex: 1;
+            padding: 14px 16px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
         }
-        
-        button:active { 
-            background: #5568d3; 
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+            transform: none;
         }
-        
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent) 0%, #8b7cf6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(108, 138, 255, 0.3);
         }
-        
-        .btn-success {
-            background: #22c55e;
+
+        .btn-accent:active {
+            box-shadow: 0 2px 8px rgba(108, 138, 255, 0.2);
         }
-        
-        .btn-success:active {
-            background: #16a34a;
+
+        .btn-continue {
+            background: linear-gradient(135deg, var(--success) 0%, #2dd4a0 100%);
+            color: #064e36;
+            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+            font-size: 16px;
         }
-        
-        .btn-danger {
-            background: #ef4444;
+
+        .btn-continue:active {
+            box-shadow: 0 2px 8px rgba(52, 211, 153, 0.2);
         }
-        
-        .btn-danger:active {
-            background: #dc2626;
+
+        .btn-ghost {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
-        
-        .btn-warning {
-            background: #f59e0b;
+
+        .btn-ghost:active {
+            background: var(--bg-card-hover);
         }
-        
-        .btn-warning:active {
-            background: #d97706;
+
+        .btn-danger-ghost {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid rgba(248, 113, 113, 0.15);
         }
-        
-        .molecules {
+
+        .btn-danger-ghost:active {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .btn-icon {
+            font-size: 16px;
+        }
+
+        /* ── Search ─────────────────────────────────── */
+        .search-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 13px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color var(--transition);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-btn {
+            padding: 13px 20px;
+            flex-shrink: 0;
+        }
+
+        /* ── Molecule Grid ──────────────────────────── */
+        .mol-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
         }
-        
-        .mol-btn {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+        .mol-tile {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 10px;
             text-align: center;
             cursor: pointer;
+            transition: all var(--transition);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .mol-tile:active {
+            transform: scale(0.95);
+            background: var(--bg-card-hover);
+        }
+
+        .mol-tile .emoji {
+            font-size: 28px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .mol-tile .name {
+            font-size: 13px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
-        
-        .mol-btn:active { 
-            transform: scale(0.95); 
+
+        .mol-tile .formula {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-weight: 500;
         }
-        
-        .connected { 
-            color: #22c55e; 
+
+        /* ── Toast ──────────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 100;
+            pointer-events: none;
         }
-        
-        .disconnected { 
-            color: #ef4444; 
+
+        .toast.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .info-line {
+            text-align: center;
+            padding: 16px 0 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
         }
     </style>
 </head>
 <body>
     <div class="container">
+
+        <!-- Header -->
         <div class="header">
-            <h1>🧪 Molekül-Betrachter</h1>
-            <div class="status">
-                <span id="status" class="disconnected">● Verbinde...</span>
+            <div class="brand">
+                <div class="brand-icon">&#9883;</div>
+                <div>
+                    <h1>Molek&uuml;l-Betrachter</h1>
+                    <span>VR Lernumgebung</span>
+                </div>
+            </div>
+            <div class="status-badge" id="statusBadge">
+                <div class="status-dot"></div>
+                <span id="statusText">Verbinde&hellip;</span>
             </div>
         </div>
-        
-        <!-- Tutorial Section -->
-        <div class="tutorial-box">
-            <h2>📚 Tutorial</h2>
-            <div id="tutorialStatus" class="tutorial-status">
-                Tutorial nicht gestartet
+
+        <!-- Tutorial -->
+        <div class="card">
+            <div class="card-label">Tutorial</div>
+
+            <div class="tutorial-progress" id="tutorialProgress">
+                <div class="label" id="tutorialLabel">Nicht gestartet</div>
+                <div class="value" id="tutorialValue">&mdash;</div>
+                <div class="unit-name" id="unitName"></div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
             </div>
-            <div class="tutorial-controls">
-                <button id="btnStart" class="btn-success" onclick="tutorialStart()">▶️ Starten</button>
-                <button id="btnClose" class="btn-danger" onclick="tutorialClose()" style="display:none;">⏹️ Beenden</button>
+
+            <!-- Before start -->
+            <div id="tutorialIdle" class="btn-row">
+                <button class="btn btn-accent" onclick="tutorialStart()">
+                    <span class="btn-icon">&#9654;</span> Tutorial starten
+                </button>
             </div>
-            <div class="tutorial-nav">
-                <button id="btnPrev" class="btn-warning" onclick="tutorialPrev()" style="display:none;">⬅️ Zurück</button>
-                <button id="btnNext" class="btn-success" onclick="tutorialNext()" style="display:none;">Weiter ➡️</button>
+
+            <!-- Active controls -->
+            <div id="tutorialActive" style="display:none;">
+                <div class="btn-row" style="margin-bottom:10px;">
+                    <button class="btn btn-ghost" id="btnPrev" onclick="tutorialPrev()">
+                        <span class="btn-icon">&lsaquo;</span> Zur&uuml;ck
+                    </button>
+                    <button class="btn btn-continue" id="btnNext" onclick="tutorialNext()">
+                        Weiter <span class="btn-icon">&rsaquo;</span>
+                    </button>
+                </div>
+                <button class="btn btn-danger-ghost" onclick="tutorialClose()" style="width:100%;">
+                    Tutorial beenden
+                </button>
             </div>
         </div>
-        
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Molekülname eingeben...">
-            <button onclick="searchMolecule()">Molekül laden</button>
+
+        <!-- Search -->
+        <div class="card">
+            <div class="card-label">Molek&uuml;l laden</div>
+            <div class="search-row">
+                <input class="search-input" type="text" id="searchInput" placeholder="z.B. Aspirin, Glucose&hellip;" autocomplete="off" autocorrect="off" spellcheck="false">
+                <button class="btn btn-accent search-btn" onclick="searchMolecule()">Laden</button>
+            </div>
         </div>
-        
-        <div class="molecules" id="molecules">
-            <div class="mol-btn" onclick="loadMolecule('water')">Wasser</div>
-            <div class="mol-btn" onclick="loadMolecule('ethanol')">Ethanol</div>
-            <div class="mol-btn" onclick="loadMolecule('benzene')">Benzol</div>
-            <div class="mol-btn" onclick="loadMolecule('methane')">Methan</div>
-            <div class="mol-btn" onclick="loadMolecule('propanon')">Propanon</div>
-            <div class="mol-btn" onclick="loadMolecule('ammonia')">Ammoniak</div>
+
+        <!-- Quick-select -->
+        <div class="card">
+            <div class="card-label">Schnellauswahl</div>
+            <div class="mol-grid">
+                <div class="mol-tile" onclick="loadMolecule('water')">
+                    <span class="emoji">&#128167;</span>
+                    <div class="name">Wasser</div>
+                    <div class="formula">H&#8322;O</div>
+                </div>
+                <div class="mol-tile" onclick="loadMolecule('ethanol')">
+                    <span class="emoji">&#129514;</span>
+                    <div class="name">Ethanol</div>
+                    <div class="formula">C&#8322;H&#8325;OH</div>
+                </div>
+                <div class="mol-tile" onclick="loadMolecule('benzene')">
+                    <span class="emoji">&#11041;</span>
+                    <div class="name">Benzol</div>
+                    <div class="formula">C&#8326;H&#8326;</div>
+                </div>
+                <div class="mol-tile" onclick="loadMolecule('methane')">
+                    <span class="emoji">&#128311;</span>
+                    <div class="name">Methan</div>
+                    <div class="formula">CH&#8324;</div>
+                </div>
+                <div class="mol-tile" onclick="loadMolecule('propanon')">
+                    <span class="emoji">&#9879;</span>
+                    <div class="name">Propanon</div>
+                    <div class="formula">C&#8323;H&#8326;O</div>
+                </div>
+                <div class="mol-tile" onclick="loadMolecule('ammonia')">
+                    <span class="emoji">&#128168;</span>
+                    <div class="name">Ammoniak</div>
+                    <div class="formula">NH&#8323;</div>
+                </div>
+            </div>
         </div>
+
+        <div class="info-line">Jugend Forscht &middot; Meta Quest 3 &middot; Molekulare Geometrie</div>
     </div>
-    
+
+    <div class="toast" id="toast"></div>
+
     <script>
         let ws;
-        const statusEl = document.getElementById('status');
-        const tutorialStatusEl = document.getElementById('tutorialStatus');
-        const btnStart = document.getElementById('btnStart');
-        const btnClose = document.getElementById('btnClose');
+        let tutorialActive = false;
+        let currentUnit = 0;
+        let totalUnits = 11;
+        let waitingForContinue = false;
+        let currentUnitName = '';
+
+        const statusBadge = document.getElementById('statusBadge');
+        const statusText = document.getElementById('statusText');
+        const tutorialProgress = document.getElementById('tutorialProgress');
+        const tutorialLabel = document.getElementById('tutorialLabel');
+        const tutorialValue = document.getElementById('tutorialValue');
+        const unitNameEl = document.getElementById('unitName');
+        const progressBar = document.getElementById('progressBar');
+        const tutorialIdle = document.getElementById('tutorialIdle');
+        const tutorialActiveEl = document.getElementById('tutorialActive');
         const btnPrev = document.getElementById('btnPrev');
         const btnNext = document.getElementById('btnNext');
-        
-        let tutorialActive = false;
-        let currentStep = 0;
-        let totalSteps = 9; // Anzahl der Tutorial-Schritte
-        
+
         function connect() {
             const wsUrl = 'ws://' + window.location.host + '/ws';
             ws = new WebSocket(wsUrl);
-            
-            ws.onopen = () => {
-                statusEl.textContent = '● Verbunden';
-                statusEl.className = 'connected';
+
+            ws.onopen = function() {
+                statusBadge.className = 'status-badge connected';
+                statusText.textContent = 'Verbunden';
             };
-            
-            ws.onclose = () => {
-                statusEl.textContent = '● Getrennt';
-                statusEl.className = 'disconnected';
+
+            ws.onclose = function() {
+                statusBadge.className = 'status-badge';
+                statusText.textContent = 'Getrennt';
                 setTimeout(connect, 2000);
             };
-            
-            ws.onmessage = (e) => {
+
+            ws.onmessage = function(e) {
                 try {
-                    const data = JSON.parse(e.data);
+                    var data = JSON.parse(e.data);
                     if (data.type === 'loaded') {
-                        statusEl.textContent = `● Geladen: ${data.molecule} (${data.atoms} Atome)`;
+                        showToast(data.molecule + ' geladen \u00B7 ' + data.atoms + ' Atome');
                     } else if (data.type === 'error') {
-                        statusEl.textContent = `● Fehler: ${data.message}`;
+                        showToast('Fehler: ' + data.message);
                     } else if (data.type === 'status') {
-                        statusEl.textContent = `● ${data.message}`;
+                        showToast(data.message);
                     } else if (data.type === 'tutorial') {
                         handleTutorialUpdate(data);
                     }
                 } catch (err) {
-                    console.error('Nachricht konnte nicht geparst werden:', err);
+                    console.error('Parse error:', err);
                 }
             };
-            
-            ws.onerror = (err) => {
-                console.error('WebSocket error:', err);
-            };
+
+            ws.onerror = function() {};
         }
-        
+
         function handleTutorialUpdate(data) {
             if (data.status === 'started') {
                 tutorialActive = true;
-                currentStep = 1;
+                currentUnit = 1;
+                waitingForContinue = false;
+                currentUnitName = '';
                 updateTutorialUI();
             } else if (data.status === 'closed') {
                 tutorialActive = false;
-                currentStep = 0;
+                currentUnit = 0;
+                waitingForContinue = false;
+                currentUnitName = '';
                 updateTutorialUI();
             } else if (data.status === 'continued') {
-                currentStep++;
-                if (currentStep > totalSteps) {
+                currentUnit++;
+                waitingForContinue = false;
+                if (currentUnit > totalUnits) {
                     tutorialActive = false;
-                    currentStep = 0;
+                    currentUnit = 0;
                 }
                 updateTutorialUI();
             } else if (data.status === 'previous') {
-                currentStep--;
-                if (currentStep < 1) currentStep = 1;
+                currentUnit = Math.max(1, currentUnit - 1);
+                waitingForContinue = false;
+                updateTutorialUI();
+            } else if (data.status === 'waitingContinue') {
+                waitingForContinue = true;
+                if (data.unit !== undefined) currentUnit = data.unit + 1;
+                if (data.unitName) currentUnitName = data.unitName;
                 updateTutorialUI();
             } else if (data.step !== undefined) {
-                currentStep = data.step;
+                currentUnit = data.step;
                 updateTutorialUI();
             }
         }
-        
+
         function updateTutorialUI() {
             if (tutorialActive) {
-                tutorialStatusEl.className = 'tutorial-status active';
-                tutorialStatusEl.textContent = `Schritt ${currentStep} von ${totalSteps}`;
-                btnStart.disabled = true;
-                btnStart.style.display = 'none';
-                btnClose.disabled = false;
-                btnClose.style.display = 'block';
-                btnPrev.disabled = (currentStep <= 1);
-                btnPrev.style.display = 'block';
-                btnNext.disabled = false;
-                btnNext.style.display = 'block';
-                btnNext.textContent = (currentStep >= totalSteps) ? '✅ Fertig' : 'Weiter ➡️';
-            } else {
-                tutorialStatusEl.className = 'tutorial-status';
-                tutorialStatusEl.textContent = 'Tutorial nicht gestartet';
-                btnStart.disabled = false;
-                btnStart.style.display = 'block';
-                btnClose.disabled = true;
-                btnClose.style.display = 'none';
-                btnPrev.disabled = true;
-                btnPrev.style.display = 'none';
-                btnNext.disabled = true;
-                btnNext.style.display = 'none';
-                btnNext.textContent = 'Weiter ➡️';
-            }
-        }
-        
-        function tutorialStart() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'tutorial', action: 'start' }));
-            }
-        }
-        
-        function tutorialClose() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'tutorial', action: 'close' }));
-            }
-        }
-        
-        function tutorialNext() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                if (currentStep >= totalSteps) {
-                    // Tutorial beenden wenn am Ende
-                    ws.send(JSON.stringify({ type: 'tutorial', action: 'close' }));
+                tutorialIdle.style.display = 'none';
+                tutorialActiveEl.style.display = 'block';
+
+                var pct = Math.round((currentUnit / totalUnits) * 100);
+                progressBar.style.width = pct + '%';
+                tutorialLabel.textContent = 'Einheit ' + currentUnit + ' von ' + totalUnits;
+                tutorialValue.textContent = currentUnitName || ('Einheit ' + currentUnit);
+
+                if (waitingForContinue) {
+                    tutorialProgress.className = 'tutorial-progress waiting';
+                    unitNameEl.textContent = 'Bereit f\u00FCr n\u00E4chste Einheit';
+                    btnNext.disabled = false;
                 } else {
-                    ws.send(JSON.stringify({ type: 'tutorial', action: 'continue' }));
+                    tutorialProgress.className = 'tutorial-progress active';
+                    unitNameEl.textContent = 'Video l\u00E4uft\u2026';
+                    btnNext.disabled = true;
                 }
-            }
-        }
-        
-        function tutorialPrev() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'tutorial', action: 'previous' }));
-            }
-        }
-        
-        function loadMolecule(name) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'load', molecule: name }));
-                statusEl.textContent = `● Lade ${name}...`;
+
+                btnPrev.disabled = (currentUnit <= 1);
+                btnNext.innerHTML = (currentUnit >= totalUnits) ? '\u2713 Fertig' : 'Weiter \u203A';
             } else {
-                statusEl.textContent = '● Nicht verbunden!';
-                statusEl.className = 'disconnected';
+                tutorialIdle.style.display = 'flex';
+                tutorialActiveEl.style.display = 'none';
+                tutorialProgress.className = 'tutorial-progress';
+                tutorialLabel.textContent = 'Nicht gestartet';
+                tutorialValue.textContent = '\u2014';
+                unitNameEl.textContent = '';
+                progressBar.style.width = '0%';
             }
         }
-        
+
+        function send(obj) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(obj));
+                return true;
+            }
+            showToast('Keine Verbindung');
+            return false;
+        }
+
+        function tutorialStart() { send({ type: 'tutorial', action: 'start' }); }
+        function tutorialClose() { send({ type: 'tutorial', action: 'close' }); }
+        function tutorialNext() {
+            if (currentUnit >= totalUnits) {
+                send({ type: 'tutorial', action: 'close' });
+            } else {
+                send({ type: 'tutorial', action: 'continue' });
+            }
+        }
+        function tutorialPrev() { send({ type: 'tutorial', action: 'previous' }); }
+
+        function loadMolecule(name) {
+            if (send({ type: 'load', molecule: name })) {
+                showToast('Lade ' + name + '\u2026');
+            }
+        }
+
         function searchMolecule() {
-            const input = document.getElementById('searchInput');
-            const name = input.value.trim();
+            var name = document.getElementById('searchInput').value.trim();
             if (name) {
                 loadMolecule(name);
-                input.value = '';
+                document.getElementById('searchInput').value = '';
             }
         }
-        
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchMolecule();
-            }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchMolecule();
         });
-        
-        // Initialize
+
+        var toastTimer;
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('visible');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() { t.classList.remove('visible'); }, 2500);
+        }
+
         updateTutorialUI();
         connect();
     </script>

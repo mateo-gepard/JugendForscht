@@ -1,0 +1,181 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0a4c0619a3e7e5419cfa612c98efb8b, type: 3}
+  m_Name: TutorialTimeline
+  m_EditorClassIdentifier: 
+  units:
+  - name: "Einf\xFChrung"
+    startTime: 0
+    cues:
+    - time: 4
+      action: 0
+      objectName: CH4Tetraedrisch
+      position: {x: -0.28, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 5
+      action: 0
+      objectName: Arrow3D
+      position: {x: -0.38, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.18, y: 0.18, z: 0.18}
+      triggered: 0
+    - time: 6
+      action: 0
+      objectName: KeilstrichBild
+      position: {x: -0.55, y: 0, z: -0.1}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.18, y: 0.18, z: 0.18}
+      triggered: 0
+  - name: Bindungsarten
+    startTime: 14
+    cues:
+    - time: 21
+      action: 0
+      objectName: NormalBond
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 36
+      action: 2
+      objectName: DashedBond
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 64
+      action: 2
+      objectName: WedgeBond
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+  - name: Keilstrichformel
+    startTime: 81
+    cues:
+    - time: 84
+      action: 0
+      objectName: Methan3D
+      position: {x: -0.45, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 93
+      action: 0
+      objectName: KeilstrichBild
+      position: {x: -0.25, y: 0, z: -0.1}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.18, y: 0.18, z: 0.18}
+      triggered: 0
+  - name: "Elektronenpaarabsto\xDFung"
+    startTime: 105
+    cues: []
+  - name: "Molek\xFClgeometrien"
+    startTime: 130
+    cues:
+    - time: 136
+      action: 0
+      objectName: CO2Linear
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 138
+      action: 2
+      objectName: H2OGewinkelt
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 140
+      action: 2
+      objectName: BF3TrigonalPlanar
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 142
+      action: 2
+      objectName: NH3TrigonalPyramidal
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+    - time: 143
+      action: 2
+      objectName: CH4Tetraedrisch
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.26, y: 0.26, z: 0.26}
+      triggered: 0
+  - name: Linearer Bau
+    startTime: 144
+    cues:
+    - time: 171
+      action: 0
+      objectName: CO2Linear
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.32, y: 0.32, z: 0.32}
+      triggered: 0
+    - time: 180
+      action: 2
+      objectName: CO2LinearHighlight
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.32, y: 0.32, z: 0.32}
+      triggered: 0
+  - name: Gewinkelter Bau
+    startTime: 182
+    cues:
+    - time: 188
+      action: 0
+      objectName: H2OGewinkeltEPHighlight
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.32, y: 0.32, z: 0.32}
+      triggered: 0
+  - name: Trigonal Planar
+    startTime: 241
+    cues:
+    - time: 266
+      action: 0
+      objectName: BF3TrigonalPlanar
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.32, y: 0.32, z: 0.32}
+      triggered: 0
+  - name: Trigonal Pyramidal
+    startTime: 284
+    cues:
+    - time: 301
+      action: 0
+      objectName: NH3TrigonalPyramidalEPHighlight
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.32, y: 0.32, z: 0.32}
+      triggered: 0
+  - name: Tetraedrisch
+    startTime: 318
+    cues:
+    - time: 323
+      action: 0
+      objectName: CH4Tetraedrisch
+      position: {x: -0.35, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0}
+      scale: {x: 0.32, y: 0.32, z: 0.32}
+      triggered: 0
+  - name: Abschluss
+    startTime: 335
+    cues: []

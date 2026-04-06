@@ -92,6 +92,9 @@ public class ShaderIncluder : MonoBehaviour
         {
             mat.SetFloat("_Glossiness", 0.3f);
         }
+
+        // Enable GPU Instancing for Quest 3 performance
+        mat.enableInstancing = true;
         
         return mat;
     }
@@ -110,6 +113,7 @@ public class ShaderIncluder : MonoBehaviour
         // Create a fallback material if static ones aren't initialized
         Material mat = new Material(GetBestShader());
         mat.color = color;
+        mat.enableInstancing = true;
         return mat;
     }
     

@@ -63,11 +63,24 @@ Shader "Custom/ChromaKeyBlackToAlpha"
                 
                 fixed4 col = tex2D(_MainTex, i.uv);
                 
-                // Calculate how green the pixel is
+                // How dominant is green over the other channels?
                 float greenness = col.g - max(col.r, col.b);
                 
-                // If pixel is predominantly green, make it transparent
-                float alpha = 1.0 - smoothstep(_Threshold, _Threshold + _Smoothness, greenness);
+                // Saturation check: only key out pixels that are actually
+                // chromatically green (high saturation). Skin tones have
+                // low saturation so they survive even if greenness > 0.
+                float maxC = max(col.r, max(col.g, col.b));
+                float minC = min(col.r, min(col.g, col.b));
+                float saturation = (maxC > 0.01) ? (maxC - minC) / maxC : 0.0;
+                
+                // Combine: pixel must be BOTH green-dominant AND saturated
+                float chromaScore = greenness * saturation;
+                
+                float alpha = 1.0 - smoothstep(_Threshold * 0.5, _Threshold * 0.5 + _Smoothness, chromaScore);
+                
+                // Optional: despill – remove residual green tint on edges
+                float spillRemove = smoothstep(_Threshold * 0.3, _Threshold * 0.5 + _Smoothness, chromaScore);
+                col.g = lerp(col.g, (col.r + col.b) * 0.5, spillRemove * 0.6);
                 
                 col.a = alpha;
                 
