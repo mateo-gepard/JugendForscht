@@ -78,6 +78,7 @@ public class MoleculeLibrary : MonoBehaviour
         {
             Debug.Log($"[MoleculeLibrary] Using cached molecule: {moleculeName}");
             DisplayMolecule(moleculeCache[moleculeName]);
+            isLoading = false;
             return;
         }
 

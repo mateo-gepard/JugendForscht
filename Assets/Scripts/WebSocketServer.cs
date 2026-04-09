@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -18,11 +18,15 @@ public class WebSocketServer : MonoBehaviour
 
     [Header("References")]
     public MoleculeLibrary library;
+    public MoleculeRenderer moleculeRenderer;
 
     [Header("Status")]
     public bool isRunning = false;
     public string serverIP = "Not started";
     public int connectedClients = 0;
+
+    // Current UI mode
+    private string currentMode = "keilstrich";
 
     private TcpListener tcpListener;
     private Thread listenerThread;
@@ -40,6 +44,16 @@ public class WebSocketServer : MonoBehaviour
         cachedHTML = LoadHTMLContent();
         
         Debug.Log($"[WebSocket] HTML loaded, length: {cachedHTML?.Length ?? 0} bytes");
+
+        // Auto-find moleculeRenderer if not assigned
+        if (moleculeRenderer == null)
+        {
+            moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+            if (moleculeRenderer != null)
+                Debug.Log("[WebSocket] Auto-found MoleculeRenderer");
+            else
+                Debug.LogWarning("[WebSocket] MoleculeRenderer not found!");
+        }
 
         // Subscribe to library events (mit null check!)
         if (library != null)
@@ -403,26 +417,380 @@ public class WebSocketServer : MonoBehaviour
 
         try
         {
-            // Parse JSON: {"type":"load","molecule":"ethanol"}
+            // Parse JSON
             var data = JsonUtility.FromJson<WebSocketMessage>(message);
 
             if (data.type == "load" && !string.IsNullOrEmpty(data.molecule))
             {
+                // Keilstrich mode: load with stereo display
+                SetStereoDisplay(true);
+
+                // Clear any existing chirality/isomer visuals
+                var vis = FindObjectOfType<ChiralityVisualizer>();
+                if (vis != null) vis.ClearMarkers();
+                var anim = FindObjectOfType<IsomerAnimator>();
+                if (anim != null) anim.ClearEnantiomer();
+
+                // Show plane in keilstrich mode
+                if (moleculeRenderer == null)
+                    moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+                if (moleculeRenderer != null)
+                {
+                    var planeAlign = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
+                    if (planeAlign != null)
+                    {
+                        planeAlign.showPlaneInVR = true;
+                        planeAlign.SetPlaneVisibility(true);
+                    }
+                }
+
                 if (library != null)
                 {
                     library.LoadAndDisplayMolecule(data.molecule);
                     BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Loading {data.molecule}...\"}}");
                 }
             }
+            else if (data.type == "iso_load" && !string.IsNullOrEmpty(data.molecule))
+            {
+                // Isomerie mode: load WITHOUT stereo display (no wedge/dash)
+                SetStereoDisplay(false);
+
+                // Clear any existing chirality markers
+                var vis = FindObjectOfType<ChiralityVisualizer>();
+                if (vis != null) vis.ClearMarkers();
+
+                // Clear any existing enantiomer display
+                var anim = FindObjectOfType<IsomerAnimator>();
+                if (anim != null) anim.ClearEnantiomer();
+
+                // Stop auto-rotation in isomerie mode
+                if (moleculeRenderer == null)
+                    moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+                if (moleculeRenderer != null)
+                {
+                    var planeAlign = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
+                    if (planeAlign != null)
+                    {
+                        planeAlign.enableAutoRotation = false;
+                        planeAlign.StopAutoRotation();
+                        planeAlign.showPlaneInVR = false;  // Prevent plane creation during load
+                        planeAlign.SetPlaneVisibility(false);
+                    }
+                }
+
+                if (library != null)
+                {
+                    library.LoadAndDisplayMolecule(data.molecule);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Loading {data.molecule} (Isomerie)...\"}}");
+                }
+            }
+            else if (data.type == "mode")
+            {
+                // Switch UI mode
+                HandleModeSwitch(data.mode);
+            }
             else if (data.type == "tutorial")
             {
-                // Tutorial commands
                 HandleTutorialCommand(data.action);
+            }
+            else if (data.type == "chirality")
+            {
+                HandleChiralityCommand(data.action);
+            }
+            else if (data.type == "isomer")
+            {
+                HandleIsomerCommand(data.action, data.center);
+            }
+            else if (data.type == "clear_all")
+            {
+                // Clear everything: molecule, chirality markers, enantiomer, plane
+                var vis = FindObjectOfType<ChiralityVisualizer>();
+                if (vis != null) vis.ClearMarkers();
+                var anim = FindObjectOfType<IsomerAnimator>();
+                if (anim != null) anim.ClearEnantiomer();
+                if (library != null) library.ClearCurrentMolecule();
+
+                if (moleculeRenderer == null)
+                    moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+                if (moleculeRenderer != null)
+                {
+                    var planeAlign = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
+                    if (planeAlign != null)
+                        planeAlign.SetPlaneVisibility(false);
+                }
+
+                BroadcastMessage("{\"type\":\"status\",\"message\":\"Alles gelöscht\"}");
             }
         }
         catch (Exception e)
         {
             Debug.LogWarning($"[WebSocket] Failed to parse message: {e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Switches stereo display on/off on the renderer
+    /// </summary>
+    private void SetStereoDisplay(bool enabled)
+    {
+        // Auto-find if not set
+        if (moleculeRenderer == null)
+            moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+
+        if (moleculeRenderer != null)
+        {
+            moleculeRenderer.enableStereoDisplay = enabled;
+            // Re-render bonds to apply the change immediately
+            moleculeRenderer.RerenderBondsOnly();
+            Debug.Log($"[WebSocket] Stereo display: {enabled}");
+        }
+        else
+        {
+            Debug.LogWarning("[WebSocket] Cannot set stereo display: renderer not found");
+        }
+    }
+
+    /// <summary>
+    /// Handle mode switch from web UI
+    /// </summary>
+    private void HandleModeSwitch(string mode)
+    {
+        currentMode = mode ?? "keilstrich";
+        Debug.Log($"[WebSocket] Mode switched to: {currentMode}");
+
+        if (moleculeRenderer == null)
+            moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+
+        var planeAlign = moleculeRenderer?.GetComponent<MoleculePlaneAlignment>();
+
+        if (currentMode == "isomerie")
+        {
+            SetStereoDisplay(false);
+            if (planeAlign != null)
+            {
+                planeAlign.showPlaneInVR = false;
+                planeAlign.SetPlaneVisibility(false);
+            }
+        }
+        else
+        {
+            SetStereoDisplay(true);
+            if (planeAlign != null)
+            {
+                planeAlign.showPlaneInVR = true;
+                planeAlign.SetPlaneVisibility(true);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handle chirality detection commands (Phase 3)
+    /// </summary>
+    private void HandleChiralityCommand(string action)
+    {
+        Debug.Log($"[WebSocket] Chirality command: {action}");
+
+        if (action == "detect")
+        {
+            // Get current molecule from library
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var molecule = library.GetCurrentMolecule();
+                Debug.Log($"[WebSocket] Running chirality detection on: {molecule.name}");
+
+                // Run chirality detection
+                var centers = ChiralityDetector.DetectChiralCenters(molecule);
+
+                // Show visual markers in VR
+                var visualizer = FindObjectOfType<ChiralityVisualizer>();
+                if (visualizer == null)
+                {
+                    // Auto-create visualizer on the renderer
+                    if (moleculeRenderer == null)
+                        moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+                    if (moleculeRenderer != null)
+                    {
+                        visualizer = moleculeRenderer.gameObject.AddComponent<ChiralityVisualizer>();
+                        Debug.Log("[WebSocket] Auto-created ChiralityVisualizer");
+                    }
+                }
+                if (visualizer != null)
+                {
+                    visualizer.ShowChiralCenters(centers, molecule);
+                }
+
+                // Build JSON response for web UI
+                var centersJson = new System.Text.StringBuilder("[");
+                for (int i = 0; i < centers.Count; i++)
+                {
+                    var c = centers[i];
+                    if (i > 0) centersJson.Append(",");
+                    string neighborsStr = string.Join("\",\"", c.neighborLabels);
+                    centersJson.Append($"{{\"atomId\":{c.atomId},\"config\":\"{c.configuration}\"," +
+                                     $"\"element\":\"{c.element}\"," +
+                                     $"\"neighbors\":[\"{neighborsStr}\"]}}");
+                }
+                centersJson.Append("]");
+
+                string json = $"{{\"type\":\"chirality_result\",\"centers\":{centersJson},\"molecule\":\"{molecule.name}\"}}";
+                BroadcastMessage(json);
+                Debug.Log($"[WebSocket] Chirality result sent: {centers.Count} centers");
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molek\u00fcl geladen\"}");
+            }
+        }
+        else if (action == "clear")
+        {
+            // Clear chirality markers
+            var visualizer = FindObjectOfType<ChiralityVisualizer>();
+            if (visualizer != null)
+                visualizer.ClearMarkers();
+        }
+    }
+
+    /// <summary>
+    /// Handle isomer generation commands (Phase 4)
+    /// </summary>
+    private void HandleIsomerCommand(string action, int center)
+    {
+        Debug.Log($"[WebSocket] Isomer command: {action}, center: {center}");
+
+        // Auto-find or create IsomerAnimator
+        var animator = FindObjectOfType<IsomerAnimator>();
+        if (animator == null)
+        {
+            if (moleculeRenderer == null)
+                moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+            if (moleculeRenderer != null)
+            {
+                animator = moleculeRenderer.gameObject.AddComponent<IsomerAnimator>();
+                Debug.Log("[WebSocket] Auto-created IsomerAnimator");
+            }
+        }
+
+        if (action == "mirror")
+        {
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var original = library.GetCurrentMolecule();
+                var enantiomer = IsomerGenerator.GenerateEnantiomer(original);
+
+                // Check if molecule is identical to its mirror image (achiral/meso)
+                if (IsomerGenerator.AreMoleculesIdentical(original, enantiomer))
+                {
+                    BroadcastMessage("{\"type\":\"error\",\"message\":\"Dieses Molekül ist identisch mit seinem Spiegelbild (achiral). Nutze Konformationsisomerie.\"}");
+                    return;
+                }
+
+                if (enantiomer != null && animator != null)
+                {
+                    animator.ShowEnantiomer(original, enantiomer);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Enantiomer von {original.name} erzeugt\"}}");
+                }
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
+            }
+        }
+        else if (action == "overlay")
+        {
+            if (animator != null)
+            {
+                animator.StartOverlayTest();
+                BroadcastMessage("{\"type\":\"status\",\"message\":\"\u00dcberlagerungstest gestartet\"}");
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Erst Isomer erzeugen\"}");
+            }
+        }
+        else if (action == "diastereomer")
+        {
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var original = library.GetCurrentMolecule();
+                var adjacency = ChiralityDetector.BuildAdjacencyGraph(original);
+                var centers = ChiralityDetector.DetectChiralCenters(original);
+
+                if (centers.Count >= 2)
+                {
+                    MoleculeData diastereomer = null;
+                    int invertedCenter = -1;
+
+                    foreach (var center_item in centers)
+                    {
+                        var candidate = IsomerGenerator.GenerateDiastereomer(
+                            original, center_item.atomId, adjacency);
+
+                        if (candidate == null) continue;
+
+                        // Reject if identical to original
+                        if (IsomerGenerator.AreMoleculesIdentical(original, candidate)) continue;
+
+                        // Reject if it's an enantiomer (all configs flipped)
+                        if (IsomerGenerator.IsEnantiomer(original, candidate)) continue;
+
+                        diastereomer = candidate;
+                        invertedCenter = center_item.atomId;
+                        break;
+                    }
+
+                    if (diastereomer != null && animator != null)
+                    {
+                        animator.ShowEnantiomer(original, diastereomer);
+                        BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Diastereomer von {original.name} erzeugt (Zentrum {invertedCenter} invertiert)\"}}");
+                    }
+                    else
+                    {
+                        BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Diastereomer möglich. Nutze Konformationsisomerie oder Enantiomere.\"}");
+                    }
+                }
+                else
+                {
+                    BroadcastMessage("{\"type\":\"error\",\"message\":\"Mindestens 2 Chiralitätszentren nötig für Diastereomere\"}");
+                }
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
+            }
+        }
+        else if (action == "conformer")
+        {
+            // Konformationsisomerie: identische Kopie
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var original = library.GetCurrentMolecule();
+                if (animator != null)
+                {
+                    animator.ShowConformer(original);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Konformer von {original.name} erzeugt\"}}");
+                }
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
+            }
+        }
+        else if (action == "meso")
+        {
+            // Meso-Erkennung
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var original = library.GetCurrentMolecule();
+                if (animator != null)
+                {
+                    animator.TestMeso(original);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Meso-Test für {original.name} gestartet\"}}");
+                }
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
+            }
         }
     }
 
@@ -635,6 +1003,8 @@ uU();cn();
     {
         public string type;
         public string molecule;
-        public string action; // For tutorial commands: start, close, continue
+        public string action;   // For tutorial/chirality/isomer commands
+        public string mode;     // For mode switch: "keilstrich" or "isomerie"
+        public int center;      // For isomer inversion: chiral center atom ID
     }
 }

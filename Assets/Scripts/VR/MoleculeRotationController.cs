@@ -104,7 +104,7 @@ public class MoleculeRotationController : MonoBehaviour
         {
             timeSinceLastInteraction += Time.deltaTime;
             
-            if (timeSinceLastInteraction >= autoRotationDelay && planeAlignment != null)
+            if (timeSinceLastInteraction >= autoRotationDelay && planeAlignment != null && planeAlignment.enableAutoRotation)
             {
                 Debug.Log($"[MoleculeRotation] Restarting auto-rotation after {timeSinceLastInteraction:F1}s of inactivity");
                 planeAlignment.StartAutoRotation();
@@ -191,34 +191,39 @@ public class MoleculeRotationController : MonoBehaviour
         
         if (deltaPos.magnitude > 0.001f)
         {
-            // Store original position AND parent position to keep molecule in place
-            Vector3 originalPosition = moleculeRenderer.transform.position;
-            Vector3 originalLocalPosition = moleculeRenderer.transform.localPosition;
+            // Determine which object to rotate (proximity-based)
+            Transform targetTransform = moleculeRenderer.transform;
+            var animator = FindObjectOfType<IsomerAnimator>();
+            if (animator != null && animator.IsShowingIsomer && animator.IsomerClone != null)
+            {
+                float distToOriginal = Vector3.Distance(controllerPos, moleculeRenderer.transform.position);
+                float distToClone = Vector3.Distance(controllerPos, animator.IsomerClone.transform.position);
+                if (distToClone < distToOriginal)
+                {
+                    targetTransform = animator.IsomerClone.transform;
+                }
+            }
+
+            Vector3 savedPos = targetTransform.position;
             
-            // Create rotation based on controller movement
-            // Horizontal movement = Y-axis rotation
-            // Vertical movement = X-axis rotation (relative to camera)
             Camera mainCam = Camera.main;
             if (mainCam != null)
             {
                 Vector3 camRight = mainCam.transform.right;
-                Vector3 camUp = Vector3.up;
-                
                 float horizontalDelta = Vector3.Dot(deltaPos, camRight);
-                float verticalDelta = Vector3.Dot(deltaPos, camUp);
+                float verticalDelta = Vector3.Dot(deltaPos, Vector3.up);
                 
-                // Create rotation
                 Quaternion yRot = Quaternion.AngleAxis(-horizontalDelta * rotationSpeed * 200f, Vector3.up);
                 Quaternion xRot = Quaternion.AngleAxis(-verticalDelta * rotationSpeed * 200f, camRight);
                 Quaternion deltaRotation = yRot * xRot;
                 
-                // Apply rotation only, keep position fixed
-                moleculeRenderer.transform.rotation = deltaRotation * moleculeRenderer.transform.rotation;
-                moleculeRenderer.transform.position = originalPosition;
-                moleculeRenderer.transform.localPosition = originalLocalPosition;
+                targetTransform.rotation = deltaRotation * targetTransform.rotation;
+                targetTransform.position = savedPos;
                 
-                // Trigger bond re-render to update stereochemistry
-                moleculeRenderer.RerenderBondsOnly();
+                if (targetTransform == moleculeRenderer.transform)
+                {
+                    moleculeRenderer.RerenderBondsOnly();
+                }
             }
         }
 

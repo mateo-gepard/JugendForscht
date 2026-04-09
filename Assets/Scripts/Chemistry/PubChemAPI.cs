@@ -24,7 +24,9 @@ public class PubChemAPI : MonoBehaviour
     {
         await EnforceRateLimit();
         
-        string url = $"{BASE_URL}/compound/name/{UnityWebRequest.EscapeURL(moleculeName)}/cids/JSON";
+        // EscapeURL uses + for spaces, but PubChem REST paths need %20
+        string encodedName = UnityWebRequest.EscapeURL(moleculeName).Replace("+", "%20");
+        string url = $"{BASE_URL}/compound/name/{encodedName}/cids/JSON";
         
         Debug.Log($"[PubChem] Searching for: {moleculeName}");
         Debug.Log($"[PubChem] URL: {url}");

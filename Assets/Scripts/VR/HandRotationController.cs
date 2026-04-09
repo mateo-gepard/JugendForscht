@@ -145,7 +145,7 @@ public class HandRotationController : MonoBehaviour
         {
             timeSinceLastInteraction += Time.deltaTime;
             
-            if (timeSinceLastInteraction >= autoRotationDelay && planeAlignment != null)
+            if (timeSinceLastInteraction >= autoRotationDelay && planeAlignment != null && planeAlignment.enableAutoRotation)
             {
                 Debug.Log($"[HandRotation] Restarting auto-rotation after {timeSinceLastInteraction:F1}s of inactivity");
                 planeAlignment.StartAutoRotation();
@@ -241,37 +241,43 @@ public class HandRotationController : MonoBehaviour
             return;
         }
 
+        // Determine which object to rotate: original or isomer clone (proximity-based)
+        Transform targetTransform = moleculeRenderer.transform;
+        var animator = FindObjectOfType<IsomerAnimator>();
+        if (animator != null && animator.IsShowingIsomer && animator.IsomerClone != null)
+        {
+            float distToOriginal = Vector3.Distance(currentHandPos, moleculeRenderer.transform.position);
+            float distToClone = Vector3.Distance(currentHandPos, animator.IsomerClone.transform.position);
+            if (distToClone < distToOriginal)
+            {
+                targetTransform = animator.IsomerClone.transform;
+            }
+        }
+
         // Get camera reference for relative rotation
         Camera mainCam = Camera.main;
         if (mainCam == null) return;
 
-        // Calculate rotation based on hand movement
-        float horizontalDelta = delta.x;
-        float verticalDelta = delta.y;
-
-        // Create rotation quaternions
-        Quaternion yawRotation = Quaternion.AngleAxis(horizontalDelta * rotationSpeed * 200f, Vector3.up);
-        Quaternion pitchRotation = Quaternion.AngleAxis(-verticalDelta * rotationSpeed * 200f, mainCam.transform.right);
-
-        // Combine rotations
+        // Calculate rotation based on hand movement (same direction as hand)
+        Quaternion yawRotation = Quaternion.AngleAxis(-delta.x * rotationSpeed * 200f, Vector3.up);
+        Quaternion pitchRotation = Quaternion.AngleAxis(delta.y * rotationSpeed * 200f, mainCam.transform.right);
         Quaternion deltaRotation = yawRotation * pitchRotation;
 
-        // Store original position AND local position to keep molecule in place
-        Vector3 originalPosition = moleculeRenderer.transform.position;
-        Vector3 originalLocalPosition = moleculeRenderer.transform.localPosition;
+        // Store position to keep it fixed
+        Vector3 savedPos = targetTransform.position;
 
-        // Only rotate, don't move - rotate around the molecule's own center
-        moleculeRenderer.transform.rotation = deltaRotation * moleculeRenderer.transform.rotation;
-        
-        // Force position to stay exactly the same
-        moleculeRenderer.transform.position = originalPosition;
-        moleculeRenderer.transform.localPosition = originalLocalPosition;
+        // Rotate the target
+        targetTransform.rotation = deltaRotation * targetTransform.rotation;
+        targetTransform.position = savedPos;
 
         // Update last position
         lastHandPosition = currentHandPos;
 
-        // Trigger bond re-rendering with new stereochemistry
-        moleculeRenderer.RerenderBondsOnly();
+        // Re-render bonds only for the original
+        if (targetTransform == moleculeRenderer.transform)
+        {
+            moleculeRenderer.RerenderBondsOnly();
+        }
     }
 
     void OnDrawGizmos()

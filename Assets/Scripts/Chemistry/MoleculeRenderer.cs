@@ -45,7 +45,8 @@ public class MoleculeRenderer : MonoBehaviour
 
     // Runtime Data
     private MoleculeData currentMolecule;
-    private List<GameObject> atomObjects = new List<GameObject>();
+    public List<GameObject> atomObjects = new List<GameObject>();
+    public bool disableMeshCombining = false;
     private List<GameObject> bondObjects = new List<GameObject>();
     private List<GameObject> combinedAtomObjects = new List<GameObject>();
 
@@ -256,6 +257,7 @@ public class MoleculeRenderer : MonoBehaviour
 
     private void CombineAtomMeshes()
     {
+        if (disableMeshCombining) return;
         if (atomObjects.Count == 0) return;
 
         // Group atoms by material
