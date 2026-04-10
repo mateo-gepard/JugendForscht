@@ -320,6 +320,7 @@ public class PeriodicTableDisplay : MonoBehaviour
         HighlightTool("trash",   mode == BuilderManager.BuilderMode.DeleteTool);
         HighlightTool("charge+", mode == BuilderManager.BuilderMode.ChargePlus);
         HighlightTool("charge-", mode == BuilderManager.BuilderMode.ChargeMinus);
+        HighlightTool("move",    mode == BuilderManager.BuilderMode.MoveTool);
     }
 
     private void HighlightTool(string id, bool active)
@@ -338,6 +339,7 @@ public class PeriodicTableDisplay : MonoBehaviour
             case "unbond": return new Color(1f, 0.5f, 0.2f);
             case "charge+": return new Color(0.3f, 0.5f, 1f);
             case "charge-": return new Color(1f, 0.3f, 0.4f);
+            case "move": return new Color(0.2f, 0.8f, 0.6f);
             default: return Color.white;
         }
     }

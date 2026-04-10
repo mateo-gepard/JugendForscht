@@ -582,6 +582,8 @@ public class BuilderManager : MonoBehaviour
         {
             foreach (var a in invalid) a.SetHighlight(true);
             Debug.Log($"[Builder] Ungültig! {invalid.Count} Atome verletzen die Oktettregel.");
+            if (webSocket != null)
+                webSocket.BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Fehler: {invalid.Count} Atome verletzen die Oktettregel!\"}}");
             // Highlights nach 3 Sekunden zurücksetzen
             StartCoroutine(ResetHighlightsAfterDelay(invalid, 3f));
             return;
@@ -595,10 +597,13 @@ public class BuilderManager : MonoBehaviour
         var lib = moleculeLibrary ?? FindObjectOfType<MoleculeLibrary>();
         if (lib != null)
         {
-            // Disable plane (white quad) for builder molecules
-            var renderer = lib.renderer ?? FindObjectOfType<MoleculeRenderer>();
+            // Find renderer (might be inactive since StartBuilder disabled it)
+            var renderer = lib.renderer ?? FindObjectsOfType<MoleculeRenderer>(true)[0];
             if (renderer != null)
             {
+                renderer.gameObject.SetActive(true);
+                
+                // Disable plane (white quad) for builder molecules
                 var planeAlign = renderer.GetComponent<MoleculePlaneAlignment>();
                 if (planeAlign != null)
                 {
@@ -612,9 +617,10 @@ public class BuilderManager : MonoBehaviour
         else
         {
             // Fallback if no library found
-            var renderer = FindObjectOfType<MoleculeRenderer>();
-            if (renderer != null)
+            var rendererArray = FindObjectsOfType<MoleculeRenderer>(true);
+            if (rendererArray.Length > 0)
             {
+                var renderer = rendererArray[0];
                 renderer.gameObject.SetActive(true);
                 renderer.enableStereoDisplay = false;
                 renderer.RenderMolecule(molData);
