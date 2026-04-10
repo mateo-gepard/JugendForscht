@@ -260,6 +260,16 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         surfaceMaterial = new Material(shader);
         surfaceMaterial.enableInstancing = true;
 
+        // Force double-sided rendering (Cull Off) on any shader
+        if (surfaceMaterial.HasProperty("_Cull"))
+            surfaceMaterial.SetFloat("_Cull", 0); // 0 = Off
+        else
+            surfaceMaterial.SetInt("_Cull", 0);
+
+        // Enable vertex colors for Particles shader
+        if (surfaceMaterial.HasProperty("_ColorMode"))
+            surfaceMaterial.SetFloat("_ColorMode", 1); // Multiply
+
         return surfaceMaterial;
     }
 
@@ -372,35 +382,44 @@ public class RiemannSurfaceDisplay : MonoBehaviour
     /// <summary>
     /// Called every frame to check for finger taps on the complex plane.
     /// </summary>
+    private float lastProbeTime = 0f;
+    private const float probeCooldown = 0.5f; // Minimum time between probes
+
     public void CheckFingerTap()
     {
-        // Find hands
-        Hand[] hands = FindObjectsOfType<Hand>();
-        foreach (var hand in hands)
+        if (boxContainer == null) return;
+        if (Time.time - lastProbeTime < probeCooldown) return;
+
+        // Get hands from HandRotationController (they are assigned in the inspector)
+        var hrc = FindObjectOfType<HandRotationController>();
+        if (hrc == null) return;
+
+        TryFingerTap(hrc.rightHand);
+        TryFingerTap(hrc.leftHand);
+    }
+
+    private void TryFingerTap(Hand hand)
+    {
+        if (hand == null || !hand.IsTrackedDataValid) return;
+
+        if (!hand.GetJointPose(HandJointId.HandIndexTip, out Pose tipPose))
+            return;
+
+        // Convert to local space of the box
+        Vector3 localTip = boxContainer.transform.InverseTransformPoint(tipPose.position);
+        float half = boxSize / 2f;
+
+        // Check if finger is near the complex plane (y ≈ 0) and within bounds
+        if (Mathf.Abs(localTip.y) < tapDistance &&
+            Mathf.Abs(localTip.x) < half &&
+            Mathf.Abs(localTip.z) < half)
         {
-            if (hand == null || !hand.IsTrackedDataValid) continue;
-
-            if (hand.GetJointPose(HandJointId.HandIndexTip, out Pose tipPose))
+            // Check for pinch gesture
+            float pinch = hand.GetFingerPinchStrength(HandFinger.Index);
+            if (pinch > 0.7f)
             {
-                // Convert to local space
-                Vector3 localTip = boxContainer != null
-                    ? boxContainer.transform.InverseTransformPoint(tipPose.position)
-                    : transform.InverseTransformPoint(tipPose.position);
-
-                float half = boxSize / 2f;
-
-                // Check if finger is near the complex plane (y ≈ 0) and within bounds
-                if (Mathf.Abs(localTip.y) < tapDistance &&
-                    Mathf.Abs(localTip.x) < half &&
-                    Mathf.Abs(localTip.z) < half)
-                {
-                    // Check for pinch gesture (tap)
-                    float pinch = hand.GetFingerPinchStrength(HandFinger.Index);
-                    if (pinch > 0.7f)
-                    {
-                        ProbePoint(localTip);
-                    }
-                }
+            lastProbeTime = Time.time;
+                ProbePoint(localTip);
             }
         }
     }

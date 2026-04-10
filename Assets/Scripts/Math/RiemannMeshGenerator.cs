@@ -34,23 +34,21 @@ public static class RiemannMeshGenerator
     {
         int sheets = func.Sheets;
         int totalAngularSteps = angularStepsPerSheet * sheets;
-        float scale = boxSize / (2f * maxVal);
+        float inputScale = boxSize / (2f * maxVal); // Scale for Re(z), Im(z) axes
         float rMin = maxVal * 0.01f; // Small ε to avoid branch point at origin
 
-        // Sample the surface using analytic continuation
+        // ── PASS 1: Sample all function values ──
         int rows = radialSteps;
-        int cols = totalAngularSteps + 1; // +1 to close back if needed
-        var vertices = new List<Vector3>();
-        var colors = new List<Color>();
-        var triangles = new List<int>();
-        var validVertex = new bool[rows * cols]; // Track which vertices are valid (not NaN)
+        int cols = totalAngularSteps + 1;
+        var zValues = new Complex[rows * cols];
+        var wValues = new Complex[rows * cols];
+        var valid = new bool[rows * cols];
+        float maxHeight = 0.001f; // Track max |Re(f(z))| for auto-scaling Y axis
 
         for (int i = 0; i < rows; i++)
         {
             float t = (float)i / (rows - 1);
             double r = rMin + (maxVal - rMin) * t;
-
-            // Analytic continuation along this radius circle
             Complex prevW = Complex.Zero;
 
             for (int j = 0; j < cols; j++)
@@ -60,53 +58,69 @@ public static class RiemannMeshGenerator
 
                 Complex w;
                 if (j == 0)
-                {
-                    // Starting value: use principal value
                     w = func.Evaluate(z);
-                }
                 else
-                {
-                    // Analytic continuation: pick candidate closest to previous value
                     w = ContinueValue(func, z, prevW);
-                }
 
                 int idx = i * cols + j;
+                zValues[idx] = z;
+                wValues[idx] = w;
 
-                // Check for NaN/Inf
                 if (double.IsNaN(w.Real) || double.IsInfinity(w.Real) ||
                     double.IsNaN(w.Imaginary) || double.IsInfinity(w.Imaginary))
                 {
-                    vertices.Add(Vector3.zero);
-                    colors.Add(Color.clear);
-                    validVertex[idx] = false;
+                    valid[idx] = false;
                 }
                 else
                 {
-                    // Clamp height to maxVal
-                    float height = Mathf.Clamp((float)w.Real, -maxVal, maxVal);
-
-                    // Vertex position in box space (centered at origin)
-                    float vx = (float)z.Real * scale;
-                    float vy = height * scale;
-                    float vz = (float)z.Imaginary * scale;
-
-                    vertices.Add(new Vector3(vx, vy, vz));
-
-                    // Domain coloring: hue from phase, saturation from magnitude
-                    float hue = (float)(w.Phase / (2.0 * Math.PI));
-                    if (hue < 0) hue += 1f;
-                    float saturation = 0.8f;
-                    float brightness = Mathf.Clamp01(1f - 0.3f * Mathf.Log10(1f + (float)w.Magnitude));
-
-                    colors.Add(Color.HSVToRGB(hue, saturation, Mathf.Max(brightness, 0.3f)));
-                    validVertex[idx] = true;
+                    valid[idx] = true;
+                    float absH = Mathf.Abs((float)w.Real);
+                    if (absH > maxHeight && absH < 1e6f) maxHeight = absH;
                 }
-
                 prevW = w;
             }
         }
 
-        // Build triangles
+        // Height scale: map [-maxHeight, maxHeight] → [-boxSize/2, boxSize/2]
+        float heightScale = boxSize / (2f * maxHeight);
+
+        // ── PASS 2: Build vertices with proper scaling ──
+        var vertices = new List<Vector3>();
+        var colors = new List<Color>();
+        var triangles = new List<int>();
+
+        for (int idx = 0; idx < rows * cols; idx++)
+        {
+            if (!valid[idx])
+            {
+                vertices.Add(Vector3.zero);
+                colors.Add(Color.clear);
+            }
+            else
+            {
+                Complex z = zValues[idx];
+                Complex w = wValues[idx];
+
+                // Clamp height to box bounds
+                float height = Mathf.Clamp((float)w.Real, -maxHeight, maxHeight);
+
+                float vx = (float)z.Real * inputScale;
+                float vy = height * heightScale;
+                float vz = (float)z.Imaginary * inputScale;
+
+                vertices.Add(new Vector3(vx, vy, vz));
+
+                // Domain coloring: hue from phase, brightness from magnitude
+                float hue = (float)(w.Phase / (2.0 * Math.PI));
+                if (hue < 0) hue += 1f;
+                float saturation = 0.8f;
+                float brightness = Mathf.Clamp01(1f - 0.3f * Mathf.Log10(1f + (float)w.Magnitude));
+
+                colors.Add(Color.HSVToRGB(hue, saturation, Mathf.Max(brightness, 0.3f)));
+            }
+        }
+
+        // ── Build triangles (correct winding: normals point UP) ──
         for (int i = 0; i < rows - 1; i++)
         {
             for (int j = 0; j < cols - 1; j++)
@@ -116,26 +130,25 @@ public static class RiemannMeshGenerator
                 int c = (i + 1) * cols + j;
                 int d = (i + 1) * cols + j + 1;
 
-                // Skip if any vertex is invalid
-                if (!validVertex[a] || !validVertex[b] || !validVertex[c] || !validVertex[d])
+                if (!valid[a] || !valid[b] || !valid[c] || !valid[d])
                     continue;
 
-                // Skip triangles that span too large a distance (torn mesh at branch cuts)
+                // Skip torn triangles at branch cuts
                 float maxEdge = MaxEdgeLength(vertices[a], vertices[b], vertices[c], vertices[d]);
-                if (maxEdge > boxSize * 0.3f) continue; // Skip degenerate triangles
+                if (maxEdge > boxSize * 0.3f) continue;
 
-                // Two triangles per quad
+                // Winding: (a, b, c) and (b, d, c) → normals point upward
                 triangles.Add(a);
-                triangles.Add(c);
                 triangles.Add(b);
+                triangles.Add(c);
 
                 triangles.Add(b);
-                triangles.Add(c);
                 triangles.Add(d);
+                triangles.Add(c);
             }
         }
 
-        // Build mesh
+        // ── Build mesh ──
         Mesh mesh = new Mesh();
         mesh.indexFormat = vertices.Count > 65535
             ? UnityEngine.Rendering.IndexFormat.UInt32
