@@ -147,7 +147,7 @@ JugendForscht/
 
 ### iPad-Controller
 - Dunkles Premium-UI, optimiert für Touch
-- **Hamburger-Menü** — Fach (Chemie / Physik) und Thema (Keilstrichformel / Chiralität & Isomerie / Lorentz-Labor) über Popup wählbar
+- **Hamburger-Menü** — Fach (Chemie / Physik / Mathematik) und Thema (Keilstrichformel / Chiralität / Lorentz-Labor / Riemannsche Flächen) über Popup wählbar
 - **Verbindungsleiste** — Echtzeit-Anzeige verbundener Geräte (rot/grün) und Gerätepopup
 - Tutorial starten/pausieren/fortsetzen
 - Moleküle laden (Schnellauswahl + Freitextsuche), für beide Themenbereiche
@@ -168,6 +168,16 @@ Tischplatten-Experiment-Simulation der Lorentzkraft $F_L = q \cdot (\vec{v} \tim
   - Beschriftete Labels schweben an den Fingerspitzen
   - Alle Pfeilspitzen **grün** bei ≤ 20° Abweichung aller drei Finger, **rot** sonst
 - **Lehrersteuerung** — Feldstärke (0,1–5 T), Geschwindigkeit (0,05–1 m/s), Ladungsvorzeichen (Proton/Elektron) über iPad-Slider
+
+### Mathematik-Modul: Riemannsche Flächen
+
+Visualisierung von komplexen Funktionen und ihren Riemannschen Flächen in 3D:
+
+- **Echtzeit-Parser & Analytische Fortsetzung** — Eingabe von komplexen Funktionen (z.B. `z^(1/3)`, `log(z)`) über das iPad-UI. Der Algorithmus erkennt automatisch die Anzahl der Blätter und generiert die Fläche über numerische analytische Fortsetzung.
+- **Domain Coloring** — Farbton (Hue) zeigt das Argument (Phase), Helligkeit zeigt den Betrag ($|f(z)|$) der komplexen Zahl an.
+- **Interaktiver 3D-Graph** — Die generierte Mesh wird in einer 40cm-Box gerendert. Wie bei Molekülen kann die gesamte Fläche per Pinch-Geste gegriffen und im Raum gedreht werden.
+- **Finger-Tap Probing** — Berührt man die komplexe Basisebene (y=0) mit dem Zeigefinger, wird eine vertikale Schnittlinie durch die Fläche gezeichnet und die exakten Werte für $z$ und $f(z)$ werden live in VR eingeblendet.
+- **Dynamische Skalierung** — Die Definitionsgrenze für den Betrag $|z|$ lässt sich live am iPad verstellen, die Höhe (Y-Achse) wird unabhängig davon automatisch skaliert.
 
 ---
 
