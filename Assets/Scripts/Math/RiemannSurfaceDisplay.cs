@@ -144,7 +144,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         // Label at arrow tip
         var labelObj = CreateTextLabel(
             dir * (halfLength + 0.02f), label,
-            color, 0.015f, boxContainer.transform);
+            color, 0.005f, boxContainer.transform);
         labelObjects.Add(labelObj);
     }
 
@@ -203,20 +203,20 @@ public class RiemannSurfaceDisplay : MonoBehaviour
             // Re(z) axis ticks (along X)
             var tickRe = CreateTextLabel(
                 new Vector3(v * scale, 0, -boxSize / 2f - 0.012f),
-                text, axisColor, 0.008f, boxContainer.transform);
+                text, axisColor, 0.004f, boxContainer.transform);
             labelObjects.Add(tickRe);
 
             // Im(z) axis ticks (along Z)
             var tickIm = CreateTextLabel(
                 new Vector3(-boxSize / 2f - 0.012f, 0, v * scale),
-                text + "i", axisColor, 0.008f, boxContainer.transform);
+                text + "i", axisColor, 0.004f, boxContainer.transform);
             labelObjects.Add(tickIm);
         }
 
         // Origin label
         var origin = CreateTextLabel(
             new Vector3(-0.01f, -0.005f, -0.01f),
-            "0", axisColor, 0.01f, boxContainer.transform);
+            "0", axisColor, 0.005f, boxContainer.transform);
         labelObjects.Add(origin);
     }
 
@@ -241,7 +241,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
             string text = FormatNumber(v);
             var tickH = CreateTextLabel(
                 new Vector3(-half - 0.015f, yPos, 0),
-                text, axisColor, 0.008f, boxContainer.transform);
+                text, axisColor, 0.004f, boxContainer.transform);
             labelObjects.Add(tickH);
         }
     }
@@ -301,11 +301,22 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         surfaceMaterial = new Material(shader);
         surfaceMaterial.enableInstancing = true;
 
-        // Force double-sided rendering (Cull Off) on any shader
+        // Force double-sided rendering
+        surfaceMaterial.SetFloat("_Cull", 0); // 0 = Cull Off
         if (surfaceMaterial.HasProperty("_Cull"))
-            surfaceMaterial.SetFloat("_Cull", 0); // 0 = Off
-        else
-            surfaceMaterial.SetInt("_Cull", 0);
+            surfaceMaterial.SetFloat("_Cull", 0);
+
+        // For Standard shader: also need to set rendering mode
+        if (shader.name.Contains("Standard") || shader.name.Contains("Particles"))
+        {
+            // Switch to Fade mode for double-sided
+            surfaceMaterial.SetFloat("_Mode", 2); // Fade
+            surfaceMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            surfaceMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            surfaceMaterial.SetInt("_ZWrite", 1);
+            surfaceMaterial.renderQueue = 3000;
+            surfaceMaterial.EnableKeyword("_ALPHABLEND_ON");
+        }
 
         // Enable vertex colors for Particles shader
         if (surfaceMaterial.HasProperty("_ColorMode"))
@@ -329,7 +340,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
             functionLabel = labelObj.AddComponent<TextMesh>();
             functionLabel.anchor = TextAnchor.MiddleCenter;
             functionLabel.alignment = TextAlignment.Center;
-            functionLabel.characterSize = 0.012f;
+            functionLabel.characterSize = 0.008f;
             functionLabel.fontSize = 64;
             functionLabel.color = new Color(0.9f, 0.9f, 1f, 0.95f);
 
@@ -375,7 +386,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
         // Find intersections (function values at this z for each sheet)
         var intersections = RiemannMeshGenerator.FindIntersections(
-            currentFunction, re, im, maxVal);
+            currentFunction, re, im, maxHeight);
 
         // Draw intersection dots and labels
         Complex z = new Complex(re, im);
@@ -404,16 +415,16 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
             // Offset label to the right so it doesn't overlap the line
             var label = CreateProbeLabel(
-                new Vector3(probeX + 0.035f, yPos + 0.005f, probeZ),
-                labelText, Color.white, 2.5f, boxContainer.transform);
+                new Vector3(probeX + 0.03f, yPos + 0.005f, probeZ),
+                labelText, Color.white, 0.006f, boxContainer.transform);
             probeLabels.Add(label);
         }
 
         // Base label at the bottom showing tapped z-coordinate
         string baseText = $"z = {FormatComplex(z)}";
         var baseLabel = CreateProbeLabel(
-            new Vector3(probeX, -half - 0.025f, probeZ),
-            baseText, new Color(1f, 1f, 0.5f), 2f, boxContainer.transform);
+            new Vector3(probeX, -half - 0.02f, probeZ),
+            baseText, new Color(1f, 1f, 0.5f), 0.005f, boxContainer.transform);
         probeLabels.Add(baseLabel);
     }
 

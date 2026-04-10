@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 /// <summary>
 /// Holds references to shaders and materials needed for standalone VR builds.
@@ -53,6 +53,7 @@ public class ShaderIncluder : MonoBehaviour
         string[] shaderNames = new string[]
         {
             "Custom/MoleculeUnlit",
+            "Custom/RiemannSurface",
             "Unlit/Color",
             "Mobile/Unlit (Supports Lightmap)",
             "Mobile/Diffuse",

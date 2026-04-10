@@ -213,9 +213,10 @@ public static class RiemannMeshGenerator
     /// <summary>
     /// Find all intersections of a vertical line at (re, im) with the Riemann surface.
     /// Returns the function values at each intersection.
+    /// maxHeight is the actual height range from mesh generation (not the input maxVal).
     /// </summary>
     public static List<Complex> FindIntersections(ParsedFunction func, double re, double im,
-        float maxVal, int numSamples = 500)
+        float maxHeight, int numSamples = 500)
     {
         var intersections = new List<Complex>();
         Complex z = new Complex(re, im);
@@ -228,7 +229,7 @@ public static class RiemannMeshGenerator
 
         // Collect all distinct values the function takes at this z
         var values = new HashSet<string>();
-        AddValue(intersections, values, prevW, maxVal);
+        AddValue(intersections, values, prevW, maxHeight);
 
         for (int sheet = 0; sheet < func.Sheets; sheet++)
         {
@@ -238,20 +239,20 @@ public static class RiemannMeshGenerator
             Complex zWrapped = Complex.FromPolarCoordinates(r, theta);
             // zWrapped has the same position as z, but we continue from prevW
             Complex w = ContinueValue(func, zWrapped, prevW);
-            AddValue(intersections, values, w, maxVal);
+            AddValue(intersections, values, w, maxHeight);
             prevW = w;
         }
 
         return intersections;
     }
 
-    static void AddValue(List<Complex> list, HashSet<string> seen, Complex w, float maxVal)
+    static void AddValue(List<Complex> list, HashSet<string> seen, Complex w, float maxHeight)
     {
         if (double.IsNaN(w.Real) || double.IsInfinity(w.Real)) return;
-        if (Math.Abs(w.Real) > maxVal) return;
+        if (Math.Abs(w.Real) > maxHeight * 1.1f) return; // Allow slight overshoot
 
-        // Round for deduplication
-        string key = $"{Math.Round(w.Real, 6)},{Math.Round(w.Imaginary, 6)}";
+        // Round for deduplication (use 3 decimals to avoid false duplicates)
+        string key = $"{Math.Round(w.Real, 3)},{Math.Round(w.Imaginary, 3)}";
         if (!seen.Contains(key))
         {
             seen.Add(key);
