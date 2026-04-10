@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
-using TMPro;
 using Oculus.Interaction.Input;
 using Complex = System.Numerics.Complex;
 using Vector2 = UnityEngine.Vector2;
@@ -21,9 +20,9 @@ public class RiemannSurfaceDisplay : MonoBehaviour
     public float maxVal = 5f;    // Mathematical bounds (symmetric)
 
     [Header("Visuals")]
-    public Color axisColor = new Color(0.7f, 0.7f, 0.8f, 0.6f);
-    public Color gridColor = new Color(0.4f, 0.4f, 0.5f, 0.15f);
-    public Color probeLineColor = new Color(0f, 0.9f, 1f, 0.8f); // Cyan
+    public Color axisColor = new Color(0.7f, 0.7f, 0.8f, 0.8f);
+    public Color gridColor = new Color(0.5f, 0.5f, 0.6f, 0.35f);
+    public Color probeLineColor = new Color(0f, 0.9f, 1f, 0.9f); // Cyan
 
     [Header("Interaction")]
     public float tapDistance = 0.12f; // Max finger distance to complex plane for tap (12cm — generous)
@@ -44,7 +43,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
     private float maxHeight;    // actual max |Re(f(z))| found during mesh generation
 
     // Label showing the function below the plot
-    private TextMeshPro functionLabel;
+    private TextMesh functionLabel;
 
     // Material cache
     private Material surfaceMaterial;
@@ -66,6 +65,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         ClearSurface();
         CreateBox();
         GenerateAndShowMesh();
+        CreateHeightTickLabels(); // Must be after mesh gen (uses heightScale)
         UpdateFunctionLabel();
 
         Debug.Log($"[RiemannDisplay] Rendered f(z) = {functionText}, sheets={func.Sheets}, maxVal={maxVal}");
@@ -82,7 +82,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         foreach (var obj in axisObjects) if (obj != null) Destroy(obj);
         foreach (var obj in labelObjects) if (obj != null) Destroy(obj);
         if (boxContainer != null) Destroy(boxContainer);
-        if (functionLabel != null) Destroy(functionLabel.gameObject);
+        if (functionLabel != null && functionLabel.gameObject != null) Destroy(functionLabel.gameObject);
 
         axisObjects.Clear();
         labelObjects.Clear();
@@ -154,6 +154,22 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         float scale = boxSize / (2f * maxVal);
         float step = CalculateGridStep(maxVal);
 
+        // Semi-transparent quad for the complex plane at y=0
+        var planeQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        planeQuad.name = "ComplexPlane";
+        planeQuad.transform.SetParent(boxContainer.transform, false);
+        planeQuad.transform.localPosition = Vector3.zero;
+        planeQuad.transform.localRotation = Quaternion.Euler(90, 0, 0);
+        planeQuad.transform.localScale = new Vector3(boxSize, boxSize, 1f);
+        Destroy(planeQuad.GetComponent<Collider>());
+        var planeMr = planeQuad.GetComponent<MeshRenderer>();
+        var planeMat = new Material(Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Color"));
+        planeMat.color = new Color(0.3f, 0.3f, 0.4f, 0.08f);
+        planeMr.material = planeMat;
+        planeMr.shadowCastingMode = ShadowCastingMode.Off;
+        axisObjects.Add(planeQuad);
+
+        // Grid lines on the complex plane
         for (float v = -maxVal; v <= maxVal + 0.001f; v += step)
         {
             float pos = v * scale;
@@ -162,13 +178,13 @@ public class RiemannSurfaceDisplay : MonoBehaviour
             // Lines parallel to X axis (at different Z positions)
             var lineX = CreateLine(
                 new Vector3(-half, 0, pos), new Vector3(half, 0, pos),
-                gridColor, 0.0005f, boxContainer.transform);
+                gridColor, 0.001f, boxContainer.transform);
             axisObjects.Add(lineX);
 
             // Lines parallel to Z axis (at different X positions)
             var lineZ = CreateLine(
                 new Vector3(pos, 0, -half), new Vector3(pos, 0, half),
-                gridColor, 0.0005f, boxContainer.transform);
+                gridColor, 0.001f, boxContainer.transform);
             axisObjects.Add(lineZ);
         }
     }
@@ -195,15 +211,6 @@ public class RiemannSurfaceDisplay : MonoBehaviour
                 new Vector3(-boxSize / 2f - 0.012f, 0, v * scale),
                 text + "i", axisColor, 0.008f, boxContainer.transform);
             labelObjects.Add(tickIm);
-
-            // Height axis ticks (along Y) – only a few
-            if (Mathf.Abs(v) <= maxVal)
-            {
-                var tickH = CreateTextLabel(
-                    new Vector3(-boxSize / 2f - 0.015f, v * scale, 0),
-                    text, axisColor, 0.008f, boxContainer.transform);
-                labelObjects.Add(tickH);
-            }
         }
 
         // Origin label
@@ -211,6 +218,32 @@ public class RiemannSurfaceDisplay : MonoBehaviour
             new Vector3(-0.01f, -0.005f, -0.01f),
             "0", axisColor, 0.01f, boxContainer.transform);
         labelObjects.Add(origin);
+    }
+
+    /// <summary>
+    /// Create Y-axis (height) tick labels. Called AFTER mesh generation
+    /// so we can use the correct heightScale.
+    /// </summary>
+    void CreateHeightTickLabels()
+    {
+        if (boxContainer == null || maxHeight < 0.001f) return;
+
+        float half = boxSize / 2f;
+        float step = CalculateGridStep(maxHeight);
+
+        for (float v = -maxHeight; v <= maxHeight + 0.001f; v += step)
+        {
+            if (Mathf.Abs(v) < 0.001f) continue;
+
+            float yPos = v * heightScale;
+            if (Mathf.Abs(yPos) > half) continue; // Skip if outside box
+
+            string text = FormatNumber(v);
+            var tickH = CreateTextLabel(
+                new Vector3(-half - 0.015f, yPos, 0),
+                text, axisColor, 0.008f, boxContainer.transform);
+            labelObjects.Add(tickH);
+        }
     }
 
     float CalculateGridStep(float max)
@@ -291,17 +324,17 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         {
             var labelObj = new GameObject("FunctionLabel");
             labelObj.transform.SetParent(boxContainer.transform, false);
-            labelObj.transform.localPosition = new Vector3(0, -boxSize / 2f - 0.03f, 0);
+            labelObj.transform.localPosition = new Vector3(0, -boxSize / 2f - 0.035f, 0);
 
-            functionLabel = labelObj.AddComponent<TextMeshPro>();
-            functionLabel.alignment = TextAlignmentOptions.Center;
-            functionLabel.fontSize = 0.8f;
-            functionLabel.color = new Color(0.9f, 0.9f, 1f, 0.9f);
-            functionLabel.enableWordWrapping = false;
+            functionLabel = labelObj.AddComponent<TextMesh>();
+            functionLabel.anchor = TextAnchor.MiddleCenter;
+            functionLabel.alignment = TextAlignment.Center;
+            functionLabel.characterSize = 0.012f;
+            functionLabel.fontSize = 64;
+            functionLabel.color = new Color(0.9f, 0.9f, 1f, 0.95f);
 
-            // Set rect size
-            var rt = functionLabel.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(0.5f, 0.05f);
+            // Billboard: face camera
+            labelObj.AddComponent<BillboardLabel>();
         }
 
         functionLabel.text = $"f(z) = {currentFunctionText}";
@@ -394,13 +427,11 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
     /// <summary>
     /// Called every frame to check for finger pokes on the complex plane.
-    /// Uses index finger proximity to the y=0 plane (no pinch gesture, which would conflict with rotation).
+    /// Triggers when index finger tip is near the y=0 plane within the box bounds.
     /// </summary>
-    private float lastProbeTime = 0f;
-    private const float probeCooldown = 1.0f;
+    private float lastProbeTime = -10f;
+    private const float probeCooldown = 1.5f;
     private HandRotationController cachedHRC;
-    private Vector3 prevFingerPosR, prevFingerPosL;
-    private bool wasInsideR = false, wasInsideL = false;
 
     public void CheckFingerTap()
     {
@@ -412,23 +443,14 @@ public class RiemannSurfaceDisplay : MonoBehaviour
             cachedHRC = UnityEngine.Object.FindObjectOfType<HandRotationController>();
         if (cachedHRC == null) return;
 
-        TryFingerPoke(cachedHRC.rightHand, ref prevFingerPosR, ref wasInsideR);
-        TryFingerPoke(cachedHRC.leftHand, ref prevFingerPosL, ref wasInsideL);
+        if (TryFingerPoke(cachedHRC.rightHand)) return;
+        TryFingerPoke(cachedHRC.leftHand);
     }
 
-    private void TryFingerPoke(Hand hand, ref Vector3 prevPos, ref bool wasInside)
+    private bool TryFingerPoke(Hand hand)
     {
-        if (hand == null || !hand.IsTrackedDataValid)
-        {
-            wasInside = false;
-            return;
-        }
-
-        if (!hand.GetJointPose(HandJointId.HandIndexTip, out Pose tipPose))
-        {
-            wasInside = false;
-            return;
-        }
+        if (hand == null || !hand.IsTrackedDataValid) return false;
+        if (!hand.GetJointPose(HandJointId.HandIndexTip, out Pose tipPose)) return false;
 
         // Convert to local space of the box
         Vector3 localTip = boxContainer.transform.InverseTransformPoint(tipPose.position);
@@ -437,22 +459,22 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         // Check if finger is within the box's X/Z bounds
         bool inXZ = Mathf.Abs(localTip.x) < half && Mathf.Abs(localTip.z) < half;
 
-        // Check if finger is near the complex plane (y ≈ 0)
-        bool nearPlane = Mathf.Abs(localTip.y) < tapDistance;
+        // Check if finger is near the complex plane (y ≈ 0, within ~8cm)
+        bool nearPlane = Mathf.Abs(localTip.y) < 0.08f;
 
-        bool isInside = inXZ && nearPlane;
-
-        // Detect "poke": finger just entered the zone (transition from outside to inside)
-        if (isInside && !wasInside)
+        if (inXZ && nearPlane)
         {
-            lastProbeTime = Time.time;
-            // Snap the probe to y=0 (the complex plane)
-            Vector3 probePos = new Vector3(localTip.x, 0f, localTip.z);
-            ProbePoint(probePos);
+            // Also check that index finger is extended (not pinching for rotation)
+            float pinch = hand.GetFingerPinchStrength(HandFinger.Index);
+            if (pinch < 0.4f) // Finger is extended, not pinching
+            {
+                lastProbeTime = Time.time;
+                Vector3 probePos = new Vector3(localTip.x, 0f, localTip.z);
+                ProbePoint(probePos);
+                return true;
+            }
         }
-
-        wasInside = isInside;
-        prevPos = localTip;
+        return false;
     }
 
     // ════════════════════════════════════════════════════════════
@@ -503,48 +525,51 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         return obj;
     }
 
+    /// <summary>
+    /// Create a small text label (for axis ticks, origin marker etc.)
+    /// Uses Unity TextMesh (legacy) – guaranteed to work without font assets.
+    /// </summary>
     static GameObject CreateTextLabel(Vector3 position, string text, Color color,
-        float fontSize, Transform parent)
+        float charSize, Transform parent)
     {
         var obj = new GameObject("Label");
         obj.transform.SetParent(parent, false);
         obj.transform.localPosition = position;
 
-        var tmp = obj.AddComponent<TextMeshPro>();
-        tmp.text = text;
-        tmp.fontSize = fontSize;
-        tmp.color = color;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.enableWordWrapping = false;
+        var tm = obj.AddComponent<TextMesh>();
+        tm.text = text;
+        tm.characterSize = charSize;
+        tm.fontSize = 48;
+        tm.anchor = TextAnchor.MiddleCenter;
+        tm.alignment = TextAlignment.Center;
+        tm.color = color;
 
-        var rt = tmp.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(0.15f, 0.04f);
+        // Billboard
+        obj.AddComponent<BillboardLabel>();
 
         return obj;
     }
 
     /// <summary>
-    /// Create a probe label that is large enough to read in VR and always faces the camera.
+    /// Create a probe label – larger, bold, always faces camera.
     /// </summary>
     static GameObject CreateProbeLabel(Vector3 position, string text, Color color,
-        float fontSize, Transform parent)
+        float charSize, Transform parent)
     {
         var obj = new GameObject("ProbeLabel");
         obj.transform.SetParent(parent, false);
         obj.transform.localPosition = position;
 
-        var tmp = obj.AddComponent<TextMeshPro>();
-        tmp.text = text;
-        tmp.fontSize = fontSize;
-        tmp.color = color;
-        tmp.alignment = TextAlignmentOptions.Left;
-        tmp.enableWordWrapping = false;
-        tmp.fontStyle = FontStyles.Bold;
+        var tm = obj.AddComponent<TextMesh>();
+        tm.text = text;
+        tm.characterSize = charSize;
+        tm.fontSize = 48;
+        tm.anchor = TextAnchor.MiddleLeft;
+        tm.alignment = TextAlignment.Left;
+        tm.color = color;
+        tm.fontStyle = FontStyle.Bold;
 
-        var rt = tmp.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(0.25f, 0.08f); // Wide enough for "z = 1.23+4.56i\nf(z) = ..."
-
-        // Add billboard behaviour so label always faces the camera
+        // Billboard: always face camera
         obj.AddComponent<BillboardLabel>();
 
         return obj;
