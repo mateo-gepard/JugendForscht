@@ -1039,68 +1039,72 @@ public class TutorialManager : MonoBehaviour
 
         float btnWidth = 0.12f;
         float btnHeight = 0.04f;
-        float btnDepth = 0.015f;
-        float spacing = 0.14f;
+        float btnDepth = 0.02f;
+        float spacing = 0.15f;
 
         // ── "Weiter" Button (right, green) ──
-        GameObject weiterObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        weiterObj.name = "WeiterButton";
-        weiterObj.transform.SetParent(vrButtonContainer.transform, false);
-        weiterObj.transform.localPosition = new Vector3(spacing / 2f, 0, 0);
-        weiterObj.transform.localScale = new Vector3(btnWidth, btnHeight, btnDepth);
-
-        var weiterBtn = weiterObj.AddComponent<QuizButton>();
-        weiterBtn.answerIndex = 0;
-        weiterBtn.normalColor = new Color(0.1f, 0.45f, 0.2f, 1f);
-        weiterBtn.hoverColor = new Color(0.15f, 0.65f, 0.3f, 1f);
-        weiterBtn.cooldownTime = 0.8f;
-        weiterBtn.OnPressed += (idx) => ContinueToNextStep();
-
-        // Label
-        var weiterLabel = new GameObject("Label");
-        weiterLabel.transform.SetParent(weiterObj.transform, false);
-        weiterLabel.transform.localPosition = new Vector3(0, 0, -0.6f);
-        weiterLabel.transform.localRotation = Quaternion.Euler(0, 180, 0);
-        var weiterTM = weiterLabel.AddComponent<TextMesh>();
-        weiterTM.text = "▶ Weiter";
-        weiterTM.fontSize = 32;
-        weiterTM.characterSize = 0.025f;
-        weiterTM.anchor = TextAnchor.MiddleCenter;
-        weiterTM.alignment = TextAlignment.Center;
-        weiterTM.color = Color.white;
-
-        vrWeiterButton = weiterBtn;
+        vrWeiterButton = CreateTutorialButton(
+            "WeiterButton", "Weiter  ▶",
+            new Vector3(spacing / 2f, 0, 0),
+            new Color(0.1f, 0.45f, 0.2f, 1f),
+            new Color(0.15f, 0.65f, 0.3f, 1f),
+            btnWidth, btnHeight, btnDepth);
+        vrWeiterButton.OnPressed += (idx) => ContinueToNextStep();
 
         // ── "Nochmal" Button (left, blue) ──
-        GameObject nochmalObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        nochmalObj.name = "NochmalButton";
-        nochmalObj.transform.SetParent(vrButtonContainer.transform, false);
-        nochmalObj.transform.localPosition = new Vector3(-spacing / 2f, 0, 0);
-        nochmalObj.transform.localScale = new Vector3(btnWidth, btnHeight, btnDepth);
-
-        var nochmalBtn = nochmalObj.AddComponent<QuizButton>();
-        nochmalBtn.answerIndex = 1;
-        nochmalBtn.normalColor = new Color(0.15f, 0.25f, 0.5f, 1f);
-        nochmalBtn.hoverColor = new Color(0.2f, 0.35f, 0.7f, 1f);
-        nochmalBtn.cooldownTime = 0.8f;
-        nochmalBtn.OnPressed += (idx) => GoToPreviousStep();
-
-        // Label
-        var nochmalLabel = new GameObject("Label");
-        nochmalLabel.transform.SetParent(nochmalObj.transform, false);
-        nochmalLabel.transform.localPosition = new Vector3(0, 0, -0.6f);
-        nochmalLabel.transform.localRotation = Quaternion.Euler(0, 180, 0);
-        var nochmalTM = nochmalLabel.AddComponent<TextMesh>();
-        nochmalTM.text = "↺ Nochmal";
-        nochmalTM.fontSize = 32;
-        nochmalTM.characterSize = 0.025f;
-        nochmalTM.anchor = TextAnchor.MiddleCenter;
-        nochmalTM.alignment = TextAlignment.Center;
-        nochmalTM.color = Color.white;
-
-        vrNochmalButton = nochmalBtn;
+        vrNochmalButton = CreateTutorialButton(
+            "NochmalButton", "◀  Nochmal",
+            new Vector3(-spacing / 2f, 0, 0),
+            new Color(0.15f, 0.25f, 0.5f, 1f),
+            new Color(0.2f, 0.35f, 0.7f, 1f),
+            btnWidth, btnHeight, btnDepth);
+        vrNochmalButton.OnPressed += (idx) => GoToPreviousStep();
 
         vrButtonContainer.SetActive(false);
+    }
+
+    private QuizButton CreateTutorialButton(string name, string text, Vector3 localPos,
+        Color normalCol, Color hoverCol, float w, float h, float d)
+    {
+        // Visual cube
+        GameObject btnObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        btnObj.name = name;
+        btnObj.transform.SetParent(vrButtonContainer.transform, false);
+        btnObj.transform.localPosition = localPos;
+        btnObj.transform.localScale = new Vector3(w, h, d);
+
+        // Replace default collider with a much deeper trigger zone
+        Destroy(btnObj.GetComponent<Collider>());
+        var triggerZone = btnObj.AddComponent<BoxCollider>();
+        triggerZone.isTrigger = true;
+        triggerZone.size = new Vector3(1f, 1f, 6f); // 6x deeper in local space = ~12cm
+
+        // Rigidbody needed for OnTriggerEnter to fire
+        var rb = btnObj.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
+
+        // QuizButton component
+        var qb = btnObj.AddComponent<QuizButton>();
+        qb.answerIndex = 0;
+        qb.normalColor = normalCol;
+        qb.hoverColor = hoverCol;
+        qb.cooldownTime = 0.8f;
+
+        // Label as SIBLING in container (not child of scaled cube!)
+        var labelObj = new GameObject(name + "_Label");
+        labelObj.transform.SetParent(vrButtonContainer.transform, false);
+        labelObj.transform.localPosition = localPos + new Vector3(0, 0, -d * 0.6f);
+
+        var tm = labelObj.AddComponent<TextMesh>();
+        tm.text = text;
+        tm.fontSize = 48;
+        tm.characterSize = 0.008f;
+        tm.anchor = TextAnchor.MiddleCenter;
+        tm.alignment = TextAlignment.Center;
+        tm.color = Color.white;
+
+        return qb;
     }
 
     // ════════════════════════════════════════════════════════════
