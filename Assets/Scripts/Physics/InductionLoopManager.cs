@@ -44,7 +44,7 @@ public class InductionLoopManager : MonoBehaviour
     [Header("Schleife")]
     public float defaultLoopWidth  = 0.15f;
     public float defaultLoopHeight = 0.12f;
-    public float defaultResistance = 0.5f;
+    public float defaultResistance = 0.15f;
 
     [Tooltip("Abstand der Schleife über dem Feld-Volumen (Start)")]
     public float dropHeight = 0.15f;
@@ -109,6 +109,9 @@ public class InductionLoopManager : MonoBehaviour
 
     /// <summary>Ist der Spalt offen?</summary>
     public bool IsSlitOpen => loop != null && loop.IsSlitOpen;
+
+    /// <summary>Stromrichtung: +1=CW, -1=CCW, 0=keiner.</summary>
+    public int CurrentFlowSign => loop != null ? loop.CurrentFlowSign : 0;
 
     /// <summary>Aktuelle Phase.</summary>
     public string PhaseString

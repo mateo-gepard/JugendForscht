@@ -27,9 +27,9 @@ public class InductionLoop : MonoBehaviour
     public float loopWidth  = 0.15f;
     public float loopHeight = 0.12f;
     public float wireRadius = 0.003f;
-    public float resistance = 0.5f;
+    public float resistance = 0.15f;
     public float loopMass   = 0.02f;
-    public float gravity    = 3f;
+    public float gravity    = 0.8f;
 
     [Header("Spalt (Isolator)")]
     public bool  slitOpen    = false;
@@ -39,9 +39,9 @@ public class InductionLoop : MonoBehaviour
     public MagneticFieldVolume fieldVolume;
 
     [Header("Darstellung")]
-    public int   currentArrowCount = 10;
-    public float currentArrowScale = 0.006f;
-    public float arrowFlowSpeed    = 0.4f;
+    public int   currentArrowCount = 12;
+    public float currentArrowScale = 0.012f;
+    public float arrowFlowSpeed    = 0.8f;
     public float forceArrowLength  = 0.1f;
 
     // ════════════════════════════════════════════════════════════
@@ -61,6 +61,7 @@ public class InductionLoop : MonoBehaviour
     public Vector3   BrakingForce   => brakingForce;
     public LoopPhase CurrentPhase   => phase;
     public bool      IsSlitOpen     => slitOpen;
+    public int       CurrentFlowSign => currentFlowSign;
 
     // ════════════════════════════════════════════════════════════
     //  Intern
@@ -76,6 +77,7 @@ public class InductionLoop : MonoBehaviour
     private Transform[]    arrowTFs;
     private Transform      forceArrowTF;
     private Transform      slitMarkerTF;
+    private TextMesh       directionLabel;
 
     // ════════════════════════════════════════════════════════════
     //  Öffentliche API
@@ -198,6 +200,7 @@ public class InductionLoop : MonoBehaviour
         UpdateCurrentArrows();
         UpdateForceArrow();
         UpdateWireColor();
+        UpdateDirectionLabel();
     }
 
     // ════════════════════════════════════════════════════════════
@@ -235,6 +238,7 @@ public class InductionLoop : MonoBehaviour
         BuildCurrentArrows();
         BuildForceArrow();
         BuildSlitMarker();
+        BuildDirectionLabel();
     }
 
     // ── Kanten-Rahmen ──
@@ -321,6 +325,25 @@ public class InductionLoop : MonoBehaviour
         slitMarkerTF = go.transform;
     }
 
+    // ── Stromrichtungs-Label (3D TextMesh) ──
+
+    private void BuildDirectionLabel()
+    {
+        var go = new GameObject("StromrichtungLabel");
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = new Vector3(0f, loopHeight * 0.5f + 0.018f, 0f);
+
+        directionLabel = go.AddComponent<TextMesh>();
+        directionLabel.fontSize   = 48;
+        directionLabel.characterSize = 0.008f;
+        directionLabel.anchor     = TextAnchor.MiddleCenter;
+        directionLabel.alignment  = TextAlignment.Center;
+        directionLabel.fontStyle  = FontStyle.Bold;
+        directionLabel.color      = new Color(1f, 0.85f, 0.1f);
+        directionLabel.text       = "";
+        go.SetActive(false);
+    }
+
     // ════════════════════════════════════════════════════════════
     //  Visuals — Update
     // ════════════════════════════════════════════════════════════
@@ -378,6 +401,27 @@ public class InductionLoop : MonoBehaviour
     private void UpdateSlitVisual()
     {
         if (slitMarkerTF != null) slitMarkerTF.gameObject.SetActive(slitOpen);
+    }
+
+    private void UpdateDirectionLabel()
+    {
+        if (directionLabel == null) return;
+        bool show = currentFlowSign != 0;
+        directionLabel.gameObject.SetActive(show);
+        if (show)
+        {
+            // CW = "I \u21BB" (↻), CCW = "I \u21BA" (↺)
+            directionLabel.text = currentFlowSign > 0 ? "I \u21BB" : "I \u21BA";
+
+            // Label zeigt immer zur Kamera
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                directionLabel.transform.rotation = Quaternion.LookRotation(
+                    directionLabel.transform.position - cam.transform.position
+                );
+            }
+        }
     }
 
     // ════════════════════════════════════════════════════════════

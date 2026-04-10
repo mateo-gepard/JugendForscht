@@ -1623,8 +1623,9 @@ uU();cn();
         bool slit = mgr.IsSlitOpen;
         string ph = mgr.PhaseString;
         float field = mgr.fieldVolume != null ? mgr.fieldVolume.fieldStrength : 0.33f;
-        float res = mgr.loop != null ? mgr.loop.resistance : 0.5f;
-        BroadcastMessage($"{{\"type\":\"induction_state\",\"slitOpen\":{slit.ToString().ToLower()},\"phase\":\"{ph}\",\"fieldStrength\":{field:F2},\"resistance\":{res:F2}}}");
+        float res = mgr.loop != null ? mgr.loop.resistance : 0.15f;
+        int flowSign = mgr.CurrentFlowSign;
+        BroadcastMessage($"{{\"type\":\"induction_state\",\"slitOpen\":{slit.ToString().ToLower()},\"phase\":\"{ph}\",\"fieldStrength\":{field:F2},\"resistance\":{res:F2},\"flowSign\":{flowSign}}}");
     }
 
     [Serializable]
