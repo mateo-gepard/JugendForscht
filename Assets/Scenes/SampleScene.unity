@@ -2737,7 +2737,6 @@ GameObject:
   - component: {fileID: 385365011}
   - component: {fileID: 385365010}
   - component: {fileID: 385365014}
-  - component: {fileID: 385365015}
   m_Layer: 0
   m_Name: MoleculeRotationController
   m_TagString: Untagged
@@ -2843,27 +2842,6 @@ MonoBehaviour:
   leftHand: {fileID: 1025613784}
   handSelection: 2
   rotationSpeed: 2.63
-  pinchThreshold: 0.7
-  autoRotationDelay: 5
-  deadZone: 0.005
---- !u!114 &385365015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 385365009}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47c6f2476c8f9c84aa9a2a1ee553a32d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moleculeRenderer: {fileID: 0}
-  planeAlignment: {fileID: 0}
-  rightHand: {fileID: 0}
-  leftHand: {fileID: 0}
-  handSelection: 2
-  rotationSpeed: 8
   pinchThreshold: 0.7
   autoRotationDelay: 5
   deadZone: 0.005

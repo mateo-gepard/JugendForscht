@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 
@@ -489,6 +489,15 @@ public class MoleculeRenderer : MonoBehaviour
 
     private void OnDestroy()
     {
-        ClearMolecule();
+        // SAFETY: Do NOT call ClearMolecule() here.
+        // When this component is Destroy'd (e.g. by IsomerAnimator removing it from a clone),
+        // ClearMolecule() would destroy all visual child GameObjects.
+        // If the parent GameObject is being destroyed, Unity automatically destroys all children.
+        // If only the component is being destroyed, we want the visuals to survive.
+        atomObjects.Clear();
+        bondObjects.Clear();
+        combinedAtomObjects.Clear();
+        currentMolecule = null;
+        atomLookup = null;
     }
 }

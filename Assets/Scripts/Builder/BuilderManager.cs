@@ -645,10 +645,6 @@ public class BuilderManager : MonoBehaviour
             {
                 renderer.gameObject.SetActive(true);
                 
-                // Disable mesh combining for builder molecules (same as isomer clones)
-                // This ensures individual atom GameObjects survive for rotation/interaction
-                renderer.disableMeshCombining = true;
-                
                 // Disable plane (white quad) for builder molecules
                 var planeAlign = renderer.GetComponent<MoleculePlaneAlignment>();
                 if (planeAlign != null)

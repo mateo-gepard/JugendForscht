@@ -299,8 +299,10 @@ public class HandRotationController : MonoBehaviour
         // Update last position
         lastHandPosition = currentHandPos;
 
-        // Re-render bonds only for the original
-        if (targetTransform == moleculeRenderer.transform)
+        // Re-render bonds only if stereo display is active
+        // (Stereo bonds need recalculation relative to camera angle)
+        // For non-stereo, bonds are local children and rotate correctly with parent
+        if (targetTransform == moleculeRenderer.transform && moleculeRenderer.enableStereoDisplay)
         {
             moleculeRenderer.RerenderBondsOnly();
         }

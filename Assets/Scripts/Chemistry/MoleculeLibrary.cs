@@ -77,7 +77,6 @@ public class MoleculeLibrary : MonoBehaviour
         if (moleculeCache.ContainsKey(moleculeName))
         {
             // Debug.Log($"[MoleculeLibrary] Using cached molecule: {moleculeName}");
-            renderer.disableMeshCombining = false; // Reset (builder may have set it to true)
             DisplayMolecule(moleculeCache[moleculeName]);
             isLoading = false;
             return;
@@ -109,7 +108,6 @@ public class MoleculeLibrary : MonoBehaviour
             moleculeCache[moleculeName] = molecule;
 
             // Display it
-            renderer.disableMeshCombining = false; // Reset (builder may have set it to true)
             DisplayMolecule(molecule);
 
             // Debug.Log($"[MoleculeLibrary] Successfully loaded: {moleculeName} ({molecule.atoms.Count} atoms)");
