@@ -325,7 +325,7 @@ public class HandRotationController : MonoBehaviour
         // Re-render bonds only if stereo display is active
         // (Stereo bonds need recalculation relative to camera angle)
         // For non-stereo, bonds are local children and rotate correctly with parent
-        if (targetTransform == moleculeRenderer.transform && moleculeRenderer.enableStereoDisplay)
+        if (moleculeRenderer != null && targetTransform == moleculeRenderer.transform && moleculeRenderer.enableStereoDisplay)
         {
             moleculeRenderer.RerenderBondsOnly();
         }
