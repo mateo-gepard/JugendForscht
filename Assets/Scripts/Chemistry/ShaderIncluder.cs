@@ -29,6 +29,10 @@ public class ShaderIncluder : MonoBehaviour
     {
         s_Instance = this;
         CreateCachedMaterials();
+
+        // Force-reference the RiemannSurface shader so it's included in builds.
+        // Do NOT add it to GetBestShader() – that list is for molecule materials only!
+        Shader.Find("Custom/RiemannSurface");
     }
     
     private void CreateCachedMaterials()
@@ -53,7 +57,6 @@ public class ShaderIncluder : MonoBehaviour
         string[] shaderNames = new string[]
         {
             "Custom/MoleculeUnlit",
-            "Custom/RiemannSurface",
             "Unlit/Color",
             "Mobile/Unlit (Supports Lightmap)",
             "Mobile/Diffuse",

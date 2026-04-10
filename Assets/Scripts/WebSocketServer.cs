@@ -74,7 +74,14 @@ public class WebSocketServer : MonoBehaviour
             while (messageQueue.Count > 0)
             {
                 string message = messageQueue.Dequeue();
-                ProcessMessage(message);
+                try
+                {
+                    ProcessMessage(message);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[WebSocket] Error processing message: {ex.Message}\n{ex.StackTrace}");
+                }
             }
         }
     }
