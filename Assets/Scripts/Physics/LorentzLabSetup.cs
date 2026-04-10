@@ -21,7 +21,7 @@ public class LorentzLabSetup : MonoBehaviour
     public Vector3 labPosition = new Vector3(0f, 1.3f, 0.6f);
 
     [Header("Physik-Parameter")]
-    public float fieldStrength = 1f;
+    public float fieldStrength = 0.33f;
     public Vector3 fieldDirection = Vector3.forward;
     public Vector3 volumeSize = new Vector3(0.5f, 0.5f, 0.5f);
     public Vector3 startVelocity = new Vector3(0.15f, 0f, 0f);

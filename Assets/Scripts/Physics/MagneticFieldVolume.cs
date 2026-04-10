@@ -16,7 +16,7 @@ public class MagneticFieldVolume : MonoBehaviour
 
     [Header("Feld-Parameter")]
     [Tooltip("Magnetische Flussdichte in Tesla (lokale Z-Achse)")]
-    public float fieldStrength = 1f;
+    public float fieldStrength = 0.33f;
 
     [Tooltip("Lokale Feldrichtung (wird normalisiert)")]
     public Vector3 localFieldDirection = Vector3.forward;

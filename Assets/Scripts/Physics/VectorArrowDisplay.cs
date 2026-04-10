@@ -282,6 +282,12 @@ public class VectorArrowDisplay : MonoBehaviour
 
     private static Mesh GetSharedArrowMesh()
     {
+        return GetStaticArrowMesh();
+    }
+
+    /// <summary>Öffentlicher Zugriff auf das geteilte Pfeil-Mesh (für FingerRuleChecker).</summary>
+    public static Mesh GetStaticArrowMesh()
+    {
         if (s_SharedArrowMesh != null) return s_SharedArrowMesh;
 
         // Gleiche Geometrie wie MagneticFieldVolume, aber eigene
@@ -337,6 +343,12 @@ public class VectorArrowDisplay : MonoBehaviour
     }
 
     private static Mesh GetSharedSphereMesh()
+    {
+        return GetStaticSphereMesh();
+    }
+
+    /// <summary>Öffentlicher Zugriff auf das geteilte Kugel-Mesh (für FingerRuleChecker).</summary>
+    public static Mesh GetStaticSphereMesh()
     {
         if (s_SharedSphereMesh != null) return s_SharedSphereMesh;
 

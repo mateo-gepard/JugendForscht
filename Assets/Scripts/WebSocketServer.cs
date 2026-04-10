@@ -580,6 +580,10 @@ public class WebSocketServer : MonoBehaviour
             {
                 HandleLorentzCommand(data.action, data.floatValue);
             }
+            else if (data.type == "swing")
+            {
+                HandleSwingCommand(data.action, data.floatValue);
+            }
         }
         catch (Exception e)
         {
@@ -672,6 +676,26 @@ public class WebSocketServer : MonoBehaviour
                 go.AddComponent<LorentzLabManager>();
             }
             BroadcastMessage("{\"type\":\"status\",\"message\":\"Lorentz-Labor aktiv\"}");
+        }
+        else if (currentMode == "swing")
+        {
+            // Leiterschaukel-Modus
+            SetStereoDisplay(false);
+            if (planeAlign != null)
+            {
+                planeAlign.showPlaneInVR = false;
+                planeAlign.SetPlaneVisibility(false);
+            }
+            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
+            if (library != null) library.ClearCurrentMolecule();
+
+            if (ConductorSwingManager.Instance == null)
+            {
+                var go = new GameObject("ConductorSwingManager");
+                PositionInFrontOfCamera(go, 0.6f, -0.1f);
+                go.AddComponent<ConductorSwingManager>();
+            }
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Leiterschaukel aktiv\"}");
         }
         else
         {
@@ -1385,7 +1409,7 @@ uU();cn();
                 break;
             case "set_field_strength":
                 lab.SetFieldStrength(floatValue);
-                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"B = {floatValue:F1} T\"}}");
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"B = {floatValue:F2} T\"}}");
                 break;
             case "set_speed":
                 lab.SetStartVelocity(new Vector3(floatValue, 0f, 0f));
@@ -1410,6 +1434,74 @@ uU();cn();
         bool quiz = lab.IsQuizMode;
         float field = lab.fieldVolume != null ? lab.fieldVolume.fieldStrength : 1f;
         BroadcastMessage($"{{\"type\":\"lorentz_state\",\"state\":\"{state}\",\"charge\":{charge},\"quizMode\":{quiz.ToString().ToLower()},\"fieldStrength\":{field:F1}}}");
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  Leiterschaukel
+    // ════════════════════════════════════════════════════════════
+
+    private void HandleSwingCommand(string action, float floatValue)
+    {
+        var mgr = ConductorSwingManager.Instance;
+        if (mgr == null)
+        {
+            var go = new GameObject("ConductorSwingManager");
+            PositionInFrontOfCamera(go, 0.6f, -0.1f);
+            mgr = go.AddComponent<ConductorSwingManager>();
+        }
+
+        switch (action)
+        {
+            case "current_on":
+                mgr.CurrentOn();
+                BroadcastSwingState(mgr);
+                break;
+            case "current_off":
+                mgr.CurrentOff();
+                BroadcastSwingState(mgr);
+                break;
+            case "toggle_current":
+                mgr.ToggleCurrent();
+                BroadcastSwingState(mgr);
+                break;
+            case "reverse_current":
+                mgr.ReverseCurrentDirection();
+                BroadcastSwingState(mgr);
+                break;
+            case "reverse_field":
+                mgr.ReverseField();
+                BroadcastSwingState(mgr);
+                break;
+            case "reset":
+                mgr.ResetSwing();
+                BroadcastSwingState(mgr);
+                break;
+            case "quiz_mode":
+                mgr.ToggleQuizMode();
+                BroadcastSwingState(mgr);
+                break;
+            case "set_field_strength":
+                mgr.SetFieldStrength(floatValue);
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"B = {floatValue:F2} T\"}}");
+                break;
+            case "set_current":
+                mgr.SetCurrent(floatValue);
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"I = {floatValue:F1} A\"}}");
+                break;
+            default:
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Unbekannter Schaukel-Befehl: {action}\"}}");
+                break;
+        }
+    }
+
+    private void BroadcastSwingState(ConductorSwingManager mgr)
+    {
+        bool on = mgr.conductor != null && mgr.conductor.IsCurrentOn;
+        int dir = mgr.conductor != null ? mgr.conductor.currentDirection : 1;
+        bool quiz = mgr.IsQuizMode;
+        float field = mgr.fieldVolume != null ? mgr.fieldVolume.fieldStrength : 0.33f;
+        float cur = mgr.conductor != null ? mgr.conductor.current : 5f;
+        BroadcastMessage($"{{\"type\":\"swing_state\",\"currentOn\":{on.ToString().ToLower()},\"currentDir\":{dir},\"quizMode\":{quiz.ToString().ToLower()},\"fieldStrength\":{field:F2},\"current\":{cur:F1}}}");
     }
 
     [Serializable]

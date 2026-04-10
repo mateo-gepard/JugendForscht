@@ -48,6 +48,16 @@ public class FingerRuleChecker : MonoBehaviour
     private TextMesh labelIndex;
     private TextMesh labelMiddle;
 
+    // Finger-Vektorpfeile
+    private GameObject fingerArrowRoot;
+    private GameObject arrowThumb, arrowIndex, arrowMiddle;
+    private GameObject tipThumb, tipIndex, tipMiddle;
+    private Material fingerArrowMatThumb, fingerArrowMatIndex, fingerArrowMatMiddle;
+    private Material fingerTipMaterial;
+    private float fingerArrowLength = 0.08f;
+    private float fingerArrowThickness = 0.006f;
+    private float fingerTipRadius = 0.008f;
+
     // ════════════════════════════════════════════════════════════
     //  Öffentliche API
     // ════════════════════════════════════════════════════════════
@@ -59,9 +69,13 @@ public class FingerRuleChecker : MonoBehaviour
     {
         isActive = active;
         if (labelRoot != null) labelRoot.SetActive(active);
+        if (fingerArrowRoot != null) fingerArrowRoot.SetActive(active);
 
-        if (!active && vectorDisplay != null)
-            vectorDisplay.SetTipIndicators(false, false);
+        if (!active)
+        {
+            if (vectorDisplay != null)
+                vectorDisplay.SetTipIndicators(false, false);
+        }
     }
 
     public void Toggle()
@@ -93,6 +107,7 @@ public class FingerRuleChecker : MonoBehaviour
         }
 
         if (labelRoot != null) labelRoot.SetActive(true);
+        if (fingerArrowRoot != null) fingerArrowRoot.SetActive(true);
 
         // ── Finger-Richtungen aus den letzten beiden Knochen ──
         Vector3 thumbDir = GetFingerDirection(HandJointId.HandThumb2, HandJointId.HandThumbTip);
@@ -112,9 +127,12 @@ public class FingerRuleChecker : MonoBehaviour
 
         allCorrect = thumbOk && indexOk && middleOk;
 
-        // ── Pfeilspitzen-Farbe setzen ──
+        // ── Pfeilspitzen-Farbe setzen (am Teilchen) ──
         if (vectorDisplay != null)
             vectorDisplay.SetTipIndicators(true, allCorrect);
+
+        // ── Finger-Vektorpfeile positionieren + Tip-Farbe ──
+        UpdateFingerArrows(thumbDir, indexDir, middleDir, allCorrect);
 
         // ── Labels an Fingerspitzen positionieren ──
         UpdateLabels();
@@ -174,9 +192,12 @@ public class FingerRuleChecker : MonoBehaviour
         labelRoot = new GameObject("Finger-Regel Labels");
         labelRoot.transform.SetParent(transform, false);
 
-        labelThumb = CreateLabel("v", new Color(0.2f, 0.9f, 0.3f));
-        labelIndex = CreateLabel("B", new Color(0.3f, 0.7f, 1f));
-        labelMiddle = CreateLabel("F", new Color(1f, 0.75f, 0.1f));
+        labelThumb = CreateLabel("Ursache: v", new Color(0.2f, 0.9f, 0.3f));
+        labelIndex = CreateLabel("Ursache: B", new Color(0.3f, 0.7f, 1f));
+        labelMiddle = CreateLabel("Wirkung: F", new Color(1f, 0.75f, 0.1f));
+
+        // Finger-Vektorpfeile erzeugen
+        CreateFingerArrows();
     }
 
     private TextMesh CreateLabel(string text, Color color)
@@ -222,6 +243,110 @@ public class FingerRuleChecker : MonoBehaviour
                 label.transform.position - cam.transform.position
             );
         }
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  Finger-Vektorpfeile (Richtung am Finger, mit Tip-Indikator)
+    // ════════════════════════════════════════════════════════════
+
+    private void CreateFingerArrows()
+    {
+        fingerArrowRoot = new GameObject("Finger-Regel Pfeile");
+        fingerArrowRoot.transform.SetParent(transform, false);
+
+        fingerArrowMatThumb = CreateFingerMat(new Color(0.2f, 0.9f, 0.3f));
+        fingerArrowMatIndex = CreateFingerMat(new Color(0.3f, 0.7f, 1f));
+        fingerArrowMatMiddle = CreateFingerMat(new Color(1f, 0.75f, 0.1f));
+        fingerTipMaterial = CreateFingerMat(Color.red);
+
+        arrowThumb = CreateFingerArrow("FingerPfeil_v", fingerArrowMatThumb);
+        arrowIndex = CreateFingerArrow("FingerPfeil_B", fingerArrowMatIndex);
+        arrowMiddle = CreateFingerArrow("FingerPfeil_F", fingerArrowMatMiddle);
+
+        tipThumb = CreateFingerTip("FingerTip_v");
+        tipIndex = CreateFingerTip("FingerTip_B");
+        tipMiddle = CreateFingerTip("FingerTip_F");
+    }
+
+    private Material CreateFingerMat(Color color)
+    {
+        Shader shader = Shader.Find("Custom/MoleculeUnlit")
+                     ?? Shader.Find("Unlit/Color")
+                     ?? Shader.Find("Standard");
+        Material mat = new Material(shader);
+        mat.color = color;
+        mat.enableInstancing = true;
+        return mat;
+    }
+
+    private GameObject CreateFingerArrow(string name, Material mat)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(fingerArrowRoot.transform, false);
+
+        MeshFilter mf = obj.AddComponent<MeshFilter>();
+        mf.sharedMesh = VectorArrowDisplay.GetStaticArrowMesh();
+
+        MeshRenderer mr = obj.AddComponent<MeshRenderer>();
+        mr.sharedMaterial = mat;
+        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        mr.receiveShadows = false;
+
+        return obj;
+    }
+
+    private GameObject CreateFingerTip(string name)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(fingerArrowRoot.transform, false);
+
+        MeshFilter mf = obj.AddComponent<MeshFilter>();
+        mf.sharedMesh = VectorArrowDisplay.GetStaticSphereMesh();
+
+        MeshRenderer mr = obj.AddComponent<MeshRenderer>();
+        mr.sharedMaterial = fingerTipMaterial;
+        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        mr.receiveShadows = false;
+
+        float d = fingerTipRadius * 2f;
+        obj.transform.localScale = new Vector3(d, d, d);
+        return obj;
+    }
+
+    private void UpdateFingerArrows(Vector3 thumbDir, Vector3 indexDir, Vector3 middleDir, bool correct)
+    {
+        // Tip-Farbe
+        Color tipColor = correct
+            ? new Color(0.1f, 1f, 0.2f, 1f)
+            : new Color(1f, 0.15f, 0.15f, 1f);
+        if (fingerTipMaterial != null) fingerTipMaterial.color = tipColor;
+
+        UpdateSingleFingerArrow(arrowThumb, tipThumb, HandJointId.HandThumbTip, thumbDir);
+        UpdateSingleFingerArrow(arrowIndex, tipIndex, HandJointId.HandIndexTip, indexDir);
+        UpdateSingleFingerArrow(arrowMiddle, tipMiddle, HandJointId.HandMiddleTip, middleDir);
+    }
+
+    private void UpdateSingleFingerArrow(GameObject arrow, GameObject tip, HandJointId joint, Vector3 dir)
+    {
+        if (arrow == null || tip == null) return;
+
+        if (dir.sqrMagnitude < 0.01f || !rightHand.GetJointPose(joint, out Pose pose))
+        {
+            arrow.SetActive(false);
+            tip.SetActive(false);
+            return;
+        }
+
+        arrow.SetActive(true);
+        tip.SetActive(true);
+
+        // Pfeil an der Fingerspitze, in Fingerrichtung
+        arrow.transform.position = pose.position;
+        arrow.transform.rotation = Quaternion.LookRotation(dir);
+        arrow.transform.localScale = new Vector3(fingerArrowThickness, fingerArrowThickness, fingerArrowLength);
+
+        // Tip-Kugel an der Pfeilspitze
+        tip.transform.position = pose.position + dir * fingerArrowLength;
     }
 
     // ════════════════════════════════════════════════════════════

@@ -42,7 +42,7 @@ public class LorentzLabManager : MonoBehaviour
 
     [Header("Standard-Parameter")]
     [Tooltip("B-Feld Stärke in Tesla")]
-    public float defaultFieldStrength = 1f;
+    public float defaultFieldStrength = 0.33f;
 
     [Tooltip("Lokale Feldrichtung")]
     public Vector3 defaultFieldDirection = Vector3.forward;

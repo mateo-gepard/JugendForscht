@@ -561,9 +561,9 @@ body {
             <div style="margin-bottom:14px">
                 <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
                     <span>Magnetfeldst&auml;rke</span>
-                    <span id="fieldStrengthVal" style="color:var(--acc);font-weight:600">1.0 T</span>
+                    <span id="fieldStrengthVal" style="color:var(--acc);font-weight:600">0.33 T</span>
                 </div>
-                <input type="range" id="sliderField" min="0.1" max="5" step="0.1" value="1.0"
+                <input type="range" id="sliderField" min="0.03" max="1.7" step="0.01" value="0.33"
                     oninput="lorentzSetField(this.value)"
                     style="width:100%;accent-color:var(--acc)">
             </div>
@@ -585,6 +585,108 @@ body {
                 <div style="display:flex;align-items:center;gap:10px">
                     <span style="width:16px;height:4px;border-radius:2px;background:#34d399;flex-shrink:0"></span>
                     <span><b>v</b> &ndash; Geschwindigkeit (gr&uuml;n)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#6c8aff;flex-shrink:0"></span>
+                    <span><b>B</b> &ndash; Magnetfeld (blau/cyan)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#f59e0b;flex-shrink:0"></span>
+                    <span><b>F<sub>L</sub></b> &ndash; Lorentzkraft (gelb/orange)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== LEITERSCHAUKEL TAB ==================== -->
+    <div class="tab-content" id="contentSwing">
+
+        <!-- Formel -->
+        <div class="card" style="text-align:center;padding:18px 20px">
+            <div style="font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:4px">
+                F<sub>L</sub> = I &middot; L &middot; ( d&Icirc; &times; B )
+            </div>
+            <div style="font-size:12px;color:var(--t3)">Kraft auf stromdurchflossenen Leiter &ndash; Leiterschaukel</div>
+        </div>
+
+        <!-- Strom Control -->
+        <div class="card">
+            <div class="card-label">Strom</div>
+            <div class="row" style="margin-bottom:10px">
+                <button class="btn btn-confirm" onclick="swingCurrentOn()" id="btnSwingOn" style="flex:1;font-size:15px;padding:14px">
+                    &#9889; Strom EIN
+                </button>
+                <button class="btn btn-danger" onclick="swingCurrentOff()" id="btnSwingOff" style="flex:1;font-size:15px;padding:14px">
+                    &#9724; Strom AUS
+                </button>
+            </div>
+            <div class="row">
+                <button class="btn" onclick="swingReverseCurrentDir()" style="flex:1;background:var(--el);border:1px solid var(--brd);font-size:14px;padding:12px">
+                    &#8596; Stromrichtung umkehren
+                </button>
+            </div>
+        </div>
+
+        <!-- Magnetfeld -->
+        <div class="card">
+            <div class="card-label">Magnetfeld</div>
+            <button class="btn" onclick="swingReverseField()" style="width:100%;background:linear-gradient(135deg, #3b82f6, #1d4ed8);font-size:15px;padding:14px">
+                &#129522; Magnetfeld umkehren (N/S)
+            </button>
+        </div>
+
+        <!-- Reset -->
+        <div class="card">
+            <button class="btn btn-danger" onclick="swingReset()" style="width:100%;font-size:15px;padding:14px">
+                &#128260; Pendel zur&uuml;cksetzen
+            </button>
+        </div>
+
+        <!-- Quiz-Modus -->
+        <div class="card">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Quiz-Modus</span>
+                <span id="swingQuizLabel" style="font-size:11px;color:var(--t3);text-transform:none;letter-spacing:0">Aus</span>
+            </div>
+            <p style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:14px">
+                Blendet den Kraft-Pfeil (F<sub>L</sub>) aus. Sch&uuml;ler zeigen die Kraftrichtung.
+            </p>
+            <button class="btn" onclick="swingToggleQuiz()" id="btnSwingQuiz"
+                style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);font-size:15px;padding:14px">
+                &#127891; Quiz-Modus aktivieren
+            </button>
+        </div>
+
+        <!-- Parameter -->
+        <div class="card">
+            <div class="card-label">Parameter</div>
+            <div style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span>Magnetfeldst&auml;rke</span>
+                    <span id="swingFieldVal" style="color:var(--acc);font-weight:600">0.33 T</span>
+                </div>
+                <input type="range" id="sliderSwingField" min="0.03" max="1.7" step="0.01" value="0.33"
+                    oninput="swingSetField(this.value)"
+                    style="width:100%;accent-color:var(--acc)">
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span>Stromst&auml;rke</span>
+                    <span id="swingCurrentVal" style="color:var(--ok);font-weight:600">5.0 A</span>
+                </div>
+                <input type="range" id="sliderSwingCurrent" min="0.5" max="20" step="0.5" value="5.0"
+                    oninput="swingSetCurrent(this.value)"
+                    style="width:100%;accent-color:var(--ok)">
+            </div>
+        </div>
+
+        <!-- Legende -->
+        <div class="card">
+            <div class="card-label">Legende</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#ef4444;flex-shrink:0"></span>
+                    <span><b>I</b> &ndash; Techn. Stromrichtung (rot)</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px">
                     <span style="width:16px;height:4px;border-radius:2px;background:#6c8aff;flex-shrink:0"></span>
@@ -635,6 +737,11 @@ body {
                 <div class="ot"><div class="on">Lorentzkraft</div><div class="od">Drei-Finger-Regel in VR &ndash; Klasse 9</div></div>
                 <span class="oc">&#10003;</span>
             </div>
+            <div class="opt" id="optSwing" onclick="selectTopic('swing')" style="display:none">
+                <span class="oi">&#129522;</span>
+                <div class="ot"><div class="on">Leiterschaukel</div><div class="od">Kraft auf stromdurchflossenen Leiter &ndash; Klasse 9</div></div>
+                <span class="oc">&#10003;</span>
+            </div>
         </div>
         <button class="popup-close-btn" onclick="closeNavPopup()">Fertig</button>
     </div>
@@ -681,6 +788,7 @@ body {
         document.getElementById('optKeilstrich').style.display = subj === 'chemie' ? '' : 'none';
         document.getElementById('optChiralitaet').style.display = subj === 'chemie' ? '' : 'none';
         document.getElementById('optLorentz').style.display = subj === 'physik' ? '' : 'none';
+        document.getElementById('optSwing').style.display = subj === 'physik' ? '' : 'none';
         // Brand aktualisieren
         document.getElementById('brandSub').textContent = subj === 'chemie' ? 'Chemie' : 'Physik';
         // Auto-select erstes Thema
@@ -691,6 +799,7 @@ body {
         document.getElementById('optKeilstrich').classList.toggle('sel', topic === 'keilstrich');
         document.getElementById('optChiralitaet').classList.toggle('sel', topic === 'isomerie');
         document.getElementById('optLorentz').classList.toggle('sel', topic === 'lorentz');
+        document.getElementById('optSwing').classList.toggle('sel', topic === 'swing');
         switchTab(topic);
         closeNavPopup();
     }
@@ -739,19 +848,23 @@ body {
         document.getElementById('contentKeilstrich').className = tab === 'keilstrich' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentIsomerie').className = tab === 'isomerie' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentLorentz').className = tab === 'lorentz' ? 'tab-content active' : 'tab-content';
+        document.getElementById('contentSwing').className = tab === 'swing' ? 'tab-content active' : 'tab-content';
         // Breadcrumb
         var bcSubject = document.querySelector('#breadcrumb b:first-of-type');
         var bcTopic = document.getElementById('breadcrumbTopic');
         if (tab === 'lorentz') {
             bcSubject.textContent = 'Physik';
             bcTopic.textContent = 'Lorentzkraft';
+        } else if (tab === 'swing') {
+            bcSubject.textContent = 'Physik';
+            bcTopic.textContent = 'Leiterschaukel';
         } else {
             bcSubject.textContent = 'Chemie';
             bcTopic.textContent = tab === 'keilstrich' ? 'Keilstrichformel' : 'Chiralit\u00e4t & Isomerie';
         }
         // Builder-Button nur in Chemie
         var builderBtn = document.getElementById('btnBuilder');
-        if (builderBtn) builderBtn.parentElement.style.display = tab === 'lorentz' ? 'none' : '';
+        if (builderBtn) builderBtn.parentElement.style.display = (tab === 'lorentz' || tab === 'swing') ? 'none' : '';
         // Mode an Unity senden
         var mode = tab;
         send({ type: 'mode', mode: mode });
@@ -824,6 +937,8 @@ body {
             handleQuizFinished(data);
         } else if (data.type === 'lorentz_state') {
             handleLorentzState(data);
+        } else if (data.type === 'swing_state') {
+            handleSwingState(data);
         }
     }
 
@@ -1289,7 +1404,7 @@ body {
 
     function lorentzSetField(val) {
         val = parseFloat(val);
-        document.getElementById('fieldStrengthVal').textContent = val.toFixed(1) + ' T';
+        document.getElementById('fieldStrengthVal').textContent = val.toFixed(2) + ' T';
         send({ type: 'lorentz', action: 'set_field_strength', floatValue: val });
     }
 
@@ -1344,6 +1459,74 @@ body {
             bar.innerHTML = '<span style="color:var(--warn)">\u25cf</span> Pausiert';
         } else {
             bar.innerHTML = 'Bereit \u2013 Dr\u00fccke Play um zu starten';
+        }
+    }
+
+    // ==================== LEITERSCHAUKEL ====================
+    var swingQuizActive = false;
+    var swingCurrentActive = false;
+
+    function swingCurrentOn()  { send({ type:'swing', action:'current_on'  }); swingCurrentActive = true;  updateSwingCurrentBtns(); }
+    function swingCurrentOff() { send({ type:'swing', action:'current_off' }); swingCurrentActive = false; updateSwingCurrentBtns(); }
+    function swingReverseCurrentDir() { send({ type:'swing', action:'reverse_current' }); }
+    function swingReverseField()      { send({ type:'swing', action:'reverse_field'   }); }
+    function swingReset()             { send({ type:'swing', action:'reset'            }); }
+
+    function swingToggleQuiz() {
+        send({ type:'swing', action:'quiz_mode' });
+    }
+
+    function swingSetField(val) {
+        val = parseFloat(val);
+        document.getElementById('swingFieldVal').textContent = val.toFixed(2) + ' T';
+        send({ type:'swing', action:'set_field_strength', floatValue: val });
+    }
+
+    function swingSetCurrent(val) {
+        val = parseFloat(val);
+        document.getElementById('swingCurrentVal').textContent = val.toFixed(1) + ' A';
+        send({ type:'swing', action:'set_current', floatValue: val });
+    }
+
+    function updateSwingCurrentBtns() {
+        var onBtn  = document.getElementById('btnSwingOn');
+        var offBtn = document.getElementById('btnSwingOff');
+        if (swingCurrentActive) {
+            onBtn.style.opacity = '0.5'; offBtn.style.opacity = '1';
+        } else {
+            onBtn.style.opacity = '1'; offBtn.style.opacity = '0.5';
+        }
+    }
+
+    function handleSwingState(data) {
+        // Current
+        swingCurrentActive = data.currentOn || false;
+        updateSwingCurrentBtns();
+
+        // Quiz mode
+        swingQuizActive = data.quizMode || false;
+        var qBtn   = document.getElementById('btnSwingQuiz');
+        var qLabel = document.getElementById('swingQuizLabel');
+        if (swingQuizActive) {
+            qBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            qBtn.innerHTML = '&#128065; Quiz-Modus deaktivieren';
+            qLabel.textContent = 'An \u2013 F\u2097-Pfeil ausgeblendet';
+            qLabel.style.color = 'var(--err)';
+        } else {
+            qBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+            qBtn.innerHTML = '&#127891; Quiz-Modus aktivieren';
+            qLabel.textContent = 'Aus';
+            qLabel.style.color = 'var(--t3)';
+        }
+
+        // Sliders
+        if (data.fieldStrength !== undefined) {
+            document.getElementById('sliderSwingField').value = data.fieldStrength;
+            document.getElementById('swingFieldVal').textContent = parseFloat(data.fieldStrength).toFixed(2) + ' T';
+        }
+        if (data.current !== undefined) {
+            document.getElementById('sliderSwingCurrent').value = data.current;
+            document.getElementById('swingCurrentVal').textContent = parseFloat(data.current).toFixed(1) + ' A';
         }
     }
 
