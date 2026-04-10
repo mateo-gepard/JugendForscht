@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -58,7 +58,7 @@ public class MoleculeLibrary : MonoBehaviour
         {
             StopCoroutine(activeAlignmentCoroutine);
             activeAlignmentCoroutine = null;
-            Debug.Log("[MoleculeLibrary] Stopped previous alignment coroutine");
+            // Debug.Log("[MoleculeLibrary] Stopped previous alignment coroutine");
         }
         
         // Prevent concurrent loads
@@ -71,12 +71,12 @@ public class MoleculeLibrary : MonoBehaviour
         moleculeName = moleculeName.Trim().ToLower();
         isLoading = true;
 
-        Debug.Log($"[MoleculeLibrary] Loading molecule: {moleculeName}");
+        // Debug.Log($"[MoleculeLibrary] Loading molecule: {moleculeName}");
 
         // Check cache first
         if (moleculeCache.ContainsKey(moleculeName))
         {
-            Debug.Log($"[MoleculeLibrary] Using cached molecule: {moleculeName}");
+            // Debug.Log($"[MoleculeLibrary] Using cached molecule: {moleculeName}");
             DisplayMolecule(moleculeCache[moleculeName]);
             isLoading = false;
             return;
@@ -110,7 +110,7 @@ public class MoleculeLibrary : MonoBehaviour
             // Display it
             DisplayMolecule(molecule);
 
-            Debug.Log($"[MoleculeLibrary] Successfully loaded: {moleculeName} ({molecule.atoms.Count} atoms)");
+            // Debug.Log($"[MoleculeLibrary] Successfully loaded: {moleculeName} ({molecule.atoms.Count} atoms)");
         }
         catch (System.Exception e)
         {
@@ -144,7 +144,7 @@ public class MoleculeLibrary : MonoBehaviour
         if (planeAlignment != null)
         {
             renderer.planeAlignment = planeAlignment;
-            Debug.Log("[MoleculeLibrary] Assigned planeAlignment to renderer");
+            // Debug.Log("[MoleculeLibrary] Assigned planeAlignment to renderer");
         }
         else
         {
@@ -205,7 +205,7 @@ public class MoleculeLibrary : MonoBehaviour
             float scaleFactor = 1.0f - totalReduction;
             renderer.transform.localScale = Vector3.one * scaleFactor;
             
-            Debug.Log($"[MoleculeLibrary] Scaled molecule with {atomCount} atoms to {scaleFactor:F2}x");
+            // Debug.Log($"[MoleculeLibrary] Scaled molecule with {atomCount} atoms to {scaleFactor:F2}x");
         }
         else
         {
@@ -282,18 +282,18 @@ public class MoleculeLibrary : MonoBehaviour
         
         // Initialize plane alignment
         planeAlignment.InitializeForMolecule(molecule);
-        Debug.Log("[MoleculeLibrary] Plane alignment initialized (delayed)");
+        // Debug.Log("[MoleculeLibrary] Plane alignment initialized (delayed)");
         
         // RE-RENDER molecule with stereo display now that plane is initialized
         if (renderer.enableStereoDisplay)
         {
-            Debug.Log("[MoleculeLibrary] Re-rendering molecule with stereo display");
+            // Debug.Log("[MoleculeLibrary] Re-rendering molecule with stereo display");
             
             // Wait another frame to ensure old GameObjects are destroyed
             yield return null;
             
             renderer.RenderMolecule(molecule);
-            Debug.Log("[MoleculeLibrary] Stereo re-rendering complete");
+            // Debug.Log("[MoleculeLibrary] Stereo re-rendering complete");
         }
     }
 }

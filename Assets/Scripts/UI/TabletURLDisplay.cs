@@ -62,6 +62,13 @@ public class TabletURLDisplay : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        // DISABLED: Debug overlay no longer needed in production
+        // Was showing green/cyan text when looking up in VR
+        enabled = false;
+    }
+
     void Start()
     {
         // Find WebSocketServer if not assigned
@@ -88,7 +95,7 @@ public class TabletURLDisplay : MonoBehaviour
         // Update after a delay to let server start
         Invoke("ForceUpdateDisplay", 2f);
         
-        Debug.Log("[TabletURLDisplay] Debug overlay initialized");
+        // Debug.Log("[TabletURLDisplay] Debug overlay initialized");
     }
 
     void CreateTextDisplay()
@@ -120,7 +127,7 @@ public class TabletURLDisplay : MonoBehaviour
             renderer.material = textMat;
         }
         
-        Debug.Log("[TabletURLDisplay] Text display created with debug support");
+        // Debug.Log("[TabletURLDisplay] Text display created with debug support");
     }
 
     void LateUpdate()

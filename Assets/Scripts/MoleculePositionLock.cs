@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Locks the molecule and plane positions after loading.
@@ -79,7 +79,7 @@ public class MoleculePositionLock : MonoBehaviour
         lockedRotation = moleculeRenderer.transform.rotation;
         isLocked = true;
         
-        Debug.Log($"[PositionLock] Locked at position: {lockedPosition}");
+        // Debug.Log($"[PositionLock] Locked at position: {lockedPosition}");
         
         // Disable physics if present
         Rigidbody rb = moleculeRenderer.GetComponent<Rigidbody>();
@@ -88,7 +88,7 @@ public class MoleculePositionLock : MonoBehaviour
             rb.isKinematic = true;
             rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            Debug.Log("[PositionLock] Disabled Rigidbody physics");
+            // Debug.Log("[PositionLock] Disabled Rigidbody physics");
         }
     }
     
@@ -96,7 +96,7 @@ public class MoleculePositionLock : MonoBehaviour
     {
         isLocked = false;
         timer = 0f;
-        Debug.Log("[PositionLock] Position unlocked");
+        // Debug.Log("[PositionLock] Position unlocked");
     }
     
     /// <summary>

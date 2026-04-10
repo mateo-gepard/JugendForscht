@@ -22,6 +22,7 @@ public class IsomerAnimator : MonoBehaviour
     private Vector3 originalPosition;
     private bool isShowingIsomer = false;
     private bool isConformer = false; // True if clone is a conformer (identical copy)
+    private bool isCisTransOrConstitutional = false; // True if clone is a differently rendered molecule
     private Coroutine activeCoroutine;
 
     // Public accessors for HandRotationController
@@ -66,6 +67,110 @@ public class IsomerAnimator : MonoBehaviour
     public void ShowConformer(MoleculeData original)
     {
         ShowIsomer(original, original, mirror: false);
+    }
+
+    /// <summary>
+    /// Zeigt ein cis/trans-Isomer: Klon mit gespiegelten Substituenten an einer Doppelbindung.
+    /// Nutzt dasselbe System wie Enantiomer, aber ohne Scale-Mirror.
+    /// </summary>
+    public void ShowCisTransIsomer(MoleculeData original, MoleculeData cisTransIsomer)
+    {
+        ClearEnantiomer();
+
+        originalRenderer = FindObjectOfType<MoleculeRenderer>();
+        if (originalRenderer == null) return;
+
+        var planeAlign = originalRenderer.GetComponent<MoleculePlaneAlignment>();
+        if (planeAlign != null)
+        {
+            planeAlign.enableAutoRotation = false;
+            planeAlign.StopAutoRotation();
+        }
+
+        originalPosition = originalRenderer.transform.position;
+        float actualSep = CalculateSeparation();
+
+        // Move original to the left
+        originalRenderer.transform.position = originalPosition + Vector3.left * actualSep * 0.5f;
+
+        // Create a NEW rendered molecule for the cis/trans isomer
+        isomerClone = new GameObject("CisTrans_Clone");
+        var cloneRenderer = isomerClone.AddComponent<MoleculeRenderer>();
+        // Copy essential render settings from original
+        cloneRenderer.elementDatabase = originalRenderer.elementDatabase;
+        cloneRenderer.atomSpherePrefab = originalRenderer.atomSpherePrefab;
+        cloneRenderer.bondCylinderPrefab = originalRenderer.bondCylinderPrefab;
+        cloneRenderer.angstromToMeter = originalRenderer.angstromToMeter;
+        cloneRenderer.bondLengthMultiplier = originalRenderer.bondLengthMultiplier;
+        cloneRenderer.atomScaleFactor = originalRenderer.atomScaleFactor;
+        cloneRenderer.bondRadius = originalRenderer.bondRadius;
+        cloneRenderer.enableStereoDisplay = false;
+        cloneRenderer.disableMeshCombining = true;
+        cloneRenderer.RenderMolecule(cisTransIsomer);
+        // Don't Destroy - OnDestroy would delete all visual children!
+        // Just disable the component instead
+        cloneRenderer.enabled = false;
+
+        // Position and scale to match original
+        isomerClone.transform.position = originalPosition + Vector3.right * actualSep * 0.5f;
+        isomerClone.transform.localScale = originalRenderer.transform.localScale;
+        isomerClone.transform.rotation = originalRenderer.transform.rotation;
+
+        isConformer = false;
+        isShowingIsomer = true;
+        isCisTransOrConstitutional = true;
+    }
+
+    /// <summary>
+    /// Zeigt ein Konstitutionsisomer: komplett anderes Molekül (per MoleculeData gerendert).
+    /// Nutzt denselben Overlay-Mechanismus (immer Wobble, nie überlagerbar).
+    /// </summary>
+    public void ShowConstitutionalIsomer(MoleculeData original, MoleculeData partner)
+    {
+        ClearEnantiomer();
+
+        originalRenderer = FindObjectOfType<MoleculeRenderer>();
+        if (originalRenderer == null) return;
+
+        var planeAlign = originalRenderer.GetComponent<MoleculePlaneAlignment>();
+        if (planeAlign != null)
+        {
+            planeAlign.enableAutoRotation = false;
+            planeAlign.StopAutoRotation();
+        }
+
+        originalPosition = originalRenderer.transform.position;
+        float actualSep = CalculateSeparation();
+
+        // Move original to the left
+        originalRenderer.transform.position = originalPosition + Vector3.left * actualSep * 0.5f;
+
+        // Create a NEW rendered molecule for the constitutional isomer
+        isomerClone = new GameObject("Constitutional_Clone");
+        var cloneRenderer = isomerClone.AddComponent<MoleculeRenderer>();
+        // Copy essential render settings from original
+        cloneRenderer.elementDatabase = originalRenderer.elementDatabase;
+        cloneRenderer.atomSpherePrefab = originalRenderer.atomSpherePrefab;
+        cloneRenderer.bondCylinderPrefab = originalRenderer.bondCylinderPrefab;
+        cloneRenderer.angstromToMeter = originalRenderer.angstromToMeter;
+        cloneRenderer.bondLengthMultiplier = originalRenderer.bondLengthMultiplier;
+        cloneRenderer.atomScaleFactor = originalRenderer.atomScaleFactor;
+        cloneRenderer.bondRadius = originalRenderer.bondRadius;
+        cloneRenderer.enableStereoDisplay = false;
+        cloneRenderer.disableMeshCombining = true;
+        cloneRenderer.RenderMolecule(partner);
+        // Don't Destroy - OnDestroy would delete all visual children!
+        // Just disable the component instead
+        cloneRenderer.enabled = false;
+
+        // Position and scale to match original
+        isomerClone.transform.position = originalPosition + Vector3.right * actualSep * 0.5f;
+        isomerClone.transform.localScale = originalRenderer.transform.localScale;
+        isomerClone.transform.rotation = originalRenderer.transform.rotation;
+
+        isConformer = false;
+        isShowingIsomer = true;
+        isCisTransOrConstitutional = true;
     }
 
     private void ShowIsomer(MoleculeData original, MoleculeData isomer, bool mirror)
@@ -128,7 +233,7 @@ public class IsomerAnimator : MonoBehaviour
         }
 
         isShowingIsomer = true;
-        Debug.Log($"[IsomerAnim] Isomer clone created (mirror={mirror})");
+        // Debug.Log($"[IsomerAnim] Isomer clone created (mirror={mirror})");
     }
 
     /// <summary>
@@ -168,7 +273,7 @@ public class IsomerAnimator : MonoBehaviour
 
         if (centers.Count < 2)
         {
-            Debug.Log("[IsomerAnim] Meso test: not enough chiral centers");
+            // Debug.Log("[IsomerAnim] Meso test: not enough chiral centers");
             yield return StartCoroutine(WobbleOriginal("Keine Meso-Verbindung (weniger als 2 Chiralitätszentren)"));
             yield break;
         }
@@ -179,13 +284,13 @@ public class IsomerAnimator : MonoBehaviour
 
         if (!isMeso)
         {
-            Debug.Log("[IsomerAnim] Meso test: NOT a meso compound");
+            // Debug.Log("[IsomerAnim] Meso test: NOT a meso compound");
             yield return StartCoroutine(WobbleOriginal("Keine Meso-Verbindung (Enantiomer unterscheidet sich)"));
             yield break;
         }
 
         // IS MESO! Show enantiomer side-by-side
-        Debug.Log("[IsomerAnim] Meso test: IS a meso compound!");
+        // Debug.Log("[IsomerAnim] Meso test: IS a meso compound!");
         ShowEnantiomer(original, enantiomer);
 
         // Wait so user sees both molecules
@@ -220,7 +325,7 @@ public class IsomerAnimator : MonoBehaviour
         // Move original back to center
         originalRenderer.transform.position = originalPosition;
 
-        Debug.Log("[IsomerAnim] Meso test complete - clone deleted");
+        // Debug.Log("[IsomerAnim] Meso test complete - clone deleted");
     }
 
     private IEnumerator WobbleOriginal(string reason)
@@ -228,7 +333,7 @@ public class IsomerAnimator : MonoBehaviour
         originalRenderer = FindObjectOfType<MoleculeRenderer>();
         if (originalRenderer == null) yield break;
 
-        Debug.Log($"[IsomerAnim] Wobble: {reason}");
+        // Debug.Log($"[IsomerAnim] Wobble: {reason}");
         Quaternion baseRot = originalRenderer.transform.rotation;
         float elapsed = 0;
         while (elapsed < 1.5f)
@@ -255,7 +360,7 @@ public class IsomerAnimator : MonoBehaviour
 
         // Determine if molecules are identical
         bool isIdentical = isConformer;
-        if (!isConformer)
+        if (!isConformer && !isCisTransOrConstitutional)
         {
             var renderer = FindObjectOfType<MoleculeRenderer>();
             if (renderer != null && renderer.CurrentMolecule != null)
@@ -265,15 +370,15 @@ public class IsomerAnimator : MonoBehaviour
                 isIdentical = IsomerGenerator.AreMoleculesIdentical(original, enantiomer);
             }
         }
-        Debug.Log($"[IsomerAnim] Overlay: identical={isIdentical}, conformer={isConformer}");
+        // cis/trans and constitutional are NEVER identical
+        if (isCisTransOrConstitutional) isIdentical = false;
 
         // Calculate target rotation:
-        // For mirrored clones: original's rotation + 180° Y
-        //   (scale(-1,1,1) + Ry(180°) = identity for symmetric molecules)
-        // For conformers (no mirror): just match original's rotation
+        // For mirrored clones (enantiomer/diastereomer): original's rotation + 180° Y
+        // For conformers, cis/trans, constitutional: just match original's rotation
         Quaternion origRot = originalRenderer.transform.rotation;
         Quaternion targetRot;
-        if (isConformer)
+        if (isConformer || isCisTransOrConstitutional)
         {
             targetRot = origRot;
         }
@@ -299,7 +404,7 @@ public class IsomerAnimator : MonoBehaviour
         if (isIdentical)
         {
             // Molecules superimpose! Hold then slide back
-            Debug.Log("[IsomerAnim] Molecules ARE superimposable!");
+            // Debug.Log("[IsomerAnim] Molecules ARE superimposable!");
             yield return new WaitForSeconds(holdDuration);
 
             // Slide back with reverse rotation
@@ -346,7 +451,7 @@ public class IsomerAnimator : MonoBehaviour
         isomerClone.transform.rotation = startRot;
         isomerClone.transform.localScale = startScale;
 
-        Debug.Log($"[IsomerAnim] Overlay complete - {(isIdentical ? "SUPERIMPOSABLE" : "NOT superimposable")}");
+        // Debug.Log($"[IsomerAnim] Overlay complete - {(isIdentical ? "SUPERIMPOSABLE" : "NOT superimposable")}");
     }
 
     /// <summary>
@@ -374,6 +479,7 @@ public class IsomerAnimator : MonoBehaviour
 
         isShowingIsomer = false;
         isConformer = false;
+        isCisTransOrConstitutional = false;
     }
 
     void OnDestroy()

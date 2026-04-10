@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Oculus.Interaction;
 using Oculus.Interaction.Input;
 
@@ -54,21 +54,21 @@ public class HandRotationController : MonoBehaviour
         if (rightHand == null || leftHand == null)
         {
             Hand[] hands = FindObjectsOfType<Hand>();
-            Debug.Log($"[HandRotation] Found {hands.Length} Hand components in scene");
+            // Debug.Log($"[HandRotation] Found {hands.Length} Hand components in scene");
             
             foreach (var hand in hands)
             {
-                Debug.Log($"[HandRotation] Found hand: {hand.name}, Handedness: {hand.Handedness}");
+                // Debug.Log($"[HandRotation] Found hand: {hand.name}, Handedness: {hand.Handedness}");
                 
                 if (hand.Handedness == Handedness.Right && rightHand == null)
                 {
                     rightHand = hand;
-                    Debug.Log("[HandRotation] Assigned right hand");
+                    // Debug.Log("[HandRotation] Assigned right hand");
                 }
                 else if (hand.Handedness == Handedness.Left && leftHand == null)
                 {
                     leftHand = hand;
-                    Debug.Log("[HandRotation] Assigned left hand");
+                    // Debug.Log("[HandRotation] Assigned left hand");
                 }
             }
         }
@@ -89,7 +89,7 @@ public class HandRotationController : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[HandRotation] Initialized - Right: {rightHand != null}, Left: {leftHand != null}, Selection: {handSelection}");
+            // Debug.Log($"[HandRotation] Initialized - Right: {rightHand != null}, Left: {leftHand != null}, Selection: {handSelection}");
         }
     }
 
@@ -114,17 +114,17 @@ public class HandRotationController : MonoBehaviour
         // Process left hand
         if ((handSelection == HandSelection.Left || handSelection == HandSelection.Both) && leftHand != null)
         {
-            Debug.Log($"[HandRotation] Left hand exists, IsTrackedDataValid: {leftHand.IsTrackedDataValid}, handSelection: {handSelection}");
+            // Debug.Log($"[HandRotation] Left hand exists, IsTrackedDataValid: {leftHand.IsTrackedDataValid}, handSelection: {handSelection}");
             if (leftHand.IsTrackedDataValid)
             {
                 float pinchStrength = leftHand.GetFingerPinchStrength(HandFinger.Index);
-                Debug.Log($"[HandRotation] Left hand pinch strength: {pinchStrength:F2}, threshold: {pinchThreshold}, currently grabbing: {isGrabbingLeft}");
+                // Debug.Log($"[HandRotation] Left hand pinch strength: {pinchStrength:F2}, threshold: {pinchThreshold}, currently grabbing: {isGrabbingLeft}");
             }
             ProcessHand(leftHand, ref isGrabbingLeft, ref lastHandPositionLeft);
         }
         else
         {
-            Debug.Log($"[HandRotation] Left hand skipped - handSelection: {handSelection}, leftHand null: {leftHand == null}");
+            // Debug.Log($"[HandRotation] Left hand skipped - handSelection: {handSelection}, leftHand null: {leftHand == null}");
             // Reset if hand is disabled
             if (isGrabbingLeft)
             {
@@ -147,7 +147,7 @@ public class HandRotationController : MonoBehaviour
             
             if (timeSinceLastInteraction >= autoRotationDelay && planeAlignment != null && planeAlignment.enableAutoRotation)
             {
-                Debug.Log($"[HandRotation] Restarting auto-rotation after {timeSinceLastInteraction:F1}s of inactivity");
+                // Debug.Log($"[HandRotation] Restarting auto-rotation after {timeSinceLastInteraction:F1}s of inactivity");
                 planeAlignment.StartAutoRotation();
                 hasEverGrabbed = false; // Reset so we don't spam StartAutoRotation every frame
                 timeSinceLastInteraction = 0f;
@@ -178,7 +178,7 @@ public class HandRotationController : MonoBehaviour
         // Start grabbing
         if (shouldGrab && !isGrabbing)
         {
-            Debug.Log($"[HandRotation] {hand.Handedness} hand pinch detected: {pinchStrength:F2}");
+            // Debug.Log($"[HandRotation] {hand.Handedness} hand pinch detected: {pinchStrength:F2}");
             StartGrab(hand, ref isGrabbing, ref lastHandPosition);
         }
         // Stop grabbing
@@ -211,13 +211,13 @@ public class HandRotationController : MonoBehaviour
             planeAlignment.StopAutoRotation();
         }
         
-        Debug.Log($"[HandRotation] Started pinch grab ({hand.Handedness})");
+        // Debug.Log($"[HandRotation] Started pinch grab ({hand.Handedness})");
     }
 
     void StopGrab(ref bool isGrabbing, string handName)
     {
         isGrabbing = false;
-        Debug.Log($"[HandRotation] Released pinch grab ({handName})");
+        // Debug.Log($"[HandRotation] Released pinch grab ({handName})");
     }
 
     void UpdateRotation(Hand hand, ref Vector3 lastHandPosition)

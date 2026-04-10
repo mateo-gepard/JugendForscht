@@ -73,6 +73,14 @@ JugendForscht/
 │   │   │   ├── MoleculeLibrary.cs      # PubChem-Integration & Caching
 │   │   │   ├── LowPolyMeshes.cs        # Icosphere & Zylinder-Generator
 │   │   │   └── ShaderIncluder.cs       # Shader-Referenzen für Standalone-Builds
+│   │   ├── Builder/            # Interaktiver VR-Molekülbaukasten
+│   │   │   ├── BuilderManager.cs       # Drag&Drop, Bindungen, Compile-Logik
+│   │   │   ├── PeriodicTableDisplay.cs # Periodensystem-UI in VR
+│   │   │   ├── BuilderAtom.cs          # Valenz, Ladung, Oktettregel
+│   │   │   └── BuilderTile.cs          # Poke-Button für PSE und Tools
+│   │   ├── Quiz/               # Quiz-System
+│   │   │   ├── QuizManager.cs
+│   │   │   └── QuizButton.cs
 │   │   ├── Tutorial/           # Video-basiertes Tutorial-System
 │   │   │   ├── TutorialManager.cs      # Haupt-Controller (Singleton)
 │   │   │   ├── TutorialTimeline.cs     # ScriptableObject mit Zeitstempeln
@@ -107,6 +115,13 @@ JugendForscht/
 - **PubChem-Integration** — beliebige Moleküle per Name laden (Aspirin, Glucose, Koffein, …)
 - **Hand-Tracking** — Moleküle mit Händen greifen und drehen
 - Optimiert für Quest 3: Low-Poly-Meshes, GPU-Instancing, Mesh-Combining
+
+### VR-Molekülbaukasten (Builder)
+- **Interaktives Periodensystem** — in 3D ausklappbar, realistische physikalische Anordnung
+- **Hand-Interaktion** — Atome via *Pinch*-Geste aus dem PSE ziehen und frei im Raum platzieren
+- **Dynamischer Aufbau** — Atome durch Heranziehen verbinden (Einfach-, Doppel-, Dreifachbindungen)
+- **Modifikations-Tools** — Formale Ladungen ändern (Kationen/Anionen beeinflussen Valenz), Bindungen löschen
+- **Chemische Validierung** — Echtzeit-Prüfung der Oktett- und Duettregel per *Compile*-Button; validiert das Konstrukt und konvertiert es ins Rendering-System.
 
 ### Tutorial-System
 - Einzelnes Video mit automatischen Pausen an definierten Zeitpunkten

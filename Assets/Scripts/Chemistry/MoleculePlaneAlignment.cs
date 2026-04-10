@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -100,7 +100,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         string molName = molecule.name.ToLower();
         if (TryInitializeHardcodedMolecule(molName))
         {
-            Debug.Log($"[PlaneAlignment] Using hardcoded configuration for {molecule.name}");
+            // Debug.Log($"[PlaneAlignment] Using hardcoded configuration for {molecule.name}");
             
             // Skip to visualization and alignment steps
             FixPlane();
@@ -108,7 +108,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             
             if (showDebugInfo)
             {
-                Debug.Log($"[PlaneAlignment] Plane fixiert bei {planePoint}, Normale: {fixedNormal}");
+                // Debug.Log($"[PlaneAlignment] Plane fixiert bei {planePoint}, Normale: {fixedNormal}");
             }
             
             // 7. Create or update runtime plane visualization
@@ -153,12 +153,12 @@ public class MoleculePlaneAlignment : MonoBehaviour
 
         if (showDebugInfo)
         {
-            Debug.Log($"[PlaneAlignment] Initialized for {molecule.name}");
-            Debug.Log($"  Centroid: {centroid}");
-            Debug.Log($"  Anchor Atom: {anchorAtomIndex} ({currentMolecule.atoms[anchorAtomIndex].element})");
-            Debug.Log($"  PCA Normal: {pcaNormal}");
-            Debug.Log($"  Molecule Radius: {moleculeRadius:F3}");
-            Debug.Log($"  Depth Threshold: {depthThreshold:F3}");
+            // Debug.Log($"[PlaneAlignment] Initialized for {molecule.name}");
+            // Debug.Log($"  Centroid: {centroid}");
+            // Debug.Log($"  Anchor Atom: {anchorAtomIndex} ({currentMolecule.atoms[anchorAtomIndex].element})");
+            // Debug.Log($"  PCA Normal: {pcaNormal}");
+            // Debug.Log($"  Molecule Radius: {moleculeRadius:F3}");
+            // Debug.Log($"  Depth Threshold: {depthThreshold:F3}");
         }
         
         // 7. Create or update runtime plane visualization
@@ -193,7 +193,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         pauseTimer = 0f;
         paused180 = false;
         paused360 = false;
-        Debug.Log("[PlaneAlignment] Started auto rotation");
+        // Debug.Log("[PlaneAlignment] Started auto rotation");
     }
     
     /// <summary>
@@ -203,7 +203,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
     {
         isRotating = false;
         isManuallyControlled = true; // User is now controlling rotation
-        Debug.Log("[PlaneAlignment] Stopped auto rotation - manual control active");
+        // Debug.Log("[PlaneAlignment] Stopped auto rotation - manual control active");
     }
     
     /// <summary>
@@ -227,7 +227,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         // Apply rotation to the molecule renderer
         renderer.transform.rotation = alignmentRotation * renderer.transform.rotation;
         
-        Debug.Log($"[PlaneAlignment] Aligned plane to camera. Plane normal: {fixedNormal}, Camera forward: {cameraForward}");
+        // Debug.Log($"[PlaneAlignment] Aligned plane to camera. Plane normal: {fixedNormal}, Camera forward: {cameraForward}");
     }
     
     void Update()
@@ -257,7 +257,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
                 {
                     isPaused = false;
                     pauseTimer = 0f;
-                    Debug.Log("[PlaneAlignment] Resuming rotation after pause");
+                    // Debug.Log("[PlaneAlignment] Resuming rotation after pause");
                 }
                 // Don't rotate while paused
                 return;
@@ -279,7 +279,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             {
                 isPaused = true;
                 paused180 = true;
-                Debug.Log("[PlaneAlignment] Pausing at 180°");
+                // Debug.Log("[PlaneAlignment] Pausing at 180°");
             }
             
             // Pause at 360° (once per cycle, then reset)
@@ -290,7 +290,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
                 paused180 = false; // Reset for next cycle
                 paused360 = false; // Reset immediately so next cycle can pause again
                 totalRotationAngle = 0f; // Reset rotation counter
-                Debug.Log("[PlaneAlignment] Pausing at 360° - cycle complete");
+                // Debug.Log("[PlaneAlignment] Pausing at 360° - cycle complete");
             }
             
             // Use RotateAround to spin molecule around the fixed centroid point
@@ -433,7 +433,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             
             planeMaterial.renderQueue = 3000;
             
-            Debug.Log($"[PlaneAlignment] Created material with shader: {mobileShader.name}");
+            // Debug.Log($"[PlaneAlignment] Created material with shader: {mobileShader.name}");
         }
         else
         {
@@ -445,7 +445,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         // Hide the filled plane, only show outline
         planeRenderer.enabled = false;
         
-        Debug.Log($"[PlaneAlignment] Plane mesh disabled (outline only)");
+        // Debug.Log($"[PlaneAlignment] Plane mesh disabled (outline only)");
         
         // Add edge outline
         CreatePlaneOutline(planeVisual, size);
@@ -453,7 +453,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         // Ensure planeVisual is active so outline is visible
         planeVisual.SetActive(true);
         
-        Debug.Log($"[PlaneAlignment] ✨✨✨ PLANE VISUAL CREATED: active={planeVisual.activeSelf}, position={planeVisual.transform.position}, children={planeVisual.transform.childCount}");
+        // Debug.Log($"[PlaneAlignment] ✨✨✨ PLANE VISUAL CREATED: active={planeVisual.activeSelf}, position={planeVisual.transform.position}, children={planeVisual.transform.childCount}");
         
         // Position and orient the plane in world space - stays fixed while molecule rotates through it
         planeVisual.transform.position = planePoint;
@@ -466,10 +466,10 @@ public class MoleculePlaneAlignment : MonoBehaviour
         fixedPlanePoint = planePoint;
         positionsLocked = true;
         
-        Debug.Log($"[PlaneAlignment] Positionen fixiert - Molekül: {fixedMoleculePosition}, Centroid: {fixedCentroid}, Plane: {fixedPlanePoint}");
+        // Debug.Log($"[PlaneAlignment] Positionen fixiert - Molekül: {fixedMoleculePosition}, Centroid: {fixedCentroid}, Plane: {fixedPlanePoint}");
         
-        Debug.Log($"[PlaneAlignment] Plane position: {planePoint}, rotation: {fixedNormal}, size: {size}");
-        Debug.Log("[PlaneAlignment] Created plane visualization in world space (stays fixed while molecule rotates)");
+        // Debug.Log($"[PlaneAlignment] Plane position: {planePoint}, rotation: {fixedNormal}, size: {size}");
+        // Debug.Log("[PlaneAlignment] Created plane visualization in world space (stays fixed while molecule rotates)");
     }
     
     /// <summary>
@@ -559,7 +559,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         lineRenderer.SetPosition(2, new Vector3(size, size, zOffset));
         lineRenderer.SetPosition(3, new Vector3(-size, size, zOffset));
         
-        Debug.Log($"[PlaneAlignment] ✨ Plane outline created: size={size}, color=white, width=0.008, enabled={lineRenderer.enabled}, parent active={parent.activeSelf}");
+        // Debug.Log($"[PlaneAlignment] ✨ Plane outline created: size={size}, color=white, width=0.008, enabled={lineRenderer.enabled}, parent active={parent.activeSelf}");
     }
     
     /// <summary>
@@ -590,7 +590,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         markerRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         markerRenderer.receiveShadows = false;
         
-        Debug.Log($"[PlaneAlignment] Centroid marker erstellt bei: {centroid}");
+        // Debug.Log($"[PlaneAlignment] Centroid marker erstellt bei: {centroid}");
     }
     
     /// <summary>
@@ -654,7 +654,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             }
         }
         
-        Debug.Log($"[PlaneAlignment] Created {intersectionMarkers.Count} intersection markers");
+        // Debug.Log($"[PlaneAlignment] Created {intersectionMarkers.Count} intersection markers");
     }
     
     /// <summary>
@@ -705,7 +705,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
             rb.constraints = RigidbodyConstraints.FreezeAll; // Freeze all movement
             rb.detectCollisions = false; // Disable collision detection entirely
-            Debug.Log("[PlaneAlignment] Rigidbody frozen with all constraints");
+            // Debug.Log("[PlaneAlignment] Rigidbody frozen with all constraints");
         }
         
         // Also check children
@@ -730,7 +730,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         
         if (colliders.Length > 0)
         {
-            Debug.Log($"[PlaneAlignment] Set {colliders.Length} colliders to triggers (no physics push)");
+            // Debug.Log($"[PlaneAlignment] Set {colliders.Length} colliders to triggers (no physics push)");
         }
     }
 
@@ -743,7 +743,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         {
             Destroy(planeVisual);
             planeVisual = null;
-            Debug.Log("[PlaneAlignment] Plane visualization destroyed");
+            // Debug.Log("[PlaneAlignment] Plane visualization destroyed");
         }
         
         if (centroidMarker != null)
@@ -826,7 +826,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         Vector3 v2 = atomWorldPositions[hIndices[1]] - atomWorldPositions[oIndex];
         planeNormal = Vector3.Cross(v1, v2).normalized;
         
-        Debug.Log($"[PlaneAlignment] Water: Plane parallel to molecule (contains O+2H), rotation at O {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
+        // Debug.Log($"[PlaneAlignment] Water: Plane parallel to molecule (contains O+2H), rotation at O {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
         return true;
     }
 
@@ -867,7 +867,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         Vector3 v2 = atomWorldPositions[oIndex] - atomWorldPositions[cIndices[0]];
         planeNormal = Vector3.Cross(v1, v2).normalized;
 
-        Debug.Log($"[PlaneAlignment] Ethanol: Plane through 2C+O, rotation at C-C middle {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
+        // Debug.Log($"[PlaneAlignment] Ethanol: Plane through 2C+O, rotation at C-C middle {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
         return true;
     }
 
@@ -909,7 +909,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         Vector3 v2 = atomWorldPositions[cIndices[2]] - atomWorldPositions[cIndices[0]];
         planeNormal = Vector3.Cross(v1, v2).normalized;
 
-        Debug.Log($"[PlaneAlignment] Benzene: Plane through 3C, rotation at hexagon center {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
+        // Debug.Log($"[PlaneAlignment] Benzene: Plane through 3C, rotation at hexagon center {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
         return true;
     }
 
@@ -950,7 +950,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         Vector3 v2 = atomWorldPositions[hIndices[1]] - atomWorldPositions[cIndex];
         planeNormal = Vector3.Cross(v1, v2).normalized;
 
-        Debug.Log($"[PlaneAlignment] Methane: Plane through C+2H, rotation at C {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
+        // Debug.Log($"[PlaneAlignment] Methane: Plane through C+2H, rotation at C {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
         return true;
     }
 
@@ -1015,7 +1015,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         Vector3 v2 = atomWorldPositions[otherCIndices[0]] - atomWorldPositions[middleCIndex];
         planeNormal = Vector3.Cross(v1, v2).normalized;
 
-        Debug.Log($"[PlaneAlignment] Propanon: Plane through 3C+O, rotation at middle C {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
+        // Debug.Log($"[PlaneAlignment] Propanon: Plane through 3C+O, rotation at middle C {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
         return true;
     }
 
@@ -1056,7 +1056,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         Vector3 v2 = atomWorldPositions[hIndices[1]] - atomWorldPositions[nIndex];
         planeNormal = Vector3.Cross(v1, v2).normalized;
 
-        Debug.Log($"[PlaneAlignment] Ammonia: Plane through N+2H, rotation at N {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
+        // Debug.Log($"[PlaneAlignment] Ammonia: Plane through N+2H, rotation at N {centroid}, Normal {planeNormal}, radius {moleculeRadius}");
         return true;
     }
 
@@ -1103,20 +1103,20 @@ public class MoleculePlaneAlignment : MonoBehaviour
             }
             centroid /= carbonPositions.Count;
             
-            Debug.Log($"[PlaneAlignment] === C-ATOM CENTROID BERECHNUNG ===");
-            Debug.Log($"[PlaneAlignment] Renderer Position: {renderer.transform.position}");
-            Debug.Log($"[PlaneAlignment] Renderer Scale: {renderer.transform.localScale}");
-            Debug.Log($"[PlaneAlignment] angstromToMeter: {renderer.angstromToMeter}, bondLengthMultiplier: {renderer.bondLengthMultiplier}");
-            Debug.Log($"[PlaneAlignment] Gefundene C-Atome: {carbonPositions.Count}");
+            // Debug.Log($"[PlaneAlignment] === C-ATOM CENTROID BERECHNUNG ===");
+            // Debug.Log($"[PlaneAlignment] Renderer Position: {renderer.transform.position}");
+            // Debug.Log($"[PlaneAlignment] Renderer Scale: {renderer.transform.localScale}");
+            // Debug.Log($"[PlaneAlignment] angstromToMeter: {renderer.angstromToMeter}, bondLengthMultiplier: {renderer.bondLengthMultiplier}");
+            // Debug.Log($"[PlaneAlignment] Gefundene C-Atome: {carbonPositions.Count}");
             foreach (var info in carbonDebugInfo)
             {
-                Debug.Log($"[PlaneAlignment] {info}");
+                // Debug.Log($"[PlaneAlignment] {info}");
             }
-            Debug.Log($"[PlaneAlignment] Berechneter C-Centroid (Rotationsmittelpunkt): {centroid}");
+            // Debug.Log($"[PlaneAlignment] Berechneter C-Centroid (Rotationsmittelpunkt): {centroid}");
             
             // CRITICAL: Plane fitting uses ONLY C-atoms when available
             planeFittingPositions.AddRange(carbonPositions);
-            Debug.Log($"[PlaneAlignment] Plane fitting wird NUR mit {planeFittingPositions.Count} C-Atomen berechnet");
+            // Debug.Log($"[PlaneAlignment] Plane fitting wird NUR mit {planeFittingPositions.Count} C-Atomen berechnet");
             
             // Berechne auch den Mittelpunkt in local space zur Verifizierung
             Vector3 localCentroid = Vector3.zero;
@@ -1129,8 +1129,8 @@ public class MoleculePlaneAlignment : MonoBehaviour
             }
             localCentroid /= carbonPositions.Count;
             Vector3 expectedWorldCentroid = renderer.transform.TransformPoint(localCentroid * renderer.angstromToMeter * renderer.bondLengthMultiplier);
-            Debug.Log($"[PlaneAlignment] Local C-Centroid: {localCentroid}");
-            Debug.Log($"[PlaneAlignment] Expected World Centroid: {expectedWorldCentroid}");
+            // Debug.Log($"[PlaneAlignment] Local C-Centroid: {localCentroid}");
+            // Debug.Log($"[PlaneAlignment] Expected World Centroid: {expectedWorldCentroid}");
         }
         else
         {
@@ -1143,8 +1143,8 @@ public class MoleculePlaneAlignment : MonoBehaviour
             
             // Use all atoms for plane fitting as fallback
             planeFittingPositions.AddRange(atomWorldPositions);
-            Debug.Log($"[PlaneAlignment] Keine C-Atome gefunden, Mittelpunkt aus {atomWorldPositions.Count} Atomen: {centroid}");
-            Debug.Log($"[PlaneAlignment] Plane fitting verwendet alle {planeFittingPositions.Count} Atome als Fallback");
+            // Debug.Log($"[PlaneAlignment] Keine C-Atome gefunden, Mittelpunkt aus {atomWorldPositions.Count} Atomen: {centroid}");
+            // Debug.Log($"[PlaneAlignment] Plane fitting verwendet alle {planeFittingPositions.Count} Atome als Fallback");
         }
     }
 
@@ -1221,7 +1221,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         // The plane ALWAYS goes through the centroid, we're just finding the best rotation
         pcaNormal = FindOptimalPlaneNormal(candidates);
         
-        Debug.Log($"[PlaneAlignment] Selected plane normal: {pcaNormal}, with best in-plane atom/bond count");
+        // Debug.Log($"[PlaneAlignment] Selected plane normal: {pcaNormal}, with best in-plane atom/bond count");
     }
     
     /// <summary>
@@ -1356,7 +1356,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             }
         }
         
-        Debug.Log($"[PlaneAlignment] Best plane: {bestNormal} with {bestAtomCount} atoms and {bestBondCount} bonds on plane (threshold: {tempThreshold:F4})");
+        // Debug.Log($"[PlaneAlignment] Best plane: {bestNormal} with {bestAtomCount} atoms and {bestBondCount} bonds on plane (threshold: {tempThreshold:F4})");
         return bestNormal;
     }
     
@@ -1439,8 +1439,8 @@ public class MoleculePlaneAlignment : MonoBehaviour
         planePoint = centroid;
         fixedNormal = planeNormal.normalized;
         
-        Debug.Log($"[PlaneAlignment] Plane fixed through centroid: {planePoint}, Normal: {fixedNormal}");
-        Debug.Log($"[PlaneAlignment] Rotation center = Centroid = Average of C-atoms: {centroid}");
+        // Debug.Log($"[PlaneAlignment] Plane fixed through centroid: {planePoint}, Normal: {fixedNormal}");
+        // Debug.Log($"[PlaneAlignment] Rotation center = Centroid = Average of C-atoms: {centroid}");
     }
 
     /// <summary>
@@ -1549,7 +1549,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
             if (intersectsMiddle50)
             {
                 // Plane cuts through middle 50% → Normal bond
-                Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → None (plane cuts middle 50%)");
+                // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → None (plane cuts middle 50%)");
                 return BondStereo.None;
             }
             else if (t < 0.25f)
@@ -1557,12 +1557,12 @@ public class MoleculePlaneAlignment : MonoBehaviour
                 // Plane cuts near atomA → Use atomB's side
                 if (dB < 0)
                 {
-                    Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → UP (cuts near A, B in front)");
+                    // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → UP (cuts near A, B in front)");
                     return BondStereo.Up;
                 }
                 else
                 {
-                    Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → DOWN (cuts near A, B behind)");
+                    // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → DOWN (cuts near A, B behind)");
                     return BondStereo.Down;
                 }
             }
@@ -1571,12 +1571,12 @@ public class MoleculePlaneAlignment : MonoBehaviour
                 // Plane cuts near atomB → Use atomA's side
                 if (dA < 0)
                 {
-                    Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → UP (cuts near B, A in front)");
+                    // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → UP (cuts near B, A in front)");
                     return BondStereo.Up;
                 }
                 else
                 {
-                    Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → DOWN (cuts near B, A behind)");
+                    // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4}, t={t:F2} → DOWN (cuts near B, A behind)");
                     return BondStereo.Down;
                 }
             }
@@ -1589,13 +1589,13 @@ public class MoleculePlaneAlignment : MonoBehaviour
         if (avgDepth < 0)
         {
             // Both in front → Wedge
-            Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4} → UP (both in front)");
+            // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4} → UP (both in front)");
             return BondStereo.Up;
         }
         else
         {
             // Both behind → Dashed
-            Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4} → DOWN (both behind)");
+            // Debug.Log($"[PlaneAlignment] Bond {bond.atomA_ID}->{bond.atomB_ID}: dA={dA:F4}, dB={dB:F4} → DOWN (both behind)");
             return BondStereo.Down;
         }
     }
@@ -1649,7 +1649,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
         if (planeVisual != null && planeRenderer != null)
         {
             planeRenderer.enabled = !planeRenderer.enabled;
-            Debug.Log($"[PlaneAlignment] Plane visibility toggled: {planeRenderer.enabled}");
+            // Debug.Log($"[PlaneAlignment] Plane visibility toggled: {planeRenderer.enabled}");
         }
     }
     
@@ -1658,24 +1658,24 @@ public class MoleculePlaneAlignment : MonoBehaviour
     /// </summary>
     private void LogRendererStates()
     {
-        Debug.Log("=== RENDERER DEBUG INFO ===");
+        // Debug.Log("=== RENDERER DEBUG INFO ===");
         
         // Plane renderer
         if (planeRenderer != null)
         {
-            Debug.Log($"[PlaneRenderer] enabled={planeRenderer.enabled}, " +
-                     $"visible={planeRenderer.isVisible}, " +
-                     $"material={planeRenderer.sharedMaterial?.name}, " +
-                     $"shader={planeRenderer.sharedMaterial?.shader.name}, " +
-                     $"color={planeRenderer.sharedMaterial?.color}, " +
-                     $"renderQueue={planeRenderer.sharedMaterial?.renderQueue}");
+            // Debug.Log($"[PlaneRenderer] enabled={planeRenderer.enabled}, " +
+            //          $"visible={planeRenderer.isVisible}, " +
+            //          $"material={planeRenderer.sharedMaterial?.name}, " +
+            //          $"shader={planeRenderer.sharedMaterial?.shader.name}, " +
+            //          $"color={planeRenderer.sharedMaterial?.color}, " +
+            //          $"renderQueue={planeRenderer.sharedMaterial?.renderQueue}");
         }
         
         // Molecule renderers
         if (renderer != null)
         {
             Renderer[] moleculeRenderers = renderer.GetComponentsInChildren<Renderer>();
-            Debug.Log($"[MoleculeRenderers] Found {moleculeRenderers.Length} renderers");
+            // Debug.Log($"[MoleculeRenderers] Found {moleculeRenderers.Length} renderers");
             
             int visibleCount = 0;
             int greyCount = 0;
@@ -1698,12 +1698,12 @@ public class MoleculePlaneAlignment : MonoBehaviour
                     }
                 }
             }
-            Debug.Log($"[MoleculeRenderers] Visible: {visibleCount}, Grey materials: {greyCount}");
+            // Debug.Log($"[MoleculeRenderers] Visible: {visibleCount}, Grey materials: {greyCount}");
         }
         
         // All renderers in scene
         Renderer[] allRenderers = FindObjectsOfType<Renderer>();
-        Debug.Log($"[AllRenderers] Total in scene: {allRenderers.Length}");
+        // Debug.Log($"[AllRenderers] Total in scene: {allRenderers.Length}");
     }
 }
 

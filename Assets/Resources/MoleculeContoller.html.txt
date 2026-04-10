@@ -1,679 +1,947 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Molekül-Betrachter</title>
-    <style>
-        :root {
-            --bg-primary: #0f1117;
-            --bg-card: #1a1d27;
-            --bg-card-hover: #222636;
-            --bg-elevated: #252937;
-            --accent: #6c8aff;
-            --accent-glow: rgba(108, 138, 255, 0.25);
-            --accent-dim: #4a63cc;
-            --success: #34d399;
-            --success-bg: rgba(52, 211, 153, 0.12);
-            --danger: #f87171;
-            --danger-bg: rgba(248, 113, 113, 0.12);
-            --text-primary: #e8eaed;
-            --text-secondary: #9aa0b0;
-            --text-muted: #5c6378;
-            --border: rgba(255,255,255,0.06);
-            --radius-sm: 10px;
-            --radius-md: 14px;
-            --radius-lg: 20px;
-            --shadow-card: 0 2px 16px rgba(0,0,0,0.3);
-            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Molekül-Betrachter</title>
+<style>
+:root {
+    --bg: #0f1117; --card: #1a1d27; --el: #252937;
+    --acc: #6c8aff; --acc2: #a78bfa; --ok: #34d399; --err: #f87171; --warn: #fbbf24;
+    --t1: #e8eaed; --t2: #9aa0b0; --t3: #5c6378;
+    --brd: rgba(255,255,255,.06); --r: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg); color: var(--t1);
+    min-height: 100dvh; padding: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 520px; margin: 0 auto; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Header */
+.header { display:flex; align-items:center; justify-content:space-between; padding:20px 0 16px; }
+.brand { display:flex; align-items:center; gap:12px; }
+.brand-icon {
+    width:40px; height:40px;
+    background: linear-gradient(135deg, var(--acc), var(--acc2));
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:20px; box-shadow: 0 4px 12px rgba(108,138,255,.3);
+}
+.brand h1 { font-size:20px; font-weight:700; }
+.brand span { display:block; font-size:12px; color:var(--t3); font-weight:500; letter-spacing:.5px; text-transform:uppercase; margin-top:1px; }
+.status-badge {
+    display:flex; align-items:center; gap:6px; padding:6px 12px;
+    border-radius:20px; font-size:12px; font-weight:600;
+    background:var(--card); border:1px solid var(--brd);
+}
+.status-dot { width:7px; height:7px; border-radius:50%; background:var(--err); }
+.status-badge.connected .status-dot { background:var(--ok); box-shadow:0 0 8px rgba(52,211,153,.5); }
+.status-badge.connected { border-color:rgba(52,211,153,.2); background:rgba(52,211,153,.12); }
+.status-badge.mock .status-dot { background:var(--warn); box-shadow:0 0 8px rgba(251,191,36,.5); }
+.status-badge.mock { border-color:rgba(251,191,36,.2); background:rgba(251,191,36,.12); }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            min-height: 100dvh;
-            padding: 16px;
-            -webkit-font-smoothing: antialiased;
-            -webkit-tap-highlight-color: transparent;
-        }
+/* Tabs */
+.tabs {
+    display:flex; gap:4px; background:var(--card); border-radius:16px;
+    padding:4px; margin-bottom:16px; border:1px solid var(--brd);
+}
+.tab {
+    flex:1; padding:10px 12px; border:none; border-radius:12px;
+    font-size:13px; font-weight:600; cursor:pointer;
+    background:transparent; color:var(--t3); transition:.2s;
+    font-family:inherit;
+}
+.tab:hover { color:var(--t2); }
+.tab.active {
+    background: linear-gradient(135deg, var(--acc), var(--acc2));
+    color:#fff; box-shadow:0 2px 8px rgba(108,138,255,.3);
+}
+.tab-content { display:none; }
+.tab-content.active { display:block; }
 
-        .container {
-            max-width: 520px;
-            margin: 0 auto;
-        }
+/* Cards */
+.card {
+    background:var(--card); border:1px solid var(--brd); border-radius:20px;
+    padding:20px; margin-bottom:14px; box-shadow:0 2px 16px rgba(0,0,0,.3);
+}
+.card-label {
+    font-size:11px; font-weight:600; text-transform:uppercase;
+    letter-spacing:1px; color:var(--t3); margin-bottom:14px;
+}
 
-        /* ── Header ─────────────────────────────────── */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 0 24px;
-        }
+/* Tutorial Progress */
+.tutorial-progress {
+    background:var(--el); border-radius:var(--r); padding:14px 16px; margin-bottom:14px;
+}
+.tutorial-progress .label { font-size:12px; color:var(--t3); font-weight:500; }
+.tutorial-progress .value { font-size:16px; font-weight:600; margin-top:4px; }
+.tutorial-progress .unit-name { font-size:12px; color:var(--acc); margin-top:4px; font-weight:500; }
+.progress-track {
+    width:100%; height:4px; background:rgba(255,255,255,.08);
+    border-radius:2px; margin-top:10px; overflow:hidden;
+}
+.progress-fill {
+    height:100%; background:linear-gradient(90deg, var(--acc), var(--acc2));
+    border-radius:2px; transition:width .3s ease; width:0%;
+}
+.tutorial-progress.active .progress-fill { animation: pulse 1.5s ease-in-out infinite; }
+.tutorial-progress.waiting { border:1px solid rgba(52,211,153,.2); }
+.tutorial-progress.waiting .progress-fill { background:var(--ok); }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+/* Buttons */
+.btn {
+    flex:1; padding:14px 16px; border:none; border-radius:var(--r);
+    font-size:15px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:.2s; font-family:inherit;
+}
+.btn:active { transform:scale(.97); }
+.btn:disabled { opacity:.3; pointer-events:none; }
+.btn-accent { background:linear-gradient(135deg, var(--acc), #8b7cf6); color:#fff; box-shadow:0 4px 12px rgba(108,138,255,.3); }
+.btn-confirm { background:linear-gradient(135deg, var(--ok), #2dd4a0); color:#064e36; box-shadow:0 4px 12px rgba(52,211,153,.3); font-size:16px; }
+.btn-ghost { background:var(--el); color:var(--t2); border:1px solid var(--brd); }
+.btn-danger { background:rgba(248,113,113,.12); color:var(--err); border:1px solid rgba(248,113,113,.15); }
+.btn-iso {
+    background:linear-gradient(135deg, #f59e0b, #ef4444); color:#fff;
+    box-shadow:0 4px 12px rgba(245,158,11,.3);
+}
+.btn-chiral {
+    background:linear-gradient(135deg, #8b5cf6, #ec4899); color:#fff;
+    box-shadow:0 4px 12px rgba(139,92,246,.3);
+}
+.row { display:flex; gap:10px; }
 
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 12px rgba(108, 138, 255, 0.3);
-        }
+/* Search */
+.search-row { display:flex; gap:10px; }
+.search-input {
+    flex:1; padding:13px 16px; background:var(--el); border:1px solid var(--brd);
+    border-radius:var(--r); color:var(--t1); font-size:15px; font-family:inherit; outline:none;
+}
+.search-input:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(108,138,255,.25); }
+.search-input::placeholder { color:var(--t3); }
 
-        .brand h1 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
+/* Molecule Grid */
+.mol-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.mol-tile {
+    background:var(--el); border:1px solid var(--brd); border-radius:var(--r);
+    padding:16px 10px; text-align:center; cursor:pointer; transition:.2s;
+}
+.mol-tile:active { transform:scale(.95); }
+.mol-tile .emoji { font-size:28px; margin-bottom:6px; display:block; }
+.mol-tile .name { font-size:13px; font-weight:600; }
+.mol-tile .formula { font-size:11px; color:var(--t3); margin-top:2px; }
 
-        .brand span {
-            display: block;
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-top: 1px;
-        }
+/* Isomerie specific */
+.iso-actions { display:flex; flex-direction:column; gap:10px; }
+.iso-actions .btn { width:100%; }
+.chiral-info {
+    background:var(--el); border-radius:var(--r); padding:14px 16px;
+    margin-top:14px; display:none;
+}
+.chiral-info.visible { display:block; }
+.chiral-info .label { font-size:12px; color:var(--t3); }
+.chiral-info .value { font-size:18px; font-weight:700; margin-top:4px; }
+.chiral-info .detail { font-size:13px; color:var(--t2); margin-top:6px; line-height:1.5; }
+.center-badge {
+    display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+    border-radius:8px; font-size:12px; font-weight:600; margin:2px;
+}
+.center-r { background:rgba(108,138,255,.15); color:var(--acc); }
+.center-s { background:rgba(245,158,11,.15); color:var(--warn); }
 
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            transition: all var(--transition);
-        }
+/* Isomer type info cards */
+.iso-type-card {
+    background:var(--el); border:1px solid var(--brd); border-radius:12px;
+    padding:12px 14px; transition:.2s;
+}
+.iso-type-card.active-type { border-color:rgba(108,138,255,.25); background:rgba(108,138,255,.06); }
+.iso-type-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.iso-type-icon { font-size:18px; }
+.iso-type-name { font-size:14px; font-weight:700; flex:1; }
+.iso-type-badge {
+    font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px;
+    padding:2px 8px; border-radius:6px;
+}
+.iso-type-badge.implemented { background:rgba(52,211,153,.15); color:var(--ok); }
+.iso-type-desc { font-size:12px; color:var(--t2); line-height:1.5; }
 
-        .status-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--danger);
-            transition: background var(--transition);
-        }
+/* Toast */
+.toast {
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--card); border:1px solid var(--brd); color:var(--t1);
+    padding:12px 20px; border-radius:var(--r); font-size:14px; font-weight:500;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+    z-index:100; pointer-events:none;
+}
+.toast.visible { transform:translateX(-50%) translateY(0); }
 
-        .status-badge.connected .status-dot {
-            background: var(--success);
-            box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
-        }
-
-        .status-badge.connected {
-            border-color: rgba(52, 211, 153, 0.2);
-            background: var(--success-bg);
-        }
-
-        /* ── Cards ──────────────────────────────────── */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin-bottom: 14px;
-            box-shadow: var(--shadow-card);
-        }
-
-        .card-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 14px;
-        }
-
-        /* ── Tutorial Section ───────────────────────── */
-        .tutorial-progress {
-            background: var(--bg-elevated);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 16px;
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-
-        .tutorial-progress .label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .tutorial-progress .value {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .tutorial-progress.active {
-            border-color: rgba(108, 138, 255, 0.2);
-            background: linear-gradient(135deg, rgba(108,138,255,0.08) 0%, rgba(167,139,250,0.06) 100%);
-        }
-
-        .tutorial-progress.active .value {
-            background: linear-gradient(135deg, var(--accent), #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tutorial-progress.waiting {
-            border-color: rgba(52, 211, 153, 0.25);
-            background: rgba(52, 211, 153, 0.06);
-            animation: pulse-border 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-border {
-            0%, 100% { border-color: rgba(52, 211, 153, 0.15); }
-            50% { border-color: rgba(52, 211, 153, 0.4); }
-        }
-
-        .tutorial-progress.waiting .value {
-            color: var(--success);
-        }
-
-        .unit-name {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            font-weight: 500;
-        }
-
-        .progress-bar-track {
-            height: 3px;
-            background: var(--bg-primary);
-            border-radius: 2px;
-            margin-top: 12px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), #a78bfa);
-            border-radius: 2px;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 0%;
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* ── Buttons ────────────────────────────────── */
-        .btn {
-            flex: 1;
-            padding: 14px 16px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            -webkit-user-select: none;
-            user-select: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn:active { transform: scale(0.97); }
-
-        .btn:disabled {
-            opacity: 0.3;
-            pointer-events: none;
-            transform: none;
-        }
-
-        .btn-accent {
-            background: linear-gradient(135deg, var(--accent) 0%, #8b7cf6 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(108, 138, 255, 0.3);
-        }
-
-        .btn-accent:active {
-            box-shadow: 0 2px 8px rgba(108, 138, 255, 0.2);
-        }
-
-        .btn-continue {
-            background: linear-gradient(135deg, var(--success) 0%, #2dd4a0 100%);
-            color: #064e36;
-            box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
-            font-size: 16px;
-        }
-
-        .btn-continue:active {
-            box-shadow: 0 2px 8px rgba(52, 211, 153, 0.2);
-        }
-
-        .btn-ghost {
-            background: var(--bg-elevated);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-ghost:active {
-            background: var(--bg-card-hover);
-        }
-
-        .btn-danger-ghost {
-            background: var(--danger-bg);
-            color: var(--danger);
-            border: 1px solid rgba(248, 113, 113, 0.15);
-        }
-
-        .btn-danger-ghost:active {
-            background: rgba(248, 113, 113, 0.2);
-        }
-
-        .btn-icon {
-            font-size: 16px;
-        }
-
-        /* ── Search ─────────────────────────────────── */
-        .search-row {
-            display: flex;
-            gap: 10px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 13px 16px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: 15px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color var(--transition);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
-
-        .search-btn {
-            padding: 13px 20px;
-            flex-shrink: 0;
-        }
-
-        /* ── Molecule Grid ──────────────────────────── */
-        .mol-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .mol-tile {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition);
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .mol-tile:active {
-            transform: scale(0.95);
-            background: var(--bg-card-hover);
-        }
-
-        .mol-tile .emoji {
-            font-size: 28px;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .mol-tile .name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .mol-tile .formula {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
-            font-weight: 500;
-        }
-
-        /* ── Toast ──────────────────────────────────── */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 12px 20px;
-            border-radius: var(--radius-md);
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        .toast.visible {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .info-line {
-            text-align: center;
-            padding: 16px 0 8px;
-            font-size: 11px;
-            color: var(--text-muted);
-            letter-spacing: 0.3px;
-        }
-    </style>
+/* Footer */
+.info-line { text-align:center; padding:16px 0 8px; font-size:11px; color:var(--t3); }
+</style>
 </head>
 <body>
-    <div class="container">
-
-        <!-- Header -->
-        <div class="header">
-            <div class="brand">
-                <div class="brand-icon">&#9883;</div>
-                <div>
-                    <h1>Molek&uuml;l-Betrachter</h1>
-                    <span>VR Lernumgebung</span>
-                </div>
-            </div>
-            <div class="status-badge" id="statusBadge">
-                <div class="status-dot"></div>
-                <span id="statusText">Verbinde&hellip;</span>
-            </div>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="brand">
+            <div class="brand-icon">&#9883;</div>
+            <div><h1>Molekül-Betrachter</h1><span>VR Lernumgebung</span></div>
         </div>
+        <div class="status-badge" id="statusBadge">
+            <div class="status-dot"></div>
+            <span id="statusText">Verbinde&hellip;</span>
+        </div>
+    </div>
 
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab active" id="tabKeilstrich" onclick="switchTab('keilstrich')">&#9650; Keilstrichformel</button>
+        <button class="tab" id="tabIsomerie" onclick="switchTab('isomerie')">&☫ Chiralität</button>
+    </div>
+
+    <!-- ==================== KEILSTRICH TAB ==================== -->
+    <div class="tab-content active" id="contentKeilstrich">
         <!-- Tutorial -->
         <div class="card">
             <div class="card-label">Tutorial</div>
-
             <div class="tutorial-progress" id="tutorialProgress">
                 <div class="label" id="tutorialLabel">Nicht gestartet</div>
                 <div class="value" id="tutorialValue">&mdash;</div>
                 <div class="unit-name" id="unitName"></div>
-                <div class="progress-bar-track">
-                    <div class="progress-bar-fill" id="progressBar"></div>
-                </div>
+                <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
             </div>
-
-            <!-- Before start -->
-            <div id="tutorialIdle" class="btn-row">
-                <button class="btn btn-accent" onclick="tutorialStart()">
-                    <span class="btn-icon">&#9654;</span> Tutorial starten
-                </button>
+            <div id="tutorialIdle" class="row">
+                <button class="btn btn-accent" onclick="tutorialStart()">&#9654; Tutorial starten</button>
             </div>
-
-            <!-- Active controls -->
-            <div id="tutorialActive" style="display:none;">
-                <div class="btn-row" style="margin-bottom:10px;">
-                    <button class="btn btn-ghost" id="btnPrev" onclick="tutorialPrev()">
-                        <span class="btn-icon">&lsaquo;</span> Zur&uuml;ck
-                    </button>
-                    <button class="btn btn-continue" id="btnNext" onclick="tutorialNext()">
-                        Weiter <span class="btn-icon">&rsaquo;</span>
-                    </button>
+            <div id="tutorialActive" style="display:none">
+                <div class="row" style="margin-bottom:10px">
+                    <button class="btn btn-ghost" id="btnPrev" onclick="tutorialPrev()">&lsaquo; Zurück</button>
+                    <button class="btn btn-confirm" id="btnNext" onclick="tutorialNext()">Weiter &rsaquo;</button>
                 </div>
-                <button class="btn btn-danger-ghost" onclick="tutorialClose()" style="width:100%;">
-                    Tutorial beenden
-                </button>
+                <button class="btn btn-danger" onclick="tutorialClose()" style="width:100%">Tutorial beenden</button>
             </div>
         </div>
 
-        <!-- Search -->
+        <!-- Molecule Search -->
         <div class="card">
-            <div class="card-label">Molek&uuml;l laden</div>
+            <div class="card-label">Molekül laden</div>
             <div class="search-row">
-                <input class="search-input" type="text" id="searchInput" placeholder="z.B. Aspirin, Glucose&hellip;" autocomplete="off" autocorrect="off" spellcheck="false">
-                <button class="btn btn-accent search-btn" onclick="searchMolecule()">Laden</button>
+                <input class="search-input" type="text" id="searchInput" placeholder="z.B. Aspirin, Glucose&hellip;" autocomplete="off">
+                <button class="btn btn-accent" onclick="searchMolecule()" style="flex-shrink:0;padding:13px 20px">Laden</button>
             </div>
         </div>
 
-        <!-- Quick-select -->
+        <!-- Quick Select -->
         <div class="card">
             <div class="card-label">Schnellauswahl</div>
             <div class="mol-grid">
                 <div class="mol-tile" onclick="loadMolecule('water')">
-                    <span class="emoji">&#128167;</span>
-                    <div class="name">Wasser</div>
-                    <div class="formula">H&#8322;O</div>
+                    <span class="emoji">&#128167;</span><div class="name">Wasser</div><div class="formula">H&#8322;O</div>
                 </div>
                 <div class="mol-tile" onclick="loadMolecule('ethanol')">
-                    <span class="emoji">&#129514;</span>
-                    <div class="name">Ethanol</div>
-                    <div class="formula">C&#8322;H&#8325;OH</div>
+                    <span class="emoji">&#129514;</span><div class="name">Ethanol</div><div class="formula">C&#8322;H&#8325;OH</div>
                 </div>
                 <div class="mol-tile" onclick="loadMolecule('benzene')">
-                    <span class="emoji">&#11041;</span>
-                    <div class="name">Benzol</div>
-                    <div class="formula">C&#8326;H&#8326;</div>
+                    <span class="emoji">&#11041;</span><div class="name">Benzol</div><div class="formula">C&#8326;H&#8326;</div>
                 </div>
                 <div class="mol-tile" onclick="loadMolecule('methane')">
-                    <span class="emoji">&#128311;</span>
-                    <div class="name">Methan</div>
-                    <div class="formula">CH&#8324;</div>
+                    <span class="emoji">&#128311;</span><div class="name">Methan</div><div class="formula">CH&#8324;</div>
                 </div>
                 <div class="mol-tile" onclick="loadMolecule('propanon')">
-                    <span class="emoji">&#9879;</span>
-                    <div class="name">Propanon</div>
-                    <div class="formula">C&#8323;H&#8326;O</div>
+                    <span class="emoji">&#9879;</span><div class="name">Propanon</div><div class="formula">C&#8323;H&#8326;O</div>
                 </div>
                 <div class="mol-tile" onclick="loadMolecule('ammonia')">
-                    <span class="emoji">&#128168;</span>
-                    <div class="name">Ammoniak</div>
-                    <div class="formula">NH&#8323;</div>
+                    <span class="emoji">&#128168;</span><div class="name">Ammoniak</div><div class="formula">NH&#8323;</div>
                 </div>
             </div>
         </div>
 
-        <div class="info-line">Jugend Forscht &middot; Meta Quest 3 &middot; Molekulare Geometrie</div>
+        <!-- Quiz Keilstrich -->
+        <div class="card">
+            <div class="card-label">Quiz</div>
+            <button class="btn btn-accent" onclick="quizStart('Keilstrich')" id="btnQuizStartKeilstrich" style="width:100%;font-size:15px;padding:14px">
+                &#127891; Keilstrichformel-Quiz starten
+            </button>
+            <button class="btn btn-danger" onclick="quizEnd()" id="btnQuizEndKeilstrich" style="width:100%;margin-top:10px;display:none">
+                &#9724; Quiz beenden
+            </button>
+        </div>
+
+        <!-- Shared Quiz UI (shown when quiz active in this tab) -->
+        <div id="quizPanelKeilstrich" style="display:none"></div>
+
+        <button class="btn btn-danger" onclick="clearAll()" style="width:100%;margin-bottom:14px">&#128465; Alles leeren</button>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <!-- ==================== ISOMERIE TAB ==================== -->
+    <div class="tab-content" id="contentIsomerie">
+        <!-- Molecule Search (Isomerie) -->
+        <div class="card">
+            <div class="card-label">Molekül laden</div>
+            <div class="search-row">
+                <input class="search-input" type="text" id="isoSearchInput" placeholder="z.B. Alanin, Ibuprofen&hellip;" autocomplete="off">
+                <button class="btn btn-accent" onclick="isoSearchMolecule()" style="flex-shrink:0;padding:13px 20px">Laden</button>
+            </div>
+        </div>
 
-    <script>
-        let ws;
-        let tutorialActive = false;
-        let currentUnit = 0;
-        let totalUnits = 11;
-        let waitingForContinue = false;
-        let currentUnitName = '';
+        <!-- Isomerism Types Info -->
+        <div class="card">
+            <div class="card-label">Arten der Isomerie</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <!-- Enantiomere -->
+                <div class="iso-type-card active-type" id="isoTypeEnantiomer">
+                    <div class="iso-type-header">
+                        <span class="iso-type-icon">&#9883;</span>
+                        <span class="iso-type-name">Enantiomere</span>
+                        <span class="iso-type-badge implemented">Aktiv</span>
+                    </div>
+                    <div class="iso-type-desc">Spiegelbildisomere &ndash; verhalten sich wie linke und rechte Hand. Identische physikalische Eigenschaften, aber drehen polarisiertes Licht in entgegengesetzte Richtungen.</div>
+                </div>
+                <!-- Diastereomere -->
+                <div class="iso-type-card active-type" id="isoTypeDiastereomer">
+                    <div class="iso-type-header">
+                        <span class="iso-type-icon">&#128256;</span>
+                        <span class="iso-type-name">Diastereomere</span>
+                        <span class="iso-type-badge implemented">Aktiv</span>
+                    </div>
+                    <div class="iso-type-desc">Stereoisomere, die <em>keine</em> Spiegelbilder sind. Entstehen durch Inversion einzelner Chiralitätszentren. Unterschiedliche physikalische Eigenschaften.</div>
+                </div>
+                <!-- Konstitutionsisomere -->
+                <div class="iso-type-card">
+                    <div class="iso-type-header">
+                        <span class="iso-type-icon">&#128279;</span>
+                        <span class="iso-type-name">Konstitutionsisomere</span>
+                    </div>
+                    <div class="iso-type-desc">Gleiche Summenformel, aber verschiedene Verknüpfung der Atome. Z.B. Ethanol (C&#8322;H&#8325;OH) und Dimethylether (CH&#8323;OCH&#8323;).</div>
+                </div>
+                <!-- cis/trans -->
+                <div class="iso-type-card">
+                    <div class="iso-type-header">
+                        <span class="iso-type-icon">&#8652;</span>
+                        <span class="iso-type-name">cis/trans-Isomerie</span>
+                    </div>
+                    <div class="iso-type-desc">Geometrische Isomerie an C=C-Doppelbindungen oder Ringen. Substituenten stehen auf der gleichen (cis) oder gegenüberliegenden (trans) Seite.</div>
+                </div>
+                <!-- Konformationsisomere -->
+                <div class="iso-type-card active-type" id="isoTypeConformer">
+                    <div class="iso-type-header">
+                        <span class="iso-type-icon">&#128260;</span>
+                        <span class="iso-type-name">Konformationsisomere</span>
+                        <span class="iso-type-badge implemented">Aktiv</span>
+                    </div>
+                    <div class="iso-type-desc">Verschiedene räumliche Anordnungen durch Drehung um Einfachbindungen. Gehen ständig ineinander über (z.B. ekliptisch vs. gestaffelt bei Ethan).</div>
+                </div>
+                <!-- Meso-Verbindungen -->
+                <div class="iso-type-card active-type" id="isoTypeMeso">
+                    <div class="iso-type-header">
+                        <span class="iso-type-icon">&#127918;</span>
+                        <span class="iso-type-name">Meso-Verbindungen</span>
+                        <span class="iso-type-badge implemented">Aktiv</span>
+                    </div>
+                    <div class="iso-type-desc">Moleküle mit Chiralitätszentren, die trotzdem achiral sind, weil eine interne Spiegelebene die Zentren aufhebt. Z.B. meso-Weinsäure.</div>
+                </div>
+            </div>
+        </div>
 
-        const statusBadge = document.getElementById('statusBadge');
-        const statusText = document.getElementById('statusText');
-        const tutorialProgress = document.getElementById('tutorialProgress');
-        const tutorialLabel = document.getElementById('tutorialLabel');
-        const tutorialValue = document.getElementById('tutorialValue');
-        const unitNameEl = document.getElementById('unitName');
-        const progressBar = document.getElementById('progressBar');
-        const tutorialIdle = document.getElementById('tutorialIdle');
-        const tutorialActiveEl = document.getElementById('tutorialActive');
-        const btnPrev = document.getElementById('btnPrev');
-        const btnNext = document.getElementById('btnNext');
+        <!-- Chirality & Isomer Actions -->
+        <div class="card">
+            <div class="card-label">Werkzeuge</div>
+            <div class="iso-actions">
+                <button class="btn btn-chiral" onclick="detectChirality()" id="btnDetect">&#128269; Chiralitätszentren erkennen</button>
+                <button class="btn btn-iso" onclick="generateEnantiomer()" id="btnEnantiomer">&#9883; Enantiomer erzeugen</button>
+                <button class="btn btn-iso" onclick="generateDiastereomer()" id="btnDiastereomer" style="background:linear-gradient(135deg, #06b6d4, #8b5cf6)">&#128256; Diastereomer erzeugen</button>
+                <button class="btn btn-iso" onclick="generateConformer()" id="btnConformer" style="background:linear-gradient(135deg, #f59e0b, #ef4444)">&#128260; Konformer erzeugen</button>
+                <button class="btn btn-iso" onclick="testMeso()" id="btnMeso" style="background:linear-gradient(135deg, #10b981, #059669)">&#127918; Meso-Erkennung</button>
+                <button class="btn btn-ghost" onclick="testOverlay()" id="btnOverlay">&#128260; Überlagerung testen</button>
+            </div>
 
-        function connect() {
-            const wsUrl = 'ws://' + window.location.host + '/ws';
+            <!-- Chirality Result -->
+            <div class="chiral-info" id="chiralInfo">
+                <div class="label">Ergebnis</div>
+                <div class="value" id="chiralCount">&mdash;</div>
+                <div class="detail" id="chiralDetail"></div>
+            </div>
+        </div>
+
+        <!-- Quick Select (Chirality) -->
+        <div class="card">
+            <div class="card-label">Chirale Moleküle</div>
+            <div class="mol-grid">
+                <div class="mol-tile" onclick="isoLoadMolecule('alanine')">
+                    <span class="emoji">&#129516;</span><div class="name">Alanin</div><div class="formula">C&#8323;H&#8327;NO&#8322;</div>
+                </div>
+                <div class="mol-tile" onclick="isoLoadMolecule('ibuprofen')">
+                    <span class="emoji">&#128138;</span><div class="name">Ibuprofen</div><div class="formula">C&#8321;&#8323;H&#8321;&#8328;O&#8322;</div>
+                </div>
+                <div class="mol-tile" onclick="isoLoadMolecule('limonene')">
+                    <span class="emoji">&#127819;</span><div class="name">Limonen</div><div class="formula">C&#8321;&#8320;H&#8321;&#8326;</div>
+                </div>
+                <div class="mol-tile" onclick="isoLoadMolecule('thalidomide')">
+                    <span class="emoji">&#9888;</span><div class="name">Thalidomid</div><div class="formula">C&#8321;&#8323;H&#8321;&#8320;N&#8322;O&#8324;</div>
+                </div>
+                <div class="mol-tile" onclick="isoLoadMolecule('threonine')">
+                    <span class="emoji">&#129516;</span><div class="name">Threonin</div><div class="formula">C&#8324;H&#8329;NO&#8323;</div>
+                </div>
+                <div class="mol-tile" onclick="isoLoadMolecule('glucose')">
+                    <span class="emoji">&#127852;</span><div class="name">Glucose</div><div class="formula">C&#8326;H&#8321;&#8322;O&#8326;</div>
+                </div>
+                <div class="mol-tile" onclick="isoLoadMolecule('meso-tartaric acid')">
+                    <span class="emoji">&#127918;</span><div class="name">meso-Weinsäure</div><div class="formula">C&#8324;H&#8326;O&#8326; (meso)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Chiralität -->
+        <div class="card">
+            <div class="card-label">Quiz</div>
+            <button class="btn btn-chiral" onclick="quizStart('Chirality')" id="btnQuizStartChirality" style="width:100%;font-size:15px;padding:14px">
+                &#127891; Chiralit&auml;ts-Quiz starten
+            </button>
+            <button class="btn btn-danger" onclick="quizEnd()" id="btnQuizEndChirality" style="width:100%;margin-top:10px;display:none">
+                &#9724; Quiz beenden
+            </button>
+        </div>
+
+        <!-- Shared Quiz UI (shown when quiz active in this tab) -->
+        <div id="quizPanelChirality" style="display:none"></div>
+
+        <button class="btn btn-danger" onclick="clearAll()" style="width:100%;margin-bottom:14px">&#128465; Alles leeren</button>
+    </div>
+
+    <div class="info-line">Jugend Forscht &middot; Meta Quest 3 &middot; Molekulare Geometrie</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ==================== STATE ====================
+    let ws;
+    let mockMode = false;
+    let currentTab = 'keilstrich';
+    let tutorialActive = false;
+    let currentUnit = 0;
+    let totalUnits = 11;
+    let waitingForContinue = false;
+    let currentUnitName = '';
+    let chiralCenters = [];
+
+    // ==================== TAB SWITCHING ====================
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tabKeilstrich').className = tab === 'keilstrich' ? 'tab active' : 'tab';
+        document.getElementById('tabIsomerie').className = tab === 'isomerie' ? 'tab active' : 'tab';
+        document.getElementById('contentKeilstrich').className = tab === 'keilstrich' ? 'tab-content active' : 'tab-content';
+        document.getElementById('contentIsomerie').className = tab === 'isomerie' ? 'tab-content active' : 'tab-content';
+
+        // Notify Quest of mode change
+        send({ type: 'mode', mode: tab === 'keilstrich' ? 'keilstrich' : 'isomerie' });
+    }
+
+    // ==================== CONNECTION ====================
+    function connect() {
+        // Detect if we're running locally (file:// or not on Quest)
+        if (window.location.protocol === 'file:' || !window.location.host) {
+            enableMockMode();
+            return;
+        }
+
+        var wsUrl = 'ws://' + window.location.host + '/ws';
+        try {
             ws = new WebSocket(wsUrl);
+        } catch(e) {
+            enableMockMode();
+            return;
+        }
 
-            ws.onopen = function() {
-                statusBadge.className = 'status-badge connected';
-                statusText.textContent = 'Verbunden';
-            };
+        ws.onopen = function() {
+            statusBadge.className = 'status-badge connected';
+            statusText.textContent = 'Verbunden';
+        };
 
-            ws.onclose = function() {
-                statusBadge.className = 'status-badge';
-                statusText.textContent = 'Getrennt';
-                setTimeout(connect, 2000);
-            };
+        ws.onclose = function() {
+            statusBadge.className = 'status-badge';
+            statusText.textContent = 'Getrennt';
+            setTimeout(connect, 2000);
+        };
 
-            ws.onmessage = function(e) {
-                try {
-                    var data = JSON.parse(e.data);
-                    if (data.type === 'loaded') {
-                        showToast(data.molecule + ' geladen \u00B7 ' + data.atoms + ' Atome');
-                    } else if (data.type === 'error') {
-                        showToast('Fehler: ' + data.message);
-                    } else if (data.type === 'status') {
-                        showToast(data.message);
-                    } else if (data.type === 'tutorial') {
-                        handleTutorialUpdate(data);
+        ws.onmessage = function(e) {
+            try {
+                var data = JSON.parse(e.data);
+                handleMessage(data);
+            } catch (err) {
+                console.error('Parse error:', err);
+            }
+        };
+
+        ws.onerror = function() {};
+    }
+
+    function enableMockMode() {
+        mockMode = true;
+        statusBadge.className = 'status-badge mock';
+        statusText.textContent = 'Demo-Modus';
+        showToast('Demo-Modus: Keine VR-Verbindung');
+    }
+
+    // ==================== MESSAGE HANDLING ====================
+    function handleMessage(data) {
+        if (data.type === 'loaded') {
+            showToast(data.molecule + ' geladen \u00B7 ' + data.atoms + ' Atome');
+        } else if (data.type === 'error') {
+            showToast('Fehler: ' + data.message);
+        } else if (data.type === 'status') {
+            showToast(data.message);
+        } else if (data.type === 'tutorial') {
+            handleTutorialUpdate(data);
+        } else if (data.type === 'chirality_result') {
+            handleChiralityResult(data);
+        } else if (data.type === 'quiz_question') {
+            handleQuizQuestion(data);
+        } else if (data.type === 'quiz_answer_result') {
+            handleQuizAnswerResult(data);
+        } else if (data.type === 'quiz_finished') {
+            handleQuizFinished(data);
+        } else if (data.type === 'quiz_state') {
+            // State-Update (optional logging)
+        }
+    }
+
+    // ==================== SEND ====================
+    function send(obj) {
+        if (mockMode) {
+            console.log('[Mock] Send:', JSON.stringify(obj));
+            handleMockResponse(obj);
+            return true;
+        }
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(obj));
+            return true;
+        }
+        showToast('Keine Verbindung');
+        return false;
+    }
+
+    // ==================== MOCK RESPONSES ====================
+    function handleMockResponse(obj) {
+        if (obj.type === 'load' || obj.type === 'iso_load') {
+            setTimeout(function() {
+                handleMessage({ type: 'loaded', molecule: obj.molecule, atoms: Math.floor(Math.random()*20)+3 });
+            }, 500);
+        } else if (obj.type === 'chirality' && obj.action === 'detect') {
+            setTimeout(function() {
+                // Mock chirality detection
+                var mockCenters = [
+                    { atomId: 2, config: 'R', element: 'C', neighbors: ['NH2','COOH','CH3','H'] },
+                    { atomId: 5, config: 'S', element: 'C', neighbors: ['OH','CH3','C2H5','H'] }
+                ];
+                // Use 1 center for simple molecules, 2 for complex
+                var n = Math.random() > 0.5 ? 2 : 1;
+                handleMessage({
+                    type: 'chirality_result',
+                    centers: mockCenters.slice(0, n),
+                    molecule: 'Demo-Molekül'
+                });
+            }, 800);
+        } else if (obj.type === 'isomer' && obj.action === 'mirror') {
+            setTimeout(function() {
+                showToast('Enantiomer erzeugt (Spiegelung)');
+            }, 600);
+        } else if (obj.type === 'isomer' && obj.action === 'overlay') {
+            setTimeout(function() {
+                showToast('Überlagerungstest gestartet');
+            }, 400);
+        } else if (obj.type === 'tutorial') {
+            setTimeout(function() {
+                if (obj.action === 'start') handleMessage({type:'tutorial',status:'started'});
+                else if (obj.action === 'close') handleMessage({type:'tutorial',status:'closed'});
+                else if (obj.action === 'continue') handleMessage({type:'tutorial',status:'continued'});
+                else if (obj.action === 'previous') handleMessage({type:'tutorial',status:'previous'});
+            }, 300);
+        } else if (obj.type === 'quiz') {
+            setTimeout(function() {
+                var cat = obj.mode || 'Keilstrich';
+                if (obj.action === 'start') {
+                    mockQuizIndex = 0; mockQuizScore = 0;
+                    if (cat === 'Keilstrich') {
+                        handleMessage({type:'quiz_question',questionIndex:0,totalQuestions:2,
+                            questionText:'Was zeigt ein ausgef\u00fcllter Keil in der Keilstrichformel an?',moleculeName:'bromochlorofluoromethane',
+                            category:'Keilstrich',answers:['Bindung nach hinten','Bindung nach vorne','Doppelbindung'],score:0});
+                    } else {
+                        handleMessage({type:'quiz_question',questionIndex:0,totalQuestions:2,
+                            questionText:'Ist Bromchlorfluormethan chiral?',moleculeName:'bromochlorofluoromethane',
+                            category:'Chirality',answers:['Ja, chiral','Nein, achiral'],score:0});
                     }
-                } catch (err) {
-                    console.error('Parse error:', err);
+                } else if (obj.action === 'answer') {
+                    var correct = (obj.answer === 0);
+                    if (correct) mockQuizScore++;
+                    handleMessage({type:'quiz_answer_result',correct:correct,correctIndex:0,
+                        selectedIndex:obj.answer,explanation:'Bromchlorfluormethan hat 4 verschiedene Substituenten.',
+                        score:mockQuizScore,questionIndex:mockQuizIndex});
+                } else if (obj.action === 'next') {
+                    mockQuizIndex++;
+                    if (mockQuizIndex >= 2) {
+                        handleMessage({type:'quiz_finished',score:mockQuizScore,total:2});
+                    } else {
+                        var mockCat = quizActiveCategory || 'Keilstrich';
+                        handleMessage({type:'quiz_question',questionIndex:mockQuizIndex,totalQuestions:2,
+                            questionText:'Demo-Frage ' + (mockQuizIndex+1),moleculeName:'ethanol',
+                            category:mockCat,answers:['Antwort A','Antwort B','Antwort C'],score:mockQuizScore});
+                    }
+                } else if (obj.action === 'end') {
+                    handleMessage({type:'quiz_finished',score:mockQuizScore,total:2});
                 }
-            };
-
-            ws.onerror = function() {};
+            }, 400);
         }
+    }
 
-        function handleTutorialUpdate(data) {
-            if (data.status === 'started') {
-                tutorialActive = true;
-                currentUnit = 1;
-                waitingForContinue = false;
-                currentUnitName = '';
-                updateTutorialUI();
-            } else if (data.status === 'closed') {
-                tutorialActive = false;
-                currentUnit = 0;
-                waitingForContinue = false;
-                currentUnitName = '';
-                updateTutorialUI();
-            } else if (data.status === 'continued') {
-                currentUnit++;
-                waitingForContinue = false;
-                if (currentUnit > totalUnits) {
-                    tutorialActive = false;
-                    currentUnit = 0;
-                }
-                updateTutorialUI();
-            } else if (data.status === 'previous') {
-                currentUnit = Math.max(1, currentUnit - 1);
-                waitingForContinue = false;
-                updateTutorialUI();
-            } else if (data.status === 'waitingContinue') {
-                waitingForContinue = true;
-                if (data.unit !== undefined) currentUnit = data.unit + 1;
-                if (data.unitName) currentUnitName = data.unitName;
-                updateTutorialUI();
-            } else if (data.step !== undefined) {
-                currentUnit = data.step;
-                updateTutorialUI();
-            }
+    // ==================== TUTORIAL ====================
+    function handleTutorialUpdate(data) {
+        if (data.status === 'started') {
+            tutorialActive = true; currentUnit = 1; waitingForContinue = false; currentUnitName = '';
+        } else if (data.status === 'closed') {
+            tutorialActive = false; currentUnit = 0; waitingForContinue = false; currentUnitName = '';
+        } else if (data.status === 'continued') {
+            currentUnit++; waitingForContinue = false;
+            if (currentUnit > totalUnits) { tutorialActive = false; currentUnit = 0; }
+        } else if (data.status === 'previous') {
+            currentUnit = Math.max(1, currentUnit - 1); waitingForContinue = false;
+        } else if (data.status === 'waitingContinue') {
+            waitingForContinue = true;
+            if (data.unit !== undefined) currentUnit = data.unit + 1;
+            if (data.unitName) currentUnitName = data.unitName;
         }
+        updateTutorialUI();
+    }
 
-        function updateTutorialUI() {
-            if (tutorialActive) {
-                tutorialIdle.style.display = 'none';
-                tutorialActiveEl.style.display = 'block';
+    function updateTutorialUI() {
+        var progress = document.getElementById('tutorialProgress');
+        var bar = document.getElementById('progressBar');
+        var label = document.getElementById('tutorialLabel');
+        var value = document.getElementById('tutorialValue');
+        var unitEl = document.getElementById('unitName');
+        var idle = document.getElementById('tutorialIdle');
+        var active = document.getElementById('tutorialActive');
+        var prev = document.getElementById('btnPrev');
+        var next = document.getElementById('btnNext');
 
-                var pct = Math.round((currentUnit / totalUnits) * 100);
-                progressBar.style.width = pct + '%';
-                tutorialLabel.textContent = 'Einheit ' + currentUnit + ' von ' + totalUnits;
-                tutorialValue.textContent = currentUnitName || ('Einheit ' + currentUnit);
-
-                if (waitingForContinue) {
-                    tutorialProgress.className = 'tutorial-progress waiting';
-                    unitNameEl.textContent = 'Bereit f\u00FCr n\u00E4chste Einheit';
-                    btnNext.disabled = false;
-                } else {
-                    tutorialProgress.className = 'tutorial-progress active';
-                    unitNameEl.textContent = 'Video l\u00E4uft\u2026';
-                    btnNext.disabled = true;
-                }
-
-                btnPrev.disabled = (currentUnit <= 1);
-                btnNext.innerHTML = (currentUnit >= totalUnits) ? '\u2713 Fertig' : 'Weiter \u203A';
+        if (tutorialActive) {
+            idle.style.display = 'none'; active.style.display = 'block';
+            var pct = Math.round((currentUnit / totalUnits) * 100);
+            bar.style.width = pct + '%';
+            label.textContent = 'Einheit ' + currentUnit + ' von ' + totalUnits;
+            value.textContent = currentUnitName || ('Einheit ' + currentUnit);
+            if (waitingForContinue) {
+                progress.className = 'tutorial-progress waiting';
+                unitEl.textContent = 'Bereit f\u00FCr n\u00E4chste Einheit';
+                next.disabled = false;
             } else {
-                tutorialIdle.style.display = 'flex';
-                tutorialActiveEl.style.display = 'none';
-                tutorialProgress.className = 'tutorial-progress';
-                tutorialLabel.textContent = 'Nicht gestartet';
-                tutorialValue.textContent = '\u2014';
-                unitNameEl.textContent = '';
-                progressBar.style.width = '0%';
+                progress.className = 'tutorial-progress active';
+                unitEl.textContent = 'Video l\u00E4uft\u2026';
+                next.disabled = true;
             }
+            prev.disabled = (currentUnit <= 1);
+            next.innerHTML = (currentUnit >= totalUnits) ? '\u2713 Fertig' : 'Weiter \u203A';
+        } else {
+            idle.style.display = 'flex'; active.style.display = 'none';
+            progress.className = 'tutorial-progress';
+            label.textContent = 'Nicht gestartet'; value.textContent = '\u2014';
+            unitEl.textContent = ''; bar.style.width = '0%';
         }
+    }
 
-        function send(obj) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(obj));
-                return true;
-            }
-            showToast('Keine Verbindung');
-            return false;
+    function tutorialStart() { send({ type: 'tutorial', action: 'start' }); }
+    function tutorialClose() { send({ type: 'tutorial', action: 'close' }); }
+    function tutorialNext() { currentUnit >= totalUnits ? send({type:'tutorial',action:'close'}) : send({type:'tutorial',action:'continue'}); }
+    function tutorialPrev() { send({ type: 'tutorial', action: 'previous' }); }
+
+    // ==================== KEILSTRICH MOLECULES ====================
+    function loadMolecule(name) {
+        if (send({ type: 'load', molecule: name })) showToast('Lade ' + name + '\u2026');
+    }
+    function searchMolecule() {
+        var name = document.getElementById('searchInput').value.trim();
+        if (name) { loadMolecule(name); document.getElementById('searchInput').value = ''; }
+    }
+    document.getElementById('searchInput').addEventListener('keypress', function(e) { if (e.key==='Enter') searchMolecule(); });
+
+    // ==================== ISOMERIE MOLECULES ====================
+    function isoLoadMolecule(name) {
+        if (send({ type: 'iso_load', molecule: name })) {
+            showToast('Lade ' + name + '\u2026');
+            // Reset chirality UI
+            document.getElementById('chiralInfo').className = 'chiral-info';
         }
+    }
+    function isoSearchMolecule() {
+        var name = document.getElementById('isoSearchInput').value.trim();
+        if (name) { isoLoadMolecule(name); document.getElementById('isoSearchInput').value = ''; }
+    }
+    document.getElementById('isoSearchInput').addEventListener('keypress', function(e) { if (e.key==='Enter') isoSearchMolecule(); });
 
-        function tutorialStart() { send({ type: 'tutorial', action: 'start' }); }
-        function tutorialClose() { send({ type: 'tutorial', action: 'close' }); }
-        function tutorialNext() {
-            if (currentUnit >= totalUnits) {
-                send({ type: 'tutorial', action: 'close' });
+    // ==================== CHIRALITY ====================
+    function detectChirality() {
+        send({ type: 'chirality', action: 'detect' });
+        showToast('Analysiere Chiralität\u2026');
+    }
+
+    function handleChiralityResult(data) {
+        chiralCenters = data.centers || [];
+        var info = document.getElementById('chiralInfo');
+        var count = document.getElementById('chiralCount');
+        var detail = document.getElementById('chiralDetail');
+
+        info.className = 'chiral-info visible';
+
+        if (chiralCenters.length === 0) {
+            count.textContent = 'Achiral';
+            detail.innerHTML = 'Dieses Molekül hat keine Chiralitätszentren.';
+
+        } else {
+            count.textContent = chiralCenters.length + ' Chiralitätszentrum' + (chiralCenters.length > 1 ? 'en' : '');
+            var html = '';
+            chiralCenters.forEach(function(c) {
+                var cls = c.config === 'R' ? 'center-r' : 'center-s';
+                html += '<span class="center-badge ' + cls + '">' + c.element + c.atomId + ' (' + c.config + ')</span> ';
+            });
+            html += '<br><span style="color:var(--t3);font-size:11px;margin-top:6px;display:block">Mol\u00FCl: ' + (data.molecule || '') + '</span>';
+            detail.innerHTML = html;
+            document.getElementById('btnEnantiomer').disabled = false;
+            document.getElementById('btnOverlay').disabled = false;
+        }
+    }
+
+    function generateEnantiomer() {
+        send({ type: 'isomer', action: 'mirror' });
+        showToast('Erzeuge Enantiomer\u2026');
+    }
+
+    function testOverlay() {
+        send({ type: 'isomer', action: 'overlay' });
+        showToast('Starte \u00dcberlagerungstest\u2026');
+    }
+
+    function generateDiastereomer() {
+        send({ type: 'isomer', action: 'diastereomer' });
+        showToast('Erzeuge Diastereomer\u2026');
+    }
+
+    function generateConformer() {
+        send({ type: 'isomer', action: 'conformer' });
+        showToast('Erzeuge Konformer\u2026');
+    }
+
+    function testMeso() {
+        send({ type: 'isomer', action: 'meso' });
+        showToast('Pr\u00fcfe Meso-Verbindung\u2026');
+    }
+
+    function clearAll() {
+        send({ type: 'clear_all' });
+        showToast('Alle Molek\u00fcle gel\u00f6scht');
+        document.getElementById('chiralInfo').className = 'chiral-info';
+    }
+
+    // ==================== TOAST ====================
+    var toastTimer;
+    function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('visible');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() { t.classList.remove('visible'); }, 2500);
+    }
+
+    // ==================== QUIZ ====================
+    var mockQuizIndex = 0;
+    var mockQuizScore = 0;
+    var quizAnswered = false;
+    var quizActiveCategory = null;
+
+    function getQuizContainer() {
+        // Return the quiz panel container in the currently active tab
+        if (quizActiveCategory === 'Keilstrich') return document.getElementById('quizPanelKeilstrich');
+        if (quizActiveCategory === 'Chirality') return document.getElementById('quizPanelChirality');
+        return null;
+    }
+
+    function buildQuizHTML(mode) {
+        // mode: 'active', 'finished'
+        var html = '';
+        if (mode === 'active') {
+            html = '<div class="card" id="quizActive">' +
+                '<div class="card-label" style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<span id="quizCategory">Quiz</span>' +
+                    '<span id="quizScore" style="color:var(--acc)">0 Punkte</span>' +
+                '</div>' +
+                '<div class="tutorial-progress" style="margin-bottom:14px">' +
+                    '<div class="label" id="quizProgressLabel">Frage 1 von 5</div>' +
+                    '<div class="progress-track"><div class="progress-fill" id="quizProgressBar" style="width:0%"></div></div>' +
+                '</div>' +
+                '<div id="quizQuestionText" style="font-size:16px;font-weight:600;line-height:1.5;margin-bottom:16px;min-height:48px">&mdash;</div>' +
+                '<div id="quizMolecule" style="font-size:12px;color:var(--t3);margin-bottom:14px"></div>' +
+                '<div id="quizAnswers" style="display:flex;flex-direction:column;gap:10px"></div>' +
+                '<div id="quizExplanation" class="chiral-info" style="display:none;margin-top:14px">' +
+                    '<div class="label">Erkl\u00e4rung</div>' +
+                    '<div class="detail" id="quizExplanationText"></div>' +
+                '</div>' +
+                '<div id="quizNextRow" style="display:none;margin-top:14px">' +
+                    '<button class="btn btn-confirm" onclick="quizNext()" style="width:100%">N\u00e4chste Frage \u203a</button>' +
+                '</div>' +
+                '<button class="btn btn-danger" onclick="quizEnd()" style="width:100%;margin-top:10px">Quiz beenden</button>' +
+            '</div>';
+        } else if (mode === 'finished') {
+            html = '<div class="card" id="quizFinished">' +
+                '<div class="card-label">Ergebnis</div>' +
+                '<div style="text-align:center;padding:20px 0">' +
+                    '<div id="quizResultEmoji" style="font-size:56px;margin-bottom:12px">\u{1F3C6}</div>' +
+                    '<div id="quizResultScore" style="font-size:24px;font-weight:700;margin-bottom:6px">&mdash;</div>' +
+                    '<div id="quizResultRating" style="font-size:15px;color:var(--t2);margin-bottom:20px">&mdash;</div>' +
+                    '<button class="btn btn-accent" onclick="quizStart(\x27' + quizActiveCategory + '\x27)" style="width:100%;margin-bottom:10px">\u{1F504} Nochmal spielen</button>' +
+                    '<button class="btn btn-ghost" onclick="quizReset()" style="width:100%">Zur\u00fcck</button>' +
+                '</div>' +
+            '</div>';
+        }
+        return html;
+    }
+
+    function quizStart(category) {
+        quizActiveCategory = category;
+        send({ type: 'quiz', action: 'start', mode: category });
+        showToast((category === 'Keilstrich' ? 'Keilstrich' : 'Chiralit\u00e4ts') + '-Quiz wird gestartet\u2026');
+        // Show end button, hide start button
+        if (category === 'Keilstrich') {
+            document.getElementById('btnQuizStartKeilstrich').style.display = 'none';
+            document.getElementById('btnQuizEndKeilstrich').style.display = 'block';
+        } else {
+            document.getElementById('btnQuizStartChirality').style.display = 'none';
+            document.getElementById('btnQuizEndChirality').style.display = 'block';
+        }
+    }
+
+    function quizNext() {
+        send({ type: 'quiz', action: 'next' });
+    }
+
+    function quizEnd() {
+        send({ type: 'quiz', action: 'end' });
+    }
+
+    function quizReset() {
+        // Hide both quiz panels
+        document.getElementById('quizPanelKeilstrich').style.display = 'none';
+        document.getElementById('quizPanelKeilstrich').innerHTML = '';
+        document.getElementById('quizPanelChirality').style.display = 'none';
+        document.getElementById('quizPanelChirality').innerHTML = '';
+        // Restore start buttons, hide end buttons
+        document.getElementById('btnQuizStartKeilstrich').style.display = 'block';
+        document.getElementById('btnQuizEndKeilstrich').style.display = 'none';
+        document.getElementById('btnQuizStartChirality').style.display = 'block';
+        document.getElementById('btnQuizEndChirality').style.display = 'none';
+        quizActiveCategory = null;
+    }
+
+    function quizAnswer(index) {
+        if (quizAnswered) return;
+        quizAnswered = true;
+        send({ type: 'quiz', action: 'answer', answer: index });
+
+        var btns = document.querySelectorAll('#quizAnswers .btn');
+        btns.forEach(function(b) { b.style.pointerEvents = 'none'; b.style.opacity = '0.7'; });
+    }
+
+    function handleQuizQuestion(data) {
+        quizAnswered = false;
+        // Determine category from server data
+        if (data.category === 'Keilstrich') quizActiveCategory = 'Keilstrich';
+        else quizActiveCategory = 'Chirality';
+
+        var container = getQuizContainer();
+        if (!container) return;
+        container.style.display = 'block';
+        container.innerHTML = buildQuizHTML('active');
+
+        document.getElementById('quizCategory').textContent = data.category === 'Keilstrich' ? '\u25b2 Keilstrichformel' : '\u262b Chiralit\u00e4t';
+        document.getElementById('quizScore').textContent = data.score + ' Punkte';
+        document.getElementById('quizProgressLabel').textContent = 'Frage ' + (data.questionIndex + 1) + ' von ' + data.totalQuestions;
+        document.getElementById('quizProgressBar').style.width = Math.round(((data.questionIndex) / data.totalQuestions) * 100) + '%';
+        document.getElementById('quizQuestionText').textContent = data.questionText;
+        document.getElementById('quizMolecule').textContent = data.moleculeName ? '\u{1F9EA} Molek\u00fcl: ' + data.moleculeName : '';
+
+        var answersContainer = document.getElementById('quizAnswers');
+        answersContainer.innerHTML = '';
+        data.answers.forEach(function(answer, i) {
+            var btn = document.createElement('button');
+            btn.className = 'btn btn-ghost';
+            btn.style.width = '100%';
+            btn.style.fontSize = '15px';
+            btn.textContent = answer;
+            btn.onclick = function() { quizAnswer(i); };
+            answersContainer.appendChild(btn);
+        });
+    }
+
+    function handleQuizAnswerResult(data) {
+        var btns = document.querySelectorAll('#quizAnswers .btn');
+        btns.forEach(function(b, i) {
+            b.style.pointerEvents = 'none';
+            if (i === data.correctIndex) {
+                b.style.background = 'linear-gradient(135deg, var(--ok), #2dd4a0)';
+                b.style.color = '#064e36';
+                b.style.opacity = '1';
+                b.style.border = 'none';
+            } else if (i === data.selectedIndex && !data.correct) {
+                b.style.background = 'rgba(248,113,113,.25)';
+                b.style.color = 'var(--err)';
+                b.style.opacity = '1';
+                b.style.border = '1px solid var(--err)';
             } else {
-                send({ type: 'tutorial', action: 'continue' });
+                b.style.opacity = '0.3';
             }
-        }
-        function tutorialPrev() { send({ type: 'tutorial', action: 'previous' }); }
-
-        function loadMolecule(name) {
-            if (send({ type: 'load', molecule: name })) {
-                showToast('Lade ' + name + '\u2026');
-            }
-        }
-
-        function searchMolecule() {
-            var name = document.getElementById('searchInput').value.trim();
-            if (name) {
-                loadMolecule(name);
-                document.getElementById('searchInput').value = '';
-            }
-        }
-
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchMolecule();
         });
 
-        var toastTimer;
-        function showToast(msg) {
-            var t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('visible');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(function() { t.classList.remove('visible'); }, 2500);
+        var scoreEl = document.getElementById('quizScore');
+        if (scoreEl) scoreEl.textContent = data.score + ' Punkte';
+
+        if (data.explanation) {
+            document.getElementById('quizExplanation').style.display = 'block';
+            document.getElementById('quizExplanationText').textContent = data.explanation;
         }
 
-        updateTutorialUI();
-        connect();
-    </script>
+        document.getElementById('quizNextRow').style.display = 'block';
+        showToast(data.correct ? '\u2705 Richtig!' : '\u274c Falsch!');
+    }
+
+    function handleQuizFinished(data) {
+        var container = getQuizContainer();
+        if (!container) return;
+        container.innerHTML = buildQuizHTML('finished');
+
+        // Restore start/end buttons
+        document.getElementById('btnQuizStartKeilstrich').style.display = 'block';
+        document.getElementById('btnQuizEndKeilstrich').style.display = 'none';
+        document.getElementById('btnQuizStartChirality').style.display = 'block';
+        document.getElementById('btnQuizEndChirality').style.display = 'none';
+
+        var pct = Math.round((data.score / data.total) * 100);
+        document.getElementById('quizResultScore').textContent = data.score + ' von ' + data.total + ' richtig (' + pct + '%)';
+
+        var emoji, rating;
+        if (pct >= 80) { emoji = '\u{1F3C6}'; rating = 'Ausgezeichnet!'; }
+        else if (pct >= 60) { emoji = '\u{1F44D}'; rating = 'Gut gemacht!'; }
+        else if (pct >= 40) { emoji = '\u{1F914}'; rating = 'Nicht schlecht.'; }
+        else { emoji = '\u{1F4AA}'; rating = 'Weiter \u00fcben!'; }
+
+        document.getElementById('quizResultEmoji').textContent = emoji;
+        document.getElementById('quizResultRating').textContent = rating;
+    }
+
+    // ==================== INIT ====================
+    var statusBadge = document.getElementById('statusBadge');
+    var statusText = document.getElementById('statusText');
+    updateTutorialUI();
+    connect();
+</script>
 </body>
 </html>

@@ -36,7 +36,7 @@ public class MoleculeTestWithRenderer : MonoBehaviour
             return;
         }
 
-        Debug.Log($"=== Loading {moleculeName} from PubChem ===");
+        // Debug.Log($"=== Loading {moleculeName} from PubChem ===");
 
         // Download & Parse
         string sdf = await api.GetMoleculeSDF(moleculeName);
@@ -55,7 +55,7 @@ public class MoleculeTestWithRenderer : MonoBehaviour
             return;
         }
 
-        Debug.Log($"✅ Loaded: {molecule.atoms.Count} atoms, {molecule.bonds.Count} bonds");
+        // Debug.Log($"✅ Loaded: {molecule.atoms.Count} atoms, {molecule.bonds.Count} bonds");
 
         // Position molecule in front of camera
         PositionInFrontOfCamera();
@@ -63,7 +63,7 @@ public class MoleculeTestWithRenderer : MonoBehaviour
         // Render
         renderer.RenderMolecule(molecule);
 
-        Debug.Log("🎉 Molecule rendered successfully!");
+        // Debug.Log("🎉 Molecule rendered successfully!");
     }
 
     private void PositionInFrontOfCamera()

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Fixes stereo rendering issues for plane visualization in Quest builds
@@ -29,7 +29,7 @@ public class VRPlaneRendererFix : MonoBehaviour
             if (plane != null)
             {
                 targetPlane = plane;
-                Debug.Log($"[VRPlaneFix] Auto-found plane: {plane.name}");
+                // Debug.Log($"[VRPlaneFix] Auto-found plane: {plane.name}");
             }
         }
         
@@ -74,7 +74,7 @@ public class VRPlaneRendererFix : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[VRPlaneFix] Current shader: {currentMaterial.shader.name}");
+            // Debug.Log($"[VRPlaneFix] Current shader: {currentMaterial.shader.name}");
             
             // Try to fix shader anyway for Quest compatibility
             if (!currentMaterial.shader.name.Contains("Unlit") && !currentMaterial.shader.name.Contains("Mobile"))
@@ -91,7 +91,7 @@ public class VRPlaneRendererFix : MonoBehaviour
         planeRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
         planeRenderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
         
-        Debug.Log($"[VRPlaneFix] Plane fixed - Shader: {planeRenderer.sharedMaterial.shader.name}, Color: {planeRenderer.sharedMaterial.color}");
+        // Debug.Log($"[VRPlaneFix] Plane fixed - Shader: {planeRenderer.sharedMaterial.shader.name}, Color: {planeRenderer.sharedMaterial.color}");
     }
     
     void CreateFixedMaterial()
@@ -102,7 +102,7 @@ public class VRPlaneRendererFix : MonoBehaviour
         if (shader == null)
         {
             shader = Shader.Find("Mobile/Particles/Alpha Blended");
-            Debug.Log("[VRPlaneFix] Using Mobile/Particles/Alpha Blended shader");
+            // Debug.Log("[VRPlaneFix] Using Mobile/Particles/Alpha Blended shader");
         }
         
         if (shader == null)

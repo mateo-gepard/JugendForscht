@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -57,7 +57,7 @@ public class RendererDebugger : MonoBehaviour
             else if (rendererVisibilityStates[r] != currentlyVisible)
             {
                 // Visibility changed
-                Debug.Log($"[RendererVisibility] {r.gameObject.name} changed to {(currentlyVisible ? "VISIBLE" : "HIDDEN")}");
+                // Debug.Log($"[RendererVisibility] {r.gameObject.name} changed to {(currentlyVisible ? "VISIBLE" : "HIDDEN")}");
                 
                 if (currentlyVisible && r.sharedMaterial != null)
                 {
@@ -65,7 +65,7 @@ public class RendererDebugger : MonoBehaviour
                     if (r.sharedMaterial.HasProperty("_Color"))
                     {
                         Color c = r.sharedMaterial.color;
-                        Debug.Log($"  Material: {r.sharedMaterial.name}, Shader: {r.sharedMaterial.shader.name}, Color: {c}");
+                        // Debug.Log($"  Material: {r.sharedMaterial.name}, Shader: {r.sharedMaterial.shader.name}, Color: {c}");
                         
                         if (IsGreyColor(c))
                         {
@@ -74,7 +74,7 @@ public class RendererDebugger : MonoBehaviour
                     }
                     else
                     {
-                        Debug.Log($"  Material: {r.sharedMaterial.name}, Shader: {r.sharedMaterial.shader.name} (no _Color property)");
+                        // Debug.Log($"  Material: {r.sharedMaterial.name}, Shader: {r.sharedMaterial.shader.name} (no _Color property)");
                     }
                 }
                 
@@ -88,10 +88,10 @@ public class RendererDebugger : MonoBehaviour
     /// </summary>
     void DumpAllRenderers()
     {
-        Debug.Log("========== RENDERER DUMP ==========");
+        // Debug.Log("========== RENDERER DUMP ==========");
         
         Renderer[] allRenderers = FindObjectsOfType<Renderer>();
-        Debug.Log($"Total renderers in scene: {allRenderers.Length}\n");
+        // Debug.Log($"Total renderers in scene: {allRenderers.Length}\n");
         
         int visibleCount = 0;
         int greyMaterialCount = 0;
@@ -116,19 +116,19 @@ public class RendererDebugger : MonoBehaviour
             string rendererType = r.GetType().Name;
             string bounds = r.bounds.size.ToString("F2");
             
-            Debug.Log($"[{rendererType}] {r.gameObject.name}\n" +
-                     $"  Path: {GetFullPath(r.transform)}\n" +
-                     $"  Enabled: {r.enabled}, Visible: {r.isVisible}, IsVisible: {isVisible}\n" +
-                     $"  Material: {materialInfo}\n" +
-                     $"  Color: {colorInfo} {(isGrey ? "⚠️ GREY!" : "")}\n" +
-                     $"  Bounds: {bounds}\n" +
-                     $"  Layer: {LayerMask.LayerToName(r.gameObject.layer)}\n" +
-                     $"  ShadowCasting: {r.shadowCastingMode}, ReceiveShadows: {r.receiveShadows}\n" +
-                     $"  RenderQueue: {(mat != null ? mat.renderQueue.ToString() : "N/A")}\n");
+            // Debug.Log($"[{rendererType}] {r.gameObject.name}\n" +
+            //          $"  Path: {GetFullPath(r.transform)}\n" +
+            //          $"  Enabled: {r.enabled}, Visible: {r.isVisible}, IsVisible: {isVisible}\n" +
+            //          $"  Material: {materialInfo}\n" +
+            //          $"  Color: {colorInfo} {(isGrey ? "⚠️ GREY!" : "")}\n" +
+            //          $"  Bounds: {bounds}\n" +
+            //          $"  Layer: {LayerMask.LayerToName(r.gameObject.layer)}\n" +
+            //          $"  ShadowCasting: {r.shadowCastingMode}, ReceiveShadows: {r.receiveShadows}\n" +
+            //          $"  RenderQueue: {(mat != null ? mat.renderQueue.ToString() : "N/A")}\n");
         }
         
-        Debug.Log($"\n========== SUMMARY ==========");
-        Debug.Log($"Total: {allRenderers.Length}, Visible: {visibleCount}, Grey Materials: {greyMaterialCount}\n");
+        // Debug.Log($"\n========== SUMMARY ==========");
+        // Debug.Log($"Total: {allRenderers.Length}, Visible: {visibleCount}, Grey Materials: {greyMaterialCount}\n");
         
         if (greyRenderers.Count > 0)
         {
@@ -139,7 +139,7 @@ public class RendererDebugger : MonoBehaviour
             }
         }
         
-        Debug.Log("=================================\n");
+        // Debug.Log("=================================\n");
     }
     
     /// <summary>

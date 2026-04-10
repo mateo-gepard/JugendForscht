@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 public class RayInteractorDebug : MonoBehaviour
@@ -20,12 +20,12 @@ public class RayInteractorDebug : MonoBehaviour
 
         if (ray.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
-            Debug.Log($"[RayDebug] HIT 3D: {hit.collider.gameObject.name}");
+            // Debug.Log($"[RayDebug] HIT 3D: {hit.collider.gameObject.name}");
         }
 
         if (ray.TryGetCurrentUIRaycastResult(out var uiHit))
         {
-            Debug.Log($"[RayDebug] HIT UI: {uiHit.gameObject.name}");
+            // Debug.Log($"[RayDebug] HIT UI: {uiHit.gameObject.name}");
         }
     }
 }

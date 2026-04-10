@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -58,7 +58,7 @@ public static class SDFParser
             }
 
             string countsLine = lines[countsLineIndex];
-            Debug.Log($"[SDFParser] Counts line: '{countsLine}'");
+            // Debug.Log($"[SDFParser] Counts line: '{countsLine}'");
 
             // Parse atom and bond counts
             // Format: aaabbblllfffcccsssxxxrrrpppiiimmmvvvvvv
@@ -71,7 +71,7 @@ public static class SDFParser
                 bondCount = ParseInt(countsLine.Substring(3, 3));
             }
 
-            Debug.Log($"[SDFParser] Parsing {moleculeName}: {atomCount} atoms, {bondCount} bonds");
+            // Debug.Log($"[SDFParser] Parsing {moleculeName}: {atomCount} atoms, {bondCount} bonds");
 
             if (atomCount == 0)
             {
@@ -131,7 +131,7 @@ public static class SDFParser
                 molecule.CenterAtOrigin();
             }
 
-            Debug.Log($"[SDFParser] Successfully parsed: {molecule.atoms.Count} atoms, {molecule.bonds.Count} bonds");
+            // Debug.Log($"[SDFParser] Successfully parsed: {molecule.atoms.Count} atoms, {molecule.bonds.Count} bonds");
 
             return molecule;
         }

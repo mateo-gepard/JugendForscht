@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Holds references to shaders and materials needed for standalone VR builds.
@@ -44,7 +44,7 @@ public class ShaderIncluder : MonoBehaviour
         s_HighlightGreenMaterial = CreateMat(shader, new Color(0.2f, 0.9f, 0.2f));
         s_HighlightYellowMaterial = CreateMat(shader, new Color(1f, 0.9f, 0.2f));
         
-        Debug.Log($"[ShaderIncluder] Created cached materials using shader: {shader.name}");
+        // Debug.Log($"[ShaderIncluder] Created cached materials using shader: {shader.name}");
     }
     
     private static Shader GetBestShader()
@@ -64,7 +64,7 @@ public class ShaderIncluder : MonoBehaviour
             Shader shader = Shader.Find(name);
             if (shader != null)
             {
-                Debug.Log($"[ShaderIncluder] Found shader: {name}");
+                // Debug.Log($"[ShaderIncluder] Found shader: {name}");
                 return shader;
             }
         }

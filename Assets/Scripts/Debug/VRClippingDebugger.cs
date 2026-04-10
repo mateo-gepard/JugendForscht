@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -37,9 +37,9 @@ public class VRClippingDebugger : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[VRClippingDebugger] Monitoring camera: {vrCamera.name}");
-            Debug.Log($"  Near clip plane: {vrCamera.nearClipPlane}");
-            Debug.Log($"  Detection distance: {nearDistance}");
+            // Debug.Log($"[VRClippingDebugger] Monitoring camera: {vrCamera.name}");
+            // Debug.Log($"  Near clip plane: {vrCamera.nearClipPlane}");
+            // Debug.Log($"  Detection distance: {nearDistance}");
         }
     }
     
@@ -112,23 +112,23 @@ public class VRClippingDebugger : MonoBehaviour
     {
         if (vrCamera == null) return;
         
-        Debug.Log("========== VR CAMERA INFO ==========");
-        Debug.Log($"Camera: {vrCamera.name}");
-        Debug.Log($"Position: {vrCamera.transform.position}");
-        Debug.Log($"Rotation: {vrCamera.transform.rotation.eulerAngles}");
-        Debug.Log($"Near Clip Plane: {vrCamera.nearClipPlane}");
-        Debug.Log($"Far Clip Plane: {vrCamera.farClipPlane}");
-        Debug.Log($"Field of View: {vrCamera.fieldOfView}");
-        Debug.Log($"Clear Flags: {vrCamera.clearFlags}");
-        Debug.Log($"Background Color: {vrCamera.backgroundColor}");
+        // Debug.Log("========== VR CAMERA INFO ==========");
+        // Debug.Log($"Camera: {vrCamera.name}");
+        // Debug.Log($"Position: {vrCamera.transform.position}");
+        // Debug.Log($"Rotation: {vrCamera.transform.rotation.eulerAngles}");
+        // Debug.Log($"Near Clip Plane: {vrCamera.nearClipPlane}");
+        // Debug.Log($"Far Clip Plane: {vrCamera.farClipPlane}");
+        // Debug.Log($"Field of View: {vrCamera.fieldOfView}");
+        // Debug.Log($"Clear Flags: {vrCamera.clearFlags}");
+        // Debug.Log($"Background Color: {vrCamera.backgroundColor}");
         
-        Debug.Log($"\nObjects within {nearDistance}m: {nearObjects.Count}");
+        // Debug.Log($"\nObjects within {nearDistance}m: {nearObjects.Count}");
         foreach (GameObject obj in nearObjects)
         {
             float dist = Vector3.Distance(vrCamera.transform.position, obj.transform.position);
-            Debug.Log($"  • {obj.name} - {dist:F4}m");
+            // Debug.Log($"  • {obj.name} - {dist:F4}m");
         }
-        Debug.Log("====================================\n");
+        // Debug.Log("====================================\n");
     }
     
     void OnDrawGizmos()

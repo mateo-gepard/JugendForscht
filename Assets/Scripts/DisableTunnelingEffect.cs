@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Disables TunnelingEffect components that cause grey flashes when clipping camera
@@ -13,11 +13,11 @@ public class DisableTunnelingEffect : MonoBehaviour
         
         if (tunnelingEffects.Length > 0)
         {
-            Debug.Log($"[DisableTunneling] Found {tunnelingEffects.Length} TunnelingEffect component(s)");
+            // Debug.Log($"[DisableTunneling] Found {tunnelingEffects.Length} TunnelingEffect component(s)");
             
             foreach (var effect in tunnelingEffects)
             {
-                Debug.Log($"[DisableTunneling] Disabling TunnelingEffect on {effect.gameObject.name}");
+                // Debug.Log($"[DisableTunneling] Disabling TunnelingEffect on {effect.gameObject.name}");
                 
                 // Disable the component
                 effect.enabled = false;
@@ -27,25 +27,25 @@ public class DisableTunnelingEffect : MonoBehaviour
                 if (renderer != null)
                 {
                     renderer.enabled = false;
-                    Debug.Log($"[DisableTunneling] Disabled renderer on {effect.gameObject.name}");
+                    // Debug.Log($"[DisableTunneling] Disabled renderer on {effect.gameObject.name}");
                 }
                 
                 // Optionally, disable the entire GameObject
                 // effect.gameObject.SetActive(false);
             }
             
-            Debug.Log("[DisableTunneling] All TunnelingEffect components disabled");
+            // Debug.Log("[DisableTunneling] All TunnelingEffect components disabled");
         }
         else
         {
-            Debug.Log("[DisableTunneling] No TunnelingEffect components found");
+            // Debug.Log("[DisableTunneling] No TunnelingEffect components found");
         }
         
         // Also find LocomotionTunneling components
         var locomotionTunneling = FindObjectsOfType<Oculus.Interaction.Locomotion.LocomotionTunneling>();
         if (locomotionTunneling.Length > 0)
         {
-            Debug.Log($"[DisableTunneling] Found {locomotionTunneling.Length} LocomotionTunneling component(s) - disabling");
+            // Debug.Log($"[DisableTunneling] Found {locomotionTunneling.Length} LocomotionTunneling component(s) - disabling");
             foreach (var lt in locomotionTunneling)
             {
                 lt.enabled = false;
@@ -56,7 +56,7 @@ public class DisableTunnelingEffect : MonoBehaviour
         var wallPenetrationTunneling = FindObjectsOfType<Oculus.Interaction.Locomotion.WallPenetrationTunneling>();
         if (wallPenetrationTunneling.Length > 0)
         {
-            Debug.Log($"[DisableTunneling] Found {wallPenetrationTunneling.Length} WallPenetrationTunneling component(s) - disabling");
+            // Debug.Log($"[DisableTunneling] Found {wallPenetrationTunneling.Length} WallPenetrationTunneling component(s) - disabling");
             foreach (var wpt in wallPenetrationTunneling)
             {
                 wpt.enabled = false;

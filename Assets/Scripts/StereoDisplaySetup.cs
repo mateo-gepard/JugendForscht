@@ -14,7 +14,7 @@ public class StereoDisplaySetup : MonoBehaviour
     [ContextMenu("Setup Stereo Display")]
     public void SetupStereoDisplay()
     {
-        Debug.Log("=== Setting up Stereo Display ===");
+        // Debug.Log("=== Setting up Stereo Display ===");
 
         // 1. Get or add MoleculeRenderer
         if (renderer == null)
@@ -23,7 +23,7 @@ public class StereoDisplaySetup : MonoBehaviour
             if (renderer == null)
             {
                 renderer = gameObject.AddComponent<MoleculeRenderer>();
-                Debug.Log("✅ Added MoleculeRenderer");
+                // Debug.Log("✅ Added MoleculeRenderer");
             }
         }
 
@@ -34,14 +34,14 @@ public class StereoDisplaySetup : MonoBehaviour
             if (planeAlignment == null)
             {
                 planeAlignment = gameObject.AddComponent<MoleculePlaneAlignment>();
-                Debug.Log("✅ Added MoleculePlaneAlignment");
+                // Debug.Log("✅ Added MoleculePlaneAlignment");
             }
         }
 
         // 3. Configure MoleculeRenderer
         renderer.enableStereoDisplay = true;
         renderer.planeAlignment = planeAlignment;
-        Debug.Log("✅ Enabled Stereo Display on Renderer");
+        // Debug.Log("✅ Enabled Stereo Display on Renderer");
 
         // 4. Configure MoleculePlaneAlignment
         planeAlignment.renderer = renderer;
@@ -49,16 +49,16 @@ public class StereoDisplaySetup : MonoBehaviour
         planeAlignment.depthThresholdFactor = 0.02f;
         planeAlignment.showDebugPlane = true;
         planeAlignment.showDebugInfo = true;
-        Debug.Log("✅ Configured Plane Alignment");
+        // Debug.Log("✅ Configured Plane Alignment");
 
-        Debug.Log("=== Setup Complete! ===");
-        Debug.Log("Now load a molecule and check if you see wedges/dashes!");
+        // Debug.Log("=== Setup Complete! ===");
+        // Debug.Log("Now load a molecule and check if you see wedges/dashes!");
     }
 
     [ContextMenu("Test with Alanine")]
     public async void TestWithAlanine()
     {
-        Debug.Log("=== Testing with Alanine (has stereo centers) ===");
+        // Debug.Log("=== Testing with Alanine (has stereo centers) ===");
 
         var api = gameObject.GetComponent<PubChemAPI>();
         if (api == null)
@@ -74,9 +74,9 @@ public class StereoDisplaySetup : MonoBehaviour
 
             if (molecule != null)
             {
-                Debug.Log($"✅ Loaded Alanine: {molecule.atoms.Count} atoms, {molecule.bonds.Count} bonds");
+                // Debug.Log($"✅ Loaded Alanine: {molecule.atoms.Count} atoms, {molecule.bonds.Count} bonds");
                 renderer.RenderMolecule(molecule);
-                Debug.Log("Check the Scene view - you should see wedges and dashes!");
+                // Debug.Log("Check the Scene view - you should see wedges and dashes!");
             }
         }
     }

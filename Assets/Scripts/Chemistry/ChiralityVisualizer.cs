@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -52,7 +52,7 @@ public class ChiralityVisualizer : MonoBehaviour
             CreateStarMarker(atom, center);
         }
 
-        Debug.Log($"[ChiralityVis] Created {activeMarkers.Count} star markers");
+        // Debug.Log($"[ChiralityVis] Created {activeMarkers.Count} star markers");
     }
 
     /// <summary>

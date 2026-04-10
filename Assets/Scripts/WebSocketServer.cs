@@ -43,14 +43,14 @@ public class WebSocketServer : MonoBehaviour
         cachedHTML = null;
         cachedHTML = LoadHTMLContent();
         
-        Debug.Log($"[WebSocket] HTML loaded, length: {cachedHTML?.Length ?? 0} bytes");
+        // Debug.Log($"[WebSocket] HTML loaded, length: {cachedHTML?.Length ?? 0} bytes");
 
         // Auto-find moleculeRenderer if not assigned
         if (moleculeRenderer == null)
         {
             moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
             if (moleculeRenderer != null)
-                Debug.Log("[WebSocket] Auto-found MoleculeRenderer");
+            { } // was Debug.Log
             else
                 Debug.LogWarning("[WebSocket] MoleculeRenderer not found!");
         }
@@ -101,8 +101,8 @@ public class WebSocketServer : MonoBehaviour
 
             isRunning = true;
 
-            Debug.Log($"[WebSocket] Server started on {serverIP}:{port}");
-            Debug.Log($"[WebSocket] iPad URL: http://{serverIP}:{port}");
+            // Debug.Log($"[WebSocket] Server started on {serverIP}:{port}");
+            // Debug.Log($"[WebSocket] iPad URL: http://{serverIP}:{port}");
         }
         catch (Exception e)
         {
@@ -127,7 +127,7 @@ public class WebSocketServer : MonoBehaviour
                     connectedClients = clients.Count;
                 }
 
-                Debug.Log($"[WebSocket] Client connected! Total: {connectedClients}");
+                // Debug.Log($"[WebSocket] Client connected! Total: {connectedClients}");
 
                 // Handle client in separate thread
                 Thread clientThread = new Thread(() => HandleClient(client));
@@ -164,11 +164,11 @@ public class WebSocketServer : MonoBehaviour
 
             // Debug: Log first line of request
             string firstLine = request.Split('\n')[0];
-            Debug.Log($"[WebSocket] Request: {firstLine}");
+            // Debug.Log($"[WebSocket] Request: {firstLine}");
 
             if (request.Contains("Upgrade: websocket") || request.Contains("upgrade: websocket"))
             {
-                Debug.Log("[WebSocket] WebSocket upgrade detected");
+                // Debug.Log("[WebSocket] WebSocket upgrade detected");
                 // WebSocket handshake
                 PerformWebSocketHandshake(stream, request);
 
@@ -228,7 +228,7 @@ public class WebSocketServer : MonoBehaviour
                 try { client.Close(); } catch { }
             }
 
-            Debug.Log($"[WebSocket] Client disconnected. Remaining: {connectedClients}");
+            // Debug.Log($"[WebSocket] Client disconnected. Remaining: {connectedClients}");
         }
     }
 
@@ -276,7 +276,7 @@ public class WebSocketServer : MonoBehaviour
             stream.Write(responseBytes, 0, responseBytes.Length);
             stream.Flush();
 
-            Debug.Log("[WebSocket] Handshake completed successfully");
+            // Debug.Log("[WebSocket] Handshake completed successfully");
         }
         catch (Exception e)
         {
@@ -340,7 +340,7 @@ public class WebSocketServer : MonoBehaviour
             }
 
             string message = Encoding.UTF8.GetString(payload);
-            Debug.Log($"[WebSocket] Raw message received: {message}");
+            // Debug.Log($"[WebSocket] Raw message received: {message}");
             return message;
         }
         catch (Exception e)
@@ -413,7 +413,7 @@ public class WebSocketServer : MonoBehaviour
     /// </summary>
     private void ProcessMessage(string message)
     {
-        Debug.Log($"[WebSocket] Received: {message}");
+        // Debug.Log($"[WebSocket] Received: {message}");
 
         try
         {
@@ -501,6 +501,14 @@ public class WebSocketServer : MonoBehaviour
             {
                 HandleIsomerCommand(data.action, data.center);
             }
+            else if (data.type == "quiz")
+            {
+                HandleQuizCommand(data.action, data.answer, data.mode);
+            }
+            else if (data.type == "builder")
+            {
+                HandleBuilderCommand(data.action);
+            }
             else if (data.type == "clear_all")
             {
                 // Clear everything: molecule, chirality markers, enantiomer, plane
@@ -542,7 +550,7 @@ public class WebSocketServer : MonoBehaviour
             moleculeRenderer.enableStereoDisplay = enabled;
             // Re-render bonds to apply the change immediately
             moleculeRenderer.RerenderBondsOnly();
-            Debug.Log($"[WebSocket] Stereo display: {enabled}");
+            // Debug.Log($"[WebSocket] Stereo display: {enabled}");
         }
         else
         {
@@ -556,7 +564,7 @@ public class WebSocketServer : MonoBehaviour
     private void HandleModeSwitch(string mode)
     {
         currentMode = mode ?? "keilstrich";
-        Debug.Log($"[WebSocket] Mode switched to: {currentMode}");
+        // Debug.Log($"[WebSocket] Mode switched to: {currentMode}");
 
         if (moleculeRenderer == null)
             moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
@@ -588,7 +596,7 @@ public class WebSocketServer : MonoBehaviour
     /// </summary>
     private void HandleChiralityCommand(string action)
     {
-        Debug.Log($"[WebSocket] Chirality command: {action}");
+        // Debug.Log($"[WebSocket] Chirality command: {action}");
 
         if (action == "detect")
         {
@@ -596,7 +604,7 @@ public class WebSocketServer : MonoBehaviour
             if (library != null && library.GetCurrentMolecule() != null)
             {
                 var molecule = library.GetCurrentMolecule();
-                Debug.Log($"[WebSocket] Running chirality detection on: {molecule.name}");
+                // Debug.Log($"[WebSocket] Running chirality detection on: {molecule.name}");
 
                 // Run chirality detection
                 var centers = ChiralityDetector.DetectChiralCenters(molecule);
@@ -611,7 +619,7 @@ public class WebSocketServer : MonoBehaviour
                     if (moleculeRenderer != null)
                     {
                         visualizer = moleculeRenderer.gameObject.AddComponent<ChiralityVisualizer>();
-                        Debug.Log("[WebSocket] Auto-created ChiralityVisualizer");
+                        // Debug.Log("[WebSocket] Auto-created ChiralityVisualizer");
                     }
                 }
                 if (visualizer != null)
@@ -634,7 +642,7 @@ public class WebSocketServer : MonoBehaviour
 
                 string json = $"{{\"type\":\"chirality_result\",\"centers\":{centersJson},\"molecule\":\"{molecule.name}\"}}";
                 BroadcastMessage(json);
-                Debug.Log($"[WebSocket] Chirality result sent: {centers.Count} centers");
+                // Debug.Log($"[WebSocket] Chirality result sent: {centers.Count} centers");
             }
             else
             {
@@ -655,7 +663,7 @@ public class WebSocketServer : MonoBehaviour
     /// </summary>
     private void HandleIsomerCommand(string action, int center)
     {
-        Debug.Log($"[WebSocket] Isomer command: {action}, center: {center}");
+        // Debug.Log($"[WebSocket] Isomer command: {action}, center: {center}");
 
         // Auto-find or create IsomerAnimator
         var animator = FindObjectOfType<IsomerAnimator>();
@@ -666,7 +674,7 @@ public class WebSocketServer : MonoBehaviour
             if (moleculeRenderer != null)
             {
                 animator = moleculeRenderer.gameObject.AddComponent<IsomerAnimator>();
-                Debug.Log("[WebSocket] Auto-created IsomerAnimator");
+                // Debug.Log("[WebSocket] Auto-created IsomerAnimator");
             }
         }
 
@@ -789,8 +797,128 @@ public class WebSocketServer : MonoBehaviour
             }
             else
             {
+            BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
+            }
+        }
+        else if (action == "cistrans")
+        {
+            // cis/trans (E/Z) Isomerie
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var original = library.GetCurrentMolecule();
+                if (!IsomerGenerator.HasDoubleBond(original))
+                {
+                    BroadcastMessage("{\"type\":\"error\",\"message\":\"Keine C=C-Doppelbindung gefunden. cis/trans-Isomerie benötigt eine Doppelbindung.\"}");
+                    return;
+                }
+                var cisTransIsomer = IsomerGenerator.GenerateCisTransIsomer(original);
+                if (cisTransIsomer != null && animator != null)
+                {
+                    animator.ShowCisTransIsomer(original, cisTransIsomer);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"cis/trans-Isomer von {original.name} erzeugt\"}}");
+                }
+                else
+                {
+                    BroadcastMessage("{\"type\":\"error\",\"message\":\"cis/trans-Isomer konnte nicht erzeugt werden\"}");
+                }
+            }
+            else
+            {
                 BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
             }
+        }
+        else if (action == "constitutional")
+        {
+            // Konstitutionsisomere: Lade Partner-Molekül von PubChem
+            if (library != null && library.GetCurrentMolecule() != null)
+            {
+                var original = library.GetCurrentMolecule();
+                string partnerName = IsomerGenerator.GetConstitutionalPartner(original.name);
+                if (partnerName == null)
+                {
+                    BroadcastMessage($"{{\"type\":\"error\",\"message\":\"Kein bekanntes Konstitutionsisomer für '{original.name}'. Probiere: Ethanol, Buthan, Aceton, Glucose.\"}}");
+                    return;
+                }
+
+                // Load partner molecule asynchronously
+                LoadConstitutionalPartnerAsync(original, partnerName, animator);
+            }
+            else
+            {
+                BroadcastMessage("{\"type\":\"error\",\"message\":\"Kein Molekül geladen\"}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Lädt ein Konstitutionsisomer asynchron von PubChem und zeigt es an
+    /// </summary>
+    private async void LoadConstitutionalPartnerAsync(MoleculeData original, string partnerName, IsomerAnimator animator)
+    {
+        BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Lade Konstitutionsisomer '{partnerName}' von PubChem...\"}}");
+
+        try
+        {
+            var pubchem = FindObjectOfType<PubChemAPI>();
+            if (pubchem == null)
+            {
+                var go = new GameObject("TempPubChem");
+                pubchem = go.AddComponent<PubChemAPI>();
+            }
+
+            string sdf = await pubchem.GetMoleculeSDF(partnerName);
+            if (string.IsNullOrEmpty(sdf))
+            {
+                BroadcastMessage($"{{\"type\":\"error\",\"message\":\"Konnte '{partnerName}' nicht von PubChem laden\"}}");
+                return;
+            }
+
+            MoleculeData partner = SDFParser.Parse(sdf, partnerName);
+            if (partner == null)
+            {
+                BroadcastMessage($"{{\"type\":\"error\",\"message\":\"Fehler beim Parsen von '{partnerName}'\"}}");
+                return;
+            }
+
+            if (animator != null)
+            {
+                animator.ShowConstitutionalIsomer(original, partner);
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Konstitutionsisomer: {original.name} ↔ {partner.name}\"}}");
+            }
+        }
+        catch (System.Exception e)
+        {
+            BroadcastMessage($"{{\"type\":\"error\",\"message\":\"Fehler: {e.Message}\"}}");
+        }
+    }
+
+    /// <summary>
+    /// Handle builder (Molekülbaukasten) commands from iPad
+    /// </summary>
+    private void HandleBuilderCommand(string action)
+    {
+        var builder = BuilderManager.Instance;
+
+        // Auto-create BuilderManager if needed
+        if (builder == null)
+        {
+            var go = new GameObject("BuilderManager");
+            builder = go.AddComponent<BuilderManager>();
+            builder.webSocket = this;
+            builder.moleculeLibrary = library;
+            // ElementDatabase will be auto-found from MoleculeLibrary
+            Debug.Log("[WebSocket] Auto-created BuilderManager");
+        }
+
+        if (action == "start")
+        {
+            builder.StartBuilder();
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Molekülbaukasten gestartet\"}");
+        }
+        else if (action == "stop")
+        {
+            builder.StopBuilder();
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Molekülbaukasten beendet\"}");
         }
     }
 
@@ -831,13 +959,56 @@ public class WebSocketServer : MonoBehaviour
     }
 
     /// <summary>
+    /// Handle Quiz-Kommandos von der Web-UI
+    /// Actions: start, answer, next, end
+    /// </summary>
+    private void HandleQuizCommand(string action, int answer, string categoryMode)
+    {
+        // Debug.Log($"[WebSocket] Quiz command: {action}, answer: {answer}, category: {categoryMode}");
+
+        var quiz = QuizManager.Instance;
+        if (quiz == null)
+        {
+            // Auto-create QuizManager
+            var go = new GameObject("QuizManager");
+            quiz = go.AddComponent<QuizManager>();
+            quiz.webSocket = this;
+            quiz.moleculeLibrary = library;
+            // Debug.Log("[WebSocket] Auto-created QuizManager");
+        }
+
+        switch (action)
+        {
+            case "start":
+                // Parse category from mode string
+                QuizCategory? cat = null;
+                if (categoryMode == "Keilstrich") cat = QuizCategory.Keilstrich;
+                else if (categoryMode == "Chirality") cat = QuizCategory.Chirality;
+                quiz.StartQuiz(cat);
+                break;
+            case "answer":
+                quiz.SubmitAnswer(answer);
+                break;
+            case "next":
+                quiz.NextQuestion();
+                break;
+            case "end":
+                quiz.EndQuiz();
+                break;
+            default:
+                Debug.LogWarning($"[WebSocket] Unknown quiz action: {action}");
+                break;
+        }
+    }
+
+    /// <summary>
     /// Event Handler: Molekül erfolgreich geladen
     /// </summary>
     private void HandleMoleculeLoaded(MoleculeData molecule)
     {
         string json = $"{{\"type\":\"loaded\",\"molecule\":\"{molecule.name}\",\"atoms\":{molecule.atoms.Count}}}";
         BroadcastMessage(json);
-        Debug.Log($"[WebSocket] Sent molecule loaded notification: {molecule.name}");
+        // Debug.Log($"[WebSocket] Sent molecule loaded notification: {molecule.name}");
     }
 
     /// <summary>
@@ -847,7 +1018,7 @@ public class WebSocketServer : MonoBehaviour
     {
         string json = $"{{\"type\":\"error\",\"message\":\"{error}\"}}";
         BroadcastMessage(json);
-        Debug.Log($"[WebSocket] Sent error notification: {error}");
+        // Debug.Log($"[WebSocket] Sent error notification: {error}");
     }
 
     /// <summary>
@@ -880,7 +1051,7 @@ public class WebSocketServer : MonoBehaviour
         TextAsset htmlFile = Resources.Load<TextAsset>("MoleculeContoller");
         if (htmlFile != null)
         {
-            Debug.Log("[WebSocket] Loaded HTML from Resources");
+            // Debug.Log("[WebSocket] Loaded HTML from Resources");
             return htmlFile.text;
         }
 
@@ -1003,8 +1174,9 @@ uU();cn();
     {
         public string type;
         public string molecule;
-        public string action;   // For tutorial/chirality/isomer commands
+        public string action;   // For tutorial/chirality/isomer/quiz commands
         public string mode;     // For mode switch: "keilstrich" or "isomerie"
         public int center;      // For isomer inversion: chiral center atom ID
+        public int answer;      // For quiz: selected answer index
     }
 }

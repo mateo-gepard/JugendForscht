@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -82,12 +82,12 @@ public static class ChiralityDetector
                     neighborLabels = neighborLabels
                 });
 
-                Debug.Log($"[Chirality] Found stereocenter: {atom.element}{atom.id} ({config}) " +
-                          $"Neighbors: [{string.Join(", ", neighborLabels)}]");
+                // Debug.Log($"[Chirality] Found stereocenter: {atom.element}{atom.id} ({config}) " +
+                //           $"Neighbors: [{string.Join(", ", neighborLabels)}]");
             }
         }
 
-        Debug.Log($"[Chirality] Total stereocenters found: {centers.Count} in {molecule.name}");
+        // Debug.Log($"[Chirality] Total stereocenters found: {centers.Count} in {molecule.name}");
         return centers;
     }
 

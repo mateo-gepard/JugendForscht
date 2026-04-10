@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 
@@ -54,7 +54,7 @@ public class MoleculeRotationController : MonoBehaviour
             planeAlignment = FindObjectOfType<MoleculePlaneAlignment>();
         }
         
-        Debug.Log($"[MoleculeRotation] Controllers initialized: Right={rightDevice.isValid}, Left={leftDevice.isValid}");
+        // Debug.Log($"[MoleculeRotation] Controllers initialized: Right={rightDevice.isValid}, Left={leftDevice.isValid}");
     }
 
     void Update()
@@ -106,7 +106,7 @@ public class MoleculeRotationController : MonoBehaviour
             
             if (timeSinceLastInteraction >= autoRotationDelay && planeAlignment != null && planeAlignment.enableAutoRotation)
             {
-                Debug.Log($"[MoleculeRotation] Restarting auto-rotation after {timeSinceLastInteraction:F1}s of inactivity");
+                // Debug.Log($"[MoleculeRotation] Restarting auto-rotation after {timeSinceLastInteraction:F1}s of inactivity");
                 planeAlignment.StartAutoRotation();
                 hasEverGrabbed = false; // Reset so we don't spam StartAutoRotation every frame
                 timeSinceLastInteraction = 0f;
@@ -166,13 +166,13 @@ public class MoleculeRotationController : MonoBehaviour
             planeAlignment.StopAutoRotation();
         }
         
-        Debug.Log($"[MoleculeRotation] Started grab ({handName})");
+        // Debug.Log($"[MoleculeRotation] Started grab ({handName})");
     }
 
     void StopGrab(ref bool isGrabbing, string handName)
     {
         isGrabbing = false;
-        Debug.Log($"[MoleculeRotation] Released grab ({handName})");
+        // Debug.Log($"[MoleculeRotation] Released grab ({handName})");
     }
 
     void UpdateRotation(InputDevice device, ref Vector3 lastControllerPosition)

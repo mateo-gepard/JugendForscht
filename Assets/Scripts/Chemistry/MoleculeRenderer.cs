@@ -92,13 +92,13 @@ public class MoleculeRenderer : MonoBehaviour
         // Build O(1) atom lookup dictionary
         BuildAtomLookup();
 
-        Debug.Log($"[MoleculeRenderer] Rendering {moleculeData.name}: {moleculeData.atoms.Count} atoms, {moleculeData.bonds.Count} bonds");
+        // Debug.Log($"[MoleculeRenderer] Rendering {moleculeData.name}: {moleculeData.atoms.Count} atoms, {moleculeData.bonds.Count} bonds");
 
         // Calculate scale based on atom count
         float scale = CalculateMoleculeScale(moleculeData.atoms.Count);
         transform.localScale = Vector3.one * scale;
 
-        Debug.Log($"[MoleculeRenderer] Molecule scale: {scale:F2}x for {moleculeData.atoms.Count} atoms");
+        // Debug.Log($"[MoleculeRenderer] Molecule scale: {scale:F2}x for {moleculeData.atoms.Count} atoms");
 
         // Render Atoms
         foreach (var atom in moleculeData.atoms)
@@ -121,7 +121,7 @@ public class MoleculeRenderer : MonoBehaviour
         // ── Performance: Combine atom meshes per material ──
         CombineAtomMeshes();
 
-        Debug.Log($"[MoleculeRenderer] Rendered: {combinedAtomObjects.Count} combined atom batches, {bondObjects.Count} bond objects");
+        // Debug.Log($"[MoleculeRenderer] Rendered: {combinedAtomObjects.Count} combined atom batches, {bondObjects.Count} bond objects");
     }
 
     /// <summary>
@@ -317,7 +317,7 @@ public class MoleculeRenderer : MonoBehaviour
         }
         atomObjects.Clear();
 
-        Debug.Log($"[MoleculeRenderer] Combined atoms into {combinedAtomObjects.Count} draw calls");
+        // Debug.Log($"[MoleculeRenderer] Combined atoms into {combinedAtomObjects.Count} draw calls");
     }
 
     // ════════════════════════════════════════════════════════════

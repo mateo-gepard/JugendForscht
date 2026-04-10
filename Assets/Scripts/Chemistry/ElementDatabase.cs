@@ -94,6 +94,9 @@ public class ElementDatabase : ScriptableObject
         elements.Add(new ElementData("I", "Iodine", 53,
             new Color(0.58f, 0f, 0.58f), 1.98f, 1.39f)); // Purple
 
+        elements.Add(new ElementData("Si", "Silicon", 14,
+            new Color(0.78f, 0.67f, 0.45f), 2.10f, 1.11f)); // Tan/Brown
+
         // Metals
         elements.Add(new ElementData("Fe", "Iron", 26,
             new Color(0.88f, 0.4f, 0.2f), 2.00f, 1.32f));
@@ -104,7 +107,7 @@ public class ElementDatabase : ScriptableObject
         elements.Add(new ElementData("Zn", "Zinc", 30,
             new Color(0.49f, 0.5f, 0.69f), 2.01f, 1.22f));
 
-        Debug.Log($"Created {elements.Count} default elements with unified color scheme");
+        // Debug.Log($"Created {elements.Count} default elements with unified color scheme");
     }
 
     public List<ElementData> GetAllElements()

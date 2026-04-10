@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Video;
 using System.Collections;
 using System.Collections.Generic;
@@ -189,13 +189,13 @@ public class TutorialManager : MonoBehaviour
         PlayVideoFromStart();
 
         OnTutorialStateChanged?.Invoke(true);
-        Debug.Log($"[Tutorial] Started – {timeline.units.Count} units loaded");
+        // Debug.Log($"[Tutorial] Started – {timeline.units.Count} units loaded");
     }
 
     /// <summary>Stop and close the tutorial.</summary>
     public void CloseTutorial()
     {
-        Debug.Log("[Tutorial] Closing");
+        // Debug.Log("[Tutorial] Closing");
 
         if (transitionCoroutine != null)
         {
@@ -226,7 +226,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (!isTutorialActive || !isWaitingForContinue) return;
 
-        Debug.Log("[Tutorial] Continue pressed");
+        // Debug.Log("[Tutorial] Continue pressed");
         isWaitingForContinue = false;
         OnContinueButtonStateChanged?.Invoke(false);
 
@@ -241,7 +241,7 @@ public class TutorialManager : MonoBehaviour
     {
         if (!isTutorialActive || currentUnitIndex <= 0) return;
 
-        Debug.Log("[Tutorial] Going back");
+        // Debug.Log("[Tutorial] Going back");
         isWaitingForContinue = false;
         OnContinueButtonStateChanged?.Invoke(false);
 
@@ -324,7 +324,7 @@ public class TutorialManager : MonoBehaviour
             }
         }
 
-        Debug.Log("[Tutorial] VideoPlayer configured");
+        // Debug.Log("[Tutorial] VideoPlayer configured");
     }
 
     private void PlayVideoFromStart()
@@ -350,12 +350,12 @@ public class TutorialManager : MonoBehaviour
     {
         videoReady = true;
         vp.Play();
-        Debug.Log("[Tutorial] Video prepared – playing");
+        // Debug.Log("[Tutorial] Video prepared – playing");
     }
 
     private void OnVideoEnd(VideoPlayer vp)
     {
-        Debug.Log("[Tutorial] Video ended");
+        // Debug.Log("[Tutorial] Video ended");
         CloseTutorial();
     }
 
@@ -382,7 +382,7 @@ public class TutorialManager : MonoBehaviour
             string unitName = timeline.units[currentUnitIndex].name;
             NotifyIPad($"{{\"type\":\"tutorial\",\"status\":\"waitingContinue\",\"unit\":{currentUnitIndex},\"unitName\":\"{unitName}\"}}");
 
-            Debug.Log($"[Tutorial] Paused – completed unit: {unitName}");
+            // Debug.Log($"[Tutorial] Paused – completed unit: {unitName}");
         }
     }
 
@@ -406,7 +406,7 @@ public class TutorialManager : MonoBehaviour
         videoPlayer.Play();
 
         string unitName = timeline.units[currentUnitIndex].name;
-        Debug.Log($"[Tutorial] Now playing: {unitName}");
+        // Debug.Log($"[Tutorial] Now playing: {unitName}");
         transitionCoroutine = null;
     }
 
@@ -438,7 +438,7 @@ public class TutorialManager : MonoBehaviour
 
     private void ExecuteCue(TutorialCue cue)
     {
-        Debug.Log($"[Tutorial] Cue @{cue.time:F1}s: {cue.action} '{cue.objectName}'");
+        // Debug.Log($"[Tutorial] Cue @{cue.time:F1}s: {cue.action} '{cue.objectName}'");
 
         switch (cue.action)
         {
@@ -763,7 +763,7 @@ public class TutorialManager : MonoBehaviour
         // 3. Create special built-in objects
         EnsureBuiltInObjects();
 
-        Debug.Log($"[Tutorial] Object pool ready: {objectPool.Count} objects");
+        // Debug.Log($"[Tutorial] Object pool ready: {objectPool.Count} objects");
     }
 
     private void LoadMissingFromResources()
@@ -788,7 +788,7 @@ public class TutorialManager : MonoBehaviour
                 instance.name = name;
                 instance.SetActive(false);
                 objectPool[name] = instance;
-                Debug.Log($"[Tutorial] Pool: loaded '{name}' from Resources");
+                // Debug.Log($"[Tutorial] Pool: loaded '{name}' from Resources");
             }
         }
     }
@@ -818,7 +818,7 @@ public class TutorialManager : MonoBehaviour
             instance.name = name;
             instance.SetActive(false);
             objectPool[name] = instance;
-            Debug.Log($"[Tutorial] Pool: late-loaded '{name}'");
+            // Debug.Log($"[Tutorial] Pool: late-loaded '{name}'");
             return instance;
         }
 
@@ -916,7 +916,7 @@ public class TutorialManager : MonoBehaviour
             // Adjust quad aspect ratio to match image
             float aspect = (float)tex.width / tex.height;
             quad.transform.localScale = new Vector3(aspect, 1f, 1f);
-            Debug.Log($"[Tutorial] KeilstrichBild loaded: {tex.width}x{tex.height}");
+            // Debug.Log($"[Tutorial] KeilstrichBild loaded: {tex.width}x{tex.height}");
         }
         else
         {

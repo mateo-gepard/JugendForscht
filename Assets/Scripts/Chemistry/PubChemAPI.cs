@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 using System;
 using System.Threading.Tasks;
@@ -28,14 +28,14 @@ public class PubChemAPI : MonoBehaviour
         string encodedName = UnityWebRequest.EscapeURL(moleculeName).Replace("+", "%20");
         string url = $"{BASE_URL}/compound/name/{encodedName}/cids/JSON";
         
-        Debug.Log($"[PubChem] Searching for: {moleculeName}");
-        Debug.Log($"[PubChem] URL: {url}");
+        // Debug.Log($"[PubChem] Searching for: {moleculeName}");
+        // Debug.Log($"[PubChem] URL: {url}");
         
         try
         {
             string jsonResponse = await SendGetRequest(url);
             
-            Debug.Log($"[PubChem] Response: {jsonResponse.Substring(0, Mathf.Min(200, jsonResponse.Length))}...");
+            // Debug.Log($"[PubChem] Response: {jsonResponse.Substring(0, Mathf.Min(200, jsonResponse.Length))}...");
             
             // Parse JSON manually since Unity JsonUtility has issues with nested objects
             // Expected: {"IdentifierList":{"CID":[702]}} or {"IdentifierList": {"CID": [702]}}
@@ -65,7 +65,7 @@ public class PubChemAPI : MonoBehaviour
                     
                     if (int.TryParse(cidStr, out int cid))
                     {
-                        Debug.Log($"[PubChem] Found CID: {cid} for '{moleculeName}'");
+                        // Debug.Log($"[PubChem] Found CID: {cid} for '{moleculeName}'");
                         return cid;
                     }
                 }
@@ -96,7 +96,7 @@ public class PubChemAPI : MonoBehaviour
         string recordType = use3D ? "?record_type=3d" : "";
         string url = $"{BASE_URL}/compound/cid/{cid}/SDF{recordType}";
         
-        Debug.Log($"[PubChem] Downloading SDF for CID {cid} ({(use3D ? "3D" : "2D")})");
+        // Debug.Log($"[PubChem] Downloading SDF for CID {cid} ({(use3D ? "3D" : "2D")})");
         
         try
         {
@@ -114,7 +114,7 @@ public class PubChemAPI : MonoBehaviour
                 return null;
             }
             
-            Debug.Log($"[PubChem] Successfully downloaded SDF ({sdfContent.Length} chars)");
+            // Debug.Log($"[PubChem] Successfully downloaded SDF ({sdfContent.Length} chars)");
             return sdfContent;
         }
         catch (Exception e)
@@ -143,7 +143,7 @@ public class PubChemAPI : MonoBehaviour
     
     private async Task<string> SendGetRequest(string url)
     {
-        Debug.Log($"[PubChem] Sending request to: {url}");
+        // Debug.Log($"[PubChem] Sending request to: {url}");
         
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
@@ -160,7 +160,7 @@ public class PubChemAPI : MonoBehaviour
                 // Log progress every 5 seconds
                 if (Time.time - startTime > 5f && Mathf.FloorToInt(Time.time - startTime) % 5 == 0)
                 {
-                    Debug.Log($"[PubChem] Still waiting... ({Mathf.FloorToInt(Time.time - startTime)}s)");
+                    // Debug.Log($"[PubChem] Still waiting... ({Mathf.FloorToInt(Time.time - startTime)}s)");
                 }
             }
             
@@ -170,7 +170,7 @@ public class PubChemAPI : MonoBehaviour
                 throw new Exception($"HTTP Error: {request.error}");
             }
             
-            Debug.Log($"[PubChem] Request successful ({request.downloadHandler.text.Length} bytes)");
+            // Debug.Log($"[PubChem] Request successful ({request.downloadHandler.text.Length} bytes)");
             return request.downloadHandler.text;
         }
     }

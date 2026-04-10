@@ -199,7 +199,14 @@ body {
     <!-- Tab Navigation -->
     <div class="tabs">
         <button class="tab active" id="tabKeilstrich" onclick="switchTab('keilstrich')">&#9650; Keilstrichformel</button>
-        <button class="tab" id="tabIsomerie" onclick="switchTab('isomerie')">&#9883; Chiralität</button>
+        <button class="tab" id="tabIsomerie" onclick="switchTab('isomerie')">&☫ Chiralität</button>
+    </div>
+
+    <!-- Universal Builder Button (visible in all tabs) -->
+    <div style="padding:8px 16px;">
+        <button class="btn" id="btnBuilder" onclick="toggleBuilder()" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);font-size:1.05em;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(245,158,11,0.3);">
+            &#129521; Molekülbaukasten
+        </button>
     </div>
 
     <!-- ==================== KEILSTRICH TAB ==================== -->
@@ -259,6 +266,20 @@ body {
             </div>
         </div>
 
+        <!-- Quiz Keilstrich -->
+        <div class="card">
+            <div class="card-label">Quiz</div>
+            <button class="btn btn-accent" onclick="quizStart('Keilstrich')" id="btnQuizStartKeilstrich" style="width:100%;font-size:15px;padding:14px">
+                &#127891; Keilstrichformel-Quiz starten
+            </button>
+            <button class="btn btn-danger" onclick="quizEnd()" id="btnQuizEndKeilstrich" style="width:100%;margin-top:10px;display:none">
+                &#9724; Quiz beenden
+            </button>
+        </div>
+
+        <!-- Shared Quiz UI (shown when quiz active in this tab) -->
+        <div id="quizPanelKeilstrich" style="display:none"></div>
+
         <button class="btn btn-danger" onclick="clearAll()" style="width:100%;margin-bottom:14px">&#128465; Alles leeren</button>
     </div>
 
@@ -296,18 +317,20 @@ body {
                     <div class="iso-type-desc">Stereoisomere, die <em>keine</em> Spiegelbilder sind. Entstehen durch Inversion einzelner Chiralitätszentren. Unterschiedliche physikalische Eigenschaften.</div>
                 </div>
                 <!-- Konstitutionsisomere -->
-                <div class="iso-type-card">
+                <div class="iso-type-card active-type" id="isoTypeConstitutional">
                     <div class="iso-type-header">
                         <span class="iso-type-icon">&#128279;</span>
                         <span class="iso-type-name">Konstitutionsisomere</span>
+                        <span class="iso-type-badge implemented">Aktiv</span>
                     </div>
                     <div class="iso-type-desc">Gleiche Summenformel, aber verschiedene Verknüpfung der Atome. Z.B. Ethanol (C&#8322;H&#8325;OH) und Dimethylether (CH&#8323;OCH&#8323;).</div>
                 </div>
                 <!-- cis/trans -->
-                <div class="iso-type-card">
+                <div class="iso-type-card active-type" id="isoTypeCisTrans">
                     <div class="iso-type-header">
                         <span class="iso-type-icon">&#8652;</span>
                         <span class="iso-type-name">cis/trans-Isomerie</span>
+                        <span class="iso-type-badge implemented">Aktiv</span>
                     </div>
                     <div class="iso-type-desc">Geometrische Isomerie an C=C-Doppelbindungen oder Ringen. Substituenten stehen auf der gleichen (cis) oder gegenüberliegenden (trans) Seite.</div>
                 </div>
@@ -341,6 +364,8 @@ body {
                 <button class="btn btn-iso" onclick="generateDiastereomer()" id="btnDiastereomer" style="background:linear-gradient(135deg, #06b6d4, #8b5cf6)">&#128256; Diastereomer erzeugen</button>
                 <button class="btn btn-iso" onclick="generateConformer()" id="btnConformer" style="background:linear-gradient(135deg, #f59e0b, #ef4444)">&#128260; Konformer erzeugen</button>
                 <button class="btn btn-iso" onclick="testMeso()" id="btnMeso" style="background:linear-gradient(135deg, #10b981, #059669)">&#127918; Meso-Erkennung</button>
+                <button class="btn btn-iso" onclick="generateCisTrans()" id="btnCisTrans" style="background:linear-gradient(135deg, #ec4899, #f43f5e)">&#8652; cis/trans-Isomer erzeugen</button>
+                <button class="btn btn-iso" onclick="generateConstitutional()" id="btnConstitutional" style="background:linear-gradient(135deg, #6366f1, #a855f7)">&#128279; Konstitutionsisomer erzeugen</button>
                 <button class="btn btn-ghost" onclick="testOverlay()" id="btnOverlay">&#128260; Überlagerung testen</button>
             </div>
 
@@ -379,6 +404,20 @@ body {
                 </div>
             </div>
         </div>
+
+        <!-- Quiz Chiralität -->
+        <div class="card">
+            <div class="card-label">Quiz</div>
+            <button class="btn btn-chiral" onclick="quizStart('Chirality')" id="btnQuizStartChirality" style="width:100%;font-size:15px;padding:14px">
+                &#127891; Chiralit&auml;ts-Quiz starten
+            </button>
+            <button class="btn btn-danger" onclick="quizEnd()" id="btnQuizEndChirality" style="width:100%;margin-top:10px;display:none">
+                &#9724; Quiz beenden
+            </button>
+        </div>
+
+        <!-- Shared Quiz UI (shown when quiz active in this tab) -->
+        <div id="quizPanelChirality" style="display:none"></div>
 
         <button class="btn btn-danger" onclick="clearAll()" style="width:100%;margin-bottom:14px">&#128465; Alles leeren</button>
     </div>
@@ -470,6 +509,14 @@ body {
             handleTutorialUpdate(data);
         } else if (data.type === 'chirality_result') {
             handleChiralityResult(data);
+        } else if (data.type === 'quiz_question') {
+            handleQuizQuestion(data);
+        } else if (data.type === 'quiz_answer_result') {
+            handleQuizAnswerResult(data);
+        } else if (data.type === 'quiz_finished') {
+            handleQuizFinished(data);
+        } else if (data.type === 'quiz_state') {
+            // State-Update (optional logging)
         }
     }
 
@@ -524,6 +571,40 @@ body {
                 else if (obj.action === 'continue') handleMessage({type:'tutorial',status:'continued'});
                 else if (obj.action === 'previous') handleMessage({type:'tutorial',status:'previous'});
             }, 300);
+        } else if (obj.type === 'quiz') {
+            setTimeout(function() {
+                var cat = obj.mode || 'Keilstrich';
+                if (obj.action === 'start') {
+                    mockQuizIndex = 0; mockQuizScore = 0;
+                    if (cat === 'Keilstrich') {
+                        handleMessage({type:'quiz_question',questionIndex:0,totalQuestions:2,
+                            questionText:'Was zeigt ein ausgef\u00fcllter Keil in der Keilstrichformel an?',moleculeName:'bromochlorofluoromethane',
+                            category:'Keilstrich',answers:['Bindung nach hinten','Bindung nach vorne','Doppelbindung'],score:0});
+                    } else {
+                        handleMessage({type:'quiz_question',questionIndex:0,totalQuestions:2,
+                            questionText:'Ist Bromchlorfluormethan chiral?',moleculeName:'bromochlorofluoromethane',
+                            category:'Chirality',answers:['Ja, chiral','Nein, achiral'],score:0});
+                    }
+                } else if (obj.action === 'answer') {
+                    var correct = (obj.answer === 0);
+                    if (correct) mockQuizScore++;
+                    handleMessage({type:'quiz_answer_result',correct:correct,correctIndex:0,
+                        selectedIndex:obj.answer,explanation:'Bromchlorfluormethan hat 4 verschiedene Substituenten.',
+                        score:mockQuizScore,questionIndex:mockQuizIndex});
+                } else if (obj.action === 'next') {
+                    mockQuizIndex++;
+                    if (mockQuizIndex >= 2) {
+                        handleMessage({type:'quiz_finished',score:mockQuizScore,total:2});
+                    } else {
+                        var mockCat = quizActiveCategory || 'Keilstrich';
+                        handleMessage({type:'quiz_question',questionIndex:mockQuizIndex,totalQuestions:2,
+                            questionText:'Demo-Frage ' + (mockQuizIndex+1),moleculeName:'ethanol',
+                            category:mockCat,answers:['Antwort A','Antwort B','Antwort C'],score:mockQuizScore});
+                    }
+                } else if (obj.action === 'end') {
+                    handleMessage({type:'quiz_finished',score:mockQuizScore,total:2});
+                }
+            }, 400);
         }
     }
 
@@ -668,10 +749,38 @@ body {
         showToast('Pr\u00fcfe Meso-Verbindung\u2026');
     }
 
+    function generateCisTrans() {
+        send({ type: 'isomer', action: 'cistrans' });
+        showToast('Erzeuge cis/trans-Isomer\u2026');
+    }
+
+    function generateConstitutional() {
+        send({ type: 'isomer', action: 'constitutional' });
+        showToast('Suche Konstitutionsisomer\u2026');
+    }
+
     function clearAll() {
         send({ type: 'clear_all' });
         showToast('Alle Molek\u00fcle gel\u00f6scht');
         document.getElementById('chiralInfo').className = 'chiral-info';
+    }
+
+    // ==================== BUILDER (MOLEKÜLBAUKASTEN) ====================
+    var builderActive = false;
+    function toggleBuilder() {
+        builderActive = !builderActive;
+        var btn = document.getElementById('btnBuilder');
+        if (builderActive) {
+            send({ type: 'builder', action: 'start' });
+            btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            btn.innerHTML = '&#10006; Baukasten beenden';
+            showToast('Molekülbaukasten gestartet');
+        } else {
+            send({ type: 'builder', action: 'stop' });
+            btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            btn.innerHTML = '&#129521; Molekülbaukasten';
+            showToast('Molekülbaukasten beendet');
+        }
     }
 
     // ==================== TOAST ====================
@@ -681,6 +790,190 @@ body {
         t.textContent = msg; t.classList.add('visible');
         clearTimeout(toastTimer);
         toastTimer = setTimeout(function() { t.classList.remove('visible'); }, 2500);
+    }
+
+    // ==================== QUIZ ====================
+    var mockQuizIndex = 0;
+    var mockQuizScore = 0;
+    var quizAnswered = false;
+    var quizActiveCategory = null;
+
+    function getQuizContainer() {
+        // Return the quiz panel container in the currently active tab
+        if (quizActiveCategory === 'Keilstrich') return document.getElementById('quizPanelKeilstrich');
+        if (quizActiveCategory === 'Chirality') return document.getElementById('quizPanelChirality');
+        return null;
+    }
+
+    function buildQuizHTML(mode) {
+        // mode: 'active', 'finished'
+        var html = '';
+        if (mode === 'active') {
+            html = '<div class="card" id="quizActive">' +
+                '<div class="card-label" style="display:flex;justify-content:space-between;align-items:center">' +
+                    '<span id="quizCategory">Quiz</span>' +
+                    '<span id="quizScore" style="color:var(--acc)">0 Punkte</span>' +
+                '</div>' +
+                '<div class="tutorial-progress" style="margin-bottom:14px">' +
+                    '<div class="label" id="quizProgressLabel">Frage 1 von 5</div>' +
+                    '<div class="progress-track"><div class="progress-fill" id="quizProgressBar" style="width:0%"></div></div>' +
+                '</div>' +
+                '<div id="quizQuestionText" style="font-size:16px;font-weight:600;line-height:1.5;margin-bottom:16px;min-height:48px">&mdash;</div>' +
+                '<div id="quizMolecule" style="font-size:12px;color:var(--t3);margin-bottom:14px"></div>' +
+                '<div id="quizAnswers" style="display:flex;flex-direction:column;gap:10px"></div>' +
+                '<div id="quizExplanation" class="chiral-info" style="display:none;margin-top:14px">' +
+                    '<div class="label">Erkl\u00e4rung</div>' +
+                    '<div class="detail" id="quizExplanationText"></div>' +
+                '</div>' +
+                '<div id="quizNextRow" style="display:none;margin-top:14px">' +
+                    '<button class="btn btn-confirm" onclick="quizNext()" style="width:100%">N\u00e4chste Frage \u203a</button>' +
+                '</div>' +
+                '<button class="btn btn-danger" onclick="quizEnd()" style="width:100%;margin-top:10px">Quiz beenden</button>' +
+            '</div>';
+        } else if (mode === 'finished') {
+            html = '<div class="card" id="quizFinished">' +
+                '<div class="card-label">Ergebnis</div>' +
+                '<div style="text-align:center;padding:20px 0">' +
+                    '<div id="quizResultEmoji" style="font-size:56px;margin-bottom:12px">\u{1F3C6}</div>' +
+                    '<div id="quizResultScore" style="font-size:24px;font-weight:700;margin-bottom:6px">&mdash;</div>' +
+                    '<div id="quizResultRating" style="font-size:15px;color:var(--t2);margin-bottom:20px">&mdash;</div>' +
+                    '<button class="btn btn-accent" onclick="quizStart(\x27' + quizActiveCategory + '\x27)" style="width:100%;margin-bottom:10px">\u{1F504} Nochmal spielen</button>' +
+                    '<button class="btn btn-ghost" onclick="quizReset()" style="width:100%">Zur\u00fcck</button>' +
+                '</div>' +
+            '</div>';
+        }
+        return html;
+    }
+
+    function quizStart(category) {
+        quizActiveCategory = category;
+        send({ type: 'quiz', action: 'start', mode: category });
+        showToast((category === 'Keilstrich' ? 'Keilstrich' : 'Chiralit\u00e4ts') + '-Quiz wird gestartet\u2026');
+        // Show end button, hide start button
+        if (category === 'Keilstrich') {
+            document.getElementById('btnQuizStartKeilstrich').style.display = 'none';
+            document.getElementById('btnQuizEndKeilstrich').style.display = 'block';
+        } else {
+            document.getElementById('btnQuizStartChirality').style.display = 'none';
+            document.getElementById('btnQuizEndChirality').style.display = 'block';
+        }
+    }
+
+    function quizNext() {
+        send({ type: 'quiz', action: 'next' });
+    }
+
+    function quizEnd() {
+        send({ type: 'quiz', action: 'end' });
+    }
+
+    function quizReset() {
+        // Hide both quiz panels
+        document.getElementById('quizPanelKeilstrich').style.display = 'none';
+        document.getElementById('quizPanelKeilstrich').innerHTML = '';
+        document.getElementById('quizPanelChirality').style.display = 'none';
+        document.getElementById('quizPanelChirality').innerHTML = '';
+        // Restore start buttons, hide end buttons
+        document.getElementById('btnQuizStartKeilstrich').style.display = 'block';
+        document.getElementById('btnQuizEndKeilstrich').style.display = 'none';
+        document.getElementById('btnQuizStartChirality').style.display = 'block';
+        document.getElementById('btnQuizEndChirality').style.display = 'none';
+        quizActiveCategory = null;
+    }
+
+    function quizAnswer(index) {
+        if (quizAnswered) return;
+        quizAnswered = true;
+        send({ type: 'quiz', action: 'answer', answer: index });
+
+        var btns = document.querySelectorAll('#quizAnswers .btn');
+        btns.forEach(function(b) { b.style.pointerEvents = 'none'; b.style.opacity = '0.7'; });
+    }
+
+    function handleQuizQuestion(data) {
+        quizAnswered = false;
+        // Determine category from server data
+        if (data.category === 'Keilstrich') quizActiveCategory = 'Keilstrich';
+        else quizActiveCategory = 'Chirality';
+
+        var container = getQuizContainer();
+        if (!container) return;
+        container.style.display = 'block';
+        container.innerHTML = buildQuizHTML('active');
+
+        document.getElementById('quizCategory').textContent = data.category === 'Keilstrich' ? '\u25b2 Keilstrichformel' : '\u262b Chiralit\u00e4t';
+        document.getElementById('quizScore').textContent = data.score + ' Punkte';
+        document.getElementById('quizProgressLabel').textContent = 'Frage ' + (data.questionIndex + 1) + ' von ' + data.totalQuestions;
+        document.getElementById('quizProgressBar').style.width = Math.round(((data.questionIndex) / data.totalQuestions) * 100) + '%';
+        document.getElementById('quizQuestionText').textContent = data.questionText;
+        document.getElementById('quizMolecule').textContent = data.moleculeName ? '\u{1F9EA} Molek\u00fcl: ' + data.moleculeName : '';
+
+        var answersContainer = document.getElementById('quizAnswers');
+        answersContainer.innerHTML = '';
+        data.answers.forEach(function(answer, i) {
+            var btn = document.createElement('button');
+            btn.className = 'btn btn-ghost';
+            btn.style.width = '100%';
+            btn.style.fontSize = '15px';
+            btn.textContent = answer;
+            btn.onclick = function() { quizAnswer(i); };
+            answersContainer.appendChild(btn);
+        });
+    }
+
+    function handleQuizAnswerResult(data) {
+        var btns = document.querySelectorAll('#quizAnswers .btn');
+        btns.forEach(function(b, i) {
+            b.style.pointerEvents = 'none';
+            if (i === data.correctIndex) {
+                b.style.background = 'linear-gradient(135deg, var(--ok), #2dd4a0)';
+                b.style.color = '#064e36';
+                b.style.opacity = '1';
+                b.style.border = 'none';
+            } else if (i === data.selectedIndex && !data.correct) {
+                b.style.background = 'rgba(248,113,113,.25)';
+                b.style.color = 'var(--err)';
+                b.style.opacity = '1';
+                b.style.border = '1px solid var(--err)';
+            } else {
+                b.style.opacity = '0.3';
+            }
+        });
+
+        var scoreEl = document.getElementById('quizScore');
+        if (scoreEl) scoreEl.textContent = data.score + ' Punkte';
+
+        if (data.explanation) {
+            document.getElementById('quizExplanation').style.display = 'block';
+            document.getElementById('quizExplanationText').textContent = data.explanation;
+        }
+
+        document.getElementById('quizNextRow').style.display = 'block';
+        showToast(data.correct ? '\u2705 Richtig!' : '\u274c Falsch!');
+    }
+
+    function handleQuizFinished(data) {
+        var container = getQuizContainer();
+        if (!container) return;
+        container.innerHTML = buildQuizHTML('finished');
+
+        // Restore start/end buttons
+        document.getElementById('btnQuizStartKeilstrich').style.display = 'block';
+        document.getElementById('btnQuizEndKeilstrich').style.display = 'none';
+        document.getElementById('btnQuizStartChirality').style.display = 'block';
+        document.getElementById('btnQuizEndChirality').style.display = 'none';
+
+        var pct = Math.round((data.score / data.total) * 100);
+        document.getElementById('quizResultScore').textContent = data.score + ' von ' + data.total + ' richtig (' + pct + '%)';
+
+        var emoji, rating;
+        if (pct >= 80) { emoji = '\u{1F3C6}'; rating = 'Ausgezeichnet!'; }
+        else if (pct >= 60) { emoji = '\u{1F44D}'; rating = 'Gut gemacht!'; }
+        else if (pct >= 40) { emoji = '\u{1F914}'; rating = 'Nicht schlecht.'; }
+        else { emoji = '\u{1F4AA}'; rating = 'Weiter \u00fcben!'; }
+
+        document.getElementById('quizResultEmoji').textContent = emoji;
+        document.getElementById('quizResultRating').textContent = rating;
     }
 
     // ==================== INIT ====================
