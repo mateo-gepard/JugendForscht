@@ -576,6 +576,10 @@ public class WebSocketServer : MonoBehaviour
                     chiralityPanel.Initialize();
                 }
             }
+            else if (data.type == "lorentz")
+            {
+                HandleLorentzCommand(data.action, data.floatValue);
+            }
         }
         catch (Exception e)
         {
@@ -645,6 +649,29 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = false;
                 planeAlign.SetPlaneVisibility(false);
             }
+        }
+        else if (currentMode == "lorentz")
+        {
+            // Physik-Modus: Chemie-Visuals ausblenden, Lorentz-Labor aktivieren
+            SetStereoDisplay(false);
+            if (planeAlign != null)
+            {
+                planeAlign.showPlaneInVR = false;
+                planeAlign.SetPlaneVisibility(false);
+            }
+            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
+
+            // Molekül leeren
+            if (library != null) library.ClearCurrentMolecule();
+
+            // Lorentz-Lab sicherstellen
+            if (LorentzLabManager.Instance == null)
+            {
+                var go = new GameObject("LorentzLabManager");
+                PositionInFrontOfCamera(go, 0.6f, -0.15f);
+                go.AddComponent<LorentzLabManager>();
+            }
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Lorentz-Labor aktiv\"}");
         }
         else
         {
@@ -1295,15 +1322,106 @@ uU();cn();
         }
     }
 
+    // ════════════════════════════════════════════════════════════
+    //  Hilfsfunktion: Objekt vor die Kamera setzen
+    // ════════════════════════════════════════════════════════════
+
+    private void PositionInFrontOfCamera(GameObject obj, float distance, float yOffset)
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+        Vector3 forward = cam.transform.forward;
+        forward.y = 0f;
+        forward.Normalize();
+        Vector3 pos = cam.transform.position + forward * distance;
+        pos.y = cam.transform.position.y + yOffset;
+        obj.transform.position = pos;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  Lorentz-Labor
+    // ════════════════════════════════════════════════════════════
+
+    private void HandleLorentzCommand(string action, float floatValue)
+    {
+        var lab = LorentzLabManager.Instance;
+        if (lab == null)
+        {
+            // Auto-create if not in scene
+            var go = new GameObject("LorentzLabManager");
+            PositionInFrontOfCamera(go, 0.6f, -0.15f);
+            lab = go.AddComponent<LorentzLabManager>();
+        }
+
+        switch (action)
+        {
+            case "play":
+                lab.Play();
+                BroadcastLorentzState(lab);
+                break;
+            case "pause":
+                lab.Pause();
+                BroadcastLorentzState(lab);
+                break;
+            case "reset":
+                lab.Reset();
+                BroadcastLorentzState(lab);
+                break;
+            case "toggle_charge":
+                lab.ToggleCharge();
+                BroadcastLorentzState(lab);
+                break;
+            case "set_charge_positive":
+                lab.SetCharge(1);
+                BroadcastLorentzState(lab);
+                break;
+            case "set_charge_negative":
+                lab.SetCharge(-1);
+                BroadcastLorentzState(lab);
+                break;
+            case "quiz_mode":
+                lab.ToggleQuizMode();
+                BroadcastLorentzState(lab);
+                break;
+            case "set_field_strength":
+                lab.SetFieldStrength(floatValue);
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"B = {floatValue:F1} T\"}}");
+                break;
+            case "set_speed":
+                lab.SetStartVelocity(new Vector3(floatValue, 0f, 0f));
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"v = {floatValue:F1} m/s\"}}");
+                break;
+            case "finger_rule":
+                lab.ToggleFingerRule();
+                BroadcastMessage($"{{\"type\":\"lorentz_state\",\"fingerRule\":{(lab.IsFingerRuleActive ? "true" : "false")}}}");
+                break;
+            default:
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Unbekannter Lorentz-Befehl: {action}\"}}");
+                break;
+        }
+    }
+
+    private void BroadcastLorentzState(LorentzLabManager lab)
+    {
+        string state = lab.IsRunning ? "running" : "idle";
+        if (lab.particle != null && !lab.particle.IsSimulating && lab.particle.Velocity.sqrMagnitude > 0.001f)
+            state = "paused";
+        int charge = lab.particle != null ? lab.particle.chargeSign : 1;
+        bool quiz = lab.IsQuizMode;
+        float field = lab.fieldVolume != null ? lab.fieldVolume.fieldStrength : 1f;
+        BroadcastMessage($"{{\"type\":\"lorentz_state\",\"state\":\"{state}\",\"charge\":{charge},\"quizMode\":{quiz.ToString().ToLower()},\"fieldStrength\":{field:F1}}}");
+    }
+
     [Serializable]
     public class WebSocketMessage
     {
         public string type;
         public string molecule;
         public string action;   // For tutorial/chirality/isomer/quiz commands
-        public string mode;     // For mode switch: "keilstrich" or "isomerie"
+        public string mode;     // For mode switch: "keilstrich", "isomerie", or "lorentz"
         public int center;      // For isomer inversion: chiral center atom ID
         public int answer;      // For quiz: selected answer index
         public bool visible;    // For vr_panel: show/hide
+        public float floatValue; // For lorentz: field strength, speed, etc.
     }
 }

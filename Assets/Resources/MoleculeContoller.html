@@ -480,6 +480,124 @@ body {
         <button class="btn btn-danger" onclick="clearAll()" style="width:100%;margin-bottom:14px">&#128465; Alles leeren</button>
     </div>
 
+    <!-- ==================== LORENTZ TAB ==================== -->
+    <div class="tab-content" id="contentLorentz">
+
+        <!-- Formel -->
+        <div class="card" style="text-align:center;padding:18px 20px">
+            <div style="font-size:22px;font-weight:700;letter-spacing:1px;margin-bottom:4px">
+                F<sub>L</sub> = q &middot; ( v &times; B )
+            </div>
+            <div style="font-size:12px;color:var(--t3)">Lorentzkraft &ndash; Drei-Finger-Regel in VR</div>
+        </div>
+
+        <!-- Simulation Control -->
+        <div class="card">
+            <div class="card-label">Simulation</div>
+            <div class="row" style="margin-bottom:10px">
+                <button class="btn btn-confirm" onclick="lorentzPlay()" id="btnLorentzPlay" style="flex:1">&#9654; Play</button>
+                <button class="btn btn-ghost" onclick="lorentzPause()" id="btnLorentzPause" style="flex:1">&#9646;&#9646; Pause</button>
+                <button class="btn btn-danger" onclick="lorentzReset()" id="btnLorentzReset" style="flex:1">&#9724; Reset</button>
+            </div>
+            <div id="lorentzStateBar" style="text-align:center;font-size:13px;color:var(--t3);padding:6px 0">
+                Bereit &ndash; Dr&uuml;cke Play um zu starten
+            </div>
+        </div>
+
+        <!-- Ladung -->
+        <div class="card">
+            <div class="card-label">Ladung</div>
+            <div class="row">
+                <button class="btn" onclick="lorentzSetCharge(1)" id="btnChargePos"
+                    style="flex:1;background:linear-gradient(135deg, #ef4444, #dc2626);font-size:16px;font-weight:700">
+                    + Proton
+                </button>
+                <button class="btn" onclick="lorentzSetCharge(-1)" id="btnChargeNeg"
+                    style="flex:1;background:var(--el);border:1px solid var(--brd);font-size:16px;font-weight:700">
+                    &minus; Elektron
+                </button>
+            </div>
+            <div style="text-align:center;font-size:12px;color:var(--t3);margin-top:10px">
+                <span style="color:#ef4444">&#9758; Rechte Hand</span> = positive Ladung &nbsp;&bull;&nbsp;
+                <span style="color:#6c8aff">&#9756; Linke Hand</span> = negative Ladung
+            </div>
+        </div>
+
+        <!-- Quiz-Modus -->
+        <div class="card">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Quiz-Modus</span>
+                <span id="quizModeLabel" style="font-size:11px;color:var(--t3);text-transform:none;letter-spacing:0">Aus</span>
+            </div>
+            <p style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:14px">
+                Blendet den Kraft-Pfeil (F<sub>L</sub>) aus. Sch&uuml;ler sollen mit der Hand zeigen,
+                wohin das Teilchen abgelenkt wird.
+            </p>
+            <button class="btn" onclick="lorentzToggleQuiz()" id="btnQuizMode"
+                style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);font-size:15px;padding:14px">
+                &#127891; Quiz-Modus aktivieren
+            </button>
+        </div>
+
+        <!-- Drei-Finger-Regel -->
+        <div class="card">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Drei-Finger-Regel</span>
+                <span id="fingerRuleLabel" style="font-size:11px;color:var(--t3);text-transform:none;letter-spacing:0">Aus</span>
+            </div>
+            <p style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:14px">
+                Erkennt per Hand-Tracking, ob die rechte Hand die Drei-Finger-Regel
+                korrekt zeigt. Pfeilspitzen werden gr&uuml;n (richtig) oder rot (falsch).
+            </p>
+            <button class="btn" onclick="lorentzToggleFingerRule()" id="btnFingerRule"
+                style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);font-size:15px;padding:14px">
+                &#9995; Finger-Regel aktivieren
+            </button>
+        </div>
+
+        <!-- Parameter -->
+        <div class="card">
+            <div class="card-label">Parameter</div>
+            <div style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span>Magnetfeldst&auml;rke</span>
+                    <span id="fieldStrengthVal" style="color:var(--acc);font-weight:600">1.0 T</span>
+                </div>
+                <input type="range" id="sliderField" min="0.1" max="5" step="0.1" value="1.0"
+                    oninput="lorentzSetField(this.value)"
+                    style="width:100%;accent-color:var(--acc)">
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span>Teilchengeschwindigkeit</span>
+                    <span id="speedVal" style="color:var(--ok);font-weight:600">0.15 m/s</span>
+                </div>
+                <input type="range" id="sliderSpeed" min="0.05" max="1.0" step="0.05" value="0.15"
+                    oninput="lorentzSetSpeed(this.value)"
+                    style="width:100%;accent-color:var(--ok)">
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="card">
+            <div class="card-label">Legende</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#34d399;flex-shrink:0"></span>
+                    <span><b>v</b> &ndash; Geschwindigkeit (gr&uuml;n)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#6c8aff;flex-shrink:0"></span>
+                    <span><b>B</b> &ndash; Magnetfeld (blau/cyan)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#f59e0b;flex-shrink:0"></span>
+                    <span><b>F<sub>L</sub></b> &ndash; Lorentzkraft (gelb/orange)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="info-line">Jugend Forscht &middot; Meta Quest 3 &middot; VR Lernumgebung</div>
 </div>
 
@@ -494,13 +612,13 @@ body {
                 <div class="ot"><div class="on">Chemie</div><div class="od">Molek&uuml;lgeometrie &amp; Stereochemie</div></div>
                 <span class="oc">&#10003;</span>
             </div>
-            <div class="opt dis" id="optPhysik">
+            <div class="opt" id="optPhysik" onclick="selectSubject('physik')">
                 <span class="oi">&#9889;</span>
-                <div class="ot"><div class="on">Physik</div><div class="od">Lorentzkraft &ndash; Demnächst verf&uuml;gbar</div></div>
+                <div class="ot"><div class="on">Physik</div><div class="od">Lorentzkraft &ndash; Klasse 9</div></div>
                 <span class="oc">&#10003;</span>
             </div>
         </div>
-        <div class="popup-section">
+        <div class="popup-section" id="topicSection">
             <div class="popup-label">Thema</div>
             <div class="opt sel" id="optKeilstrich" onclick="selectTopic('keilstrich')">
                 <span class="oi">&#9650;</span>
@@ -510,6 +628,11 @@ body {
             <div class="opt" id="optChiralitaet" onclick="selectTopic('isomerie')">
                 <span class="oi">&#9883;</span>
                 <div class="ot"><div class="on">Chiralit&auml;t &amp; Isomerie</div><div class="od">Stereochemie &amp; Spiegelbildisomerie &ndash; Klasse 11</div></div>
+                <span class="oc">&#10003;</span>
+            </div>
+            <div class="opt" id="optLorentz" onclick="selectTopic('lorentz')" style="display:none">
+                <span class="oi">&#9889;</span>
+                <div class="ot"><div class="on">Lorentzkraft</div><div class="od">Drei-Finger-Regel in VR &ndash; Klasse 9</div></div>
                 <span class="oc">&#10003;</span>
             </div>
         </div>
@@ -548,13 +671,26 @@ body {
     function closeNavPopup() {
         document.getElementById('navOverlay').classList.remove('visible');
     }
+    var currentSubject = 'chemie';
+
     function selectSubject(subj) {
-        // Currently only chemie is available
-        document.getElementById('optChemie').classList.add('sel');
+        currentSubject = subj;
+        document.getElementById('optChemie').classList.toggle('sel', subj === 'chemie');
+        document.getElementById('optPhysik').classList.toggle('sel', subj === 'physik');
+        // Zeige passende Themen
+        document.getElementById('optKeilstrich').style.display = subj === 'chemie' ? '' : 'none';
+        document.getElementById('optChiralitaet').style.display = subj === 'chemie' ? '' : 'none';
+        document.getElementById('optLorentz').style.display = subj === 'physik' ? '' : 'none';
+        // Brand aktualisieren
+        document.getElementById('brandSub').textContent = subj === 'chemie' ? 'Chemie' : 'Physik';
+        // Auto-select erstes Thema
+        if (subj === 'physik') selectTopic('lorentz');
+        else selectTopic('keilstrich');
     }
     function selectTopic(topic) {
         document.getElementById('optKeilstrich').classList.toggle('sel', topic === 'keilstrich');
         document.getElementById('optChiralitaet').classList.toggle('sel', topic === 'isomerie');
+        document.getElementById('optLorentz').classList.toggle('sel', topic === 'lorentz');
         switchTab(topic);
         closeNavPopup();
     }
@@ -602,9 +738,23 @@ body {
         currentTab = tab;
         document.getElementById('contentKeilstrich').className = tab === 'keilstrich' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentIsomerie').className = tab === 'isomerie' ? 'tab-content active' : 'tab-content';
-        var bc = document.getElementById('breadcrumbTopic');
-        bc.textContent = tab === 'keilstrich' ? 'Keilstrichformel' : 'Chiralit\u00e4t & Isomerie';
-        send({ type: 'mode', mode: tab === 'keilstrich' ? 'keilstrich' : 'isomerie' });
+        document.getElementById('contentLorentz').className = tab === 'lorentz' ? 'tab-content active' : 'tab-content';
+        // Breadcrumb
+        var bcSubject = document.querySelector('#breadcrumb b:first-of-type');
+        var bcTopic = document.getElementById('breadcrumbTopic');
+        if (tab === 'lorentz') {
+            bcSubject.textContent = 'Physik';
+            bcTopic.textContent = 'Lorentzkraft';
+        } else {
+            bcSubject.textContent = 'Chemie';
+            bcTopic.textContent = tab === 'keilstrich' ? 'Keilstrichformel' : 'Chiralit\u00e4t & Isomerie';
+        }
+        // Builder-Button nur in Chemie
+        var builderBtn = document.getElementById('btnBuilder');
+        if (builderBtn) builderBtn.parentElement.style.display = tab === 'lorentz' ? 'none' : '';
+        // Mode an Unity senden
+        var mode = tab;
+        send({ type: 'mode', mode: mode });
     }
 
     // ==================== CONNECTION ====================
@@ -672,6 +822,8 @@ body {
             handleQuizAnswerResult(data);
         } else if (data.type === 'quiz_finished') {
             handleQuizFinished(data);
+        } else if (data.type === 'lorentz_state') {
+            handleLorentzState(data);
         }
     }
 
@@ -749,6 +901,23 @@ body {
                     handleMessage({type:'quiz_finished',score:mockQuizScore,total:2});
                 }
             }, 400);
+        }
+        else if (obj.type === 'lorentz') {
+            setTimeout(function() {
+                var mockCharge = mockLorentzCharge || 1;
+                if (obj.action === 'toggle_charge') mockCharge = -mockCharge;
+                else if (obj.action === 'set_charge_positive') mockCharge = 1;
+                else if (obj.action === 'set_charge_negative') mockCharge = -1;
+                mockLorentzCharge = mockCharge;
+                var state = 'idle';
+                if (obj.action === 'play') state = 'running';
+                else if (obj.action === 'pause') state = 'paused';
+                else if (obj.action === 'reset') state = 'idle';
+                handleMessage({type:'lorentz_state',state:state,charge:mockCharge,
+                    quizMode:mockLorentzQuiz||false,fieldStrength:parseFloat(document.getElementById('sliderField').value)});
+                if (obj.action === 'quiz_mode') mockLorentzQuiz = !(mockLorentzQuiz||false);
+                showToast('Lorentz: ' + obj.action);
+            }, 200);
         }
     }
 
@@ -1077,6 +1246,105 @@ body {
 
         document.getElementById('quizResultEmoji').textContent = emoji;
         document.getElementById('quizResultRating').textContent = rating;
+    }
+
+    // ==================== LORENTZ-LABOR ====================
+    var mockLorentzCharge = 1;
+    var mockLorentzQuiz = false;
+    var lorentzChargeSign = 1;
+    var lorentzQuizActive = false;
+
+    function lorentzPlay() { send({ type: 'lorentz', action: 'play' }); }
+    function lorentzPause() { send({ type: 'lorentz', action: 'pause' }); }
+    function lorentzReset() { send({ type: 'lorentz', action: 'reset' }); }
+
+    function lorentzSetCharge(sign) {
+        var action = sign > 0 ? 'set_charge_positive' : 'set_charge_negative';
+        send({ type: 'lorentz', action: action });
+        updateChargeButtons(sign);
+    }
+
+    function lorentzToggleQuiz() {
+        send({ type: 'lorentz', action: 'quiz_mode' });
+    }
+
+    var fingerRuleActive = false;
+    function lorentzToggleFingerRule() {
+        fingerRuleActive = !fingerRuleActive;
+        send({ type: 'lorentz', action: 'finger_rule' });
+        var btn = document.getElementById('btnFingerRule');
+        var label = document.getElementById('fingerRuleLabel');
+        if (fingerRuleActive) {
+            btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            btn.innerHTML = '&#9995; Finger-Regel deaktivieren';
+            label.textContent = 'An';
+            label.style.color = 'var(--ok)';
+        } else {
+            btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            btn.innerHTML = '&#9995; Finger-Regel aktivieren';
+            label.textContent = 'Aus';
+            label.style.color = 'var(--t3)';
+        }
+    }
+
+    function lorentzSetField(val) {
+        val = parseFloat(val);
+        document.getElementById('fieldStrengthVal').textContent = val.toFixed(1) + ' T';
+        send({ type: 'lorentz', action: 'set_field_strength', floatValue: val });
+    }
+
+    function lorentzSetSpeed(val) {
+        val = parseFloat(val);
+        document.getElementById('speedVal').textContent = val.toFixed(1) + ' m/s';
+        send({ type: 'lorentz', action: 'set_speed', floatValue: val });
+    }
+
+    function updateChargeButtons(sign) {
+        lorentzChargeSign = sign;
+        var pos = document.getElementById('btnChargePos');
+        var neg = document.getElementById('btnChargeNeg');
+        if (sign > 0) {
+            pos.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            pos.style.border = 'none';
+            neg.style.background = 'var(--el)';
+            neg.style.border = '1px solid var(--brd)';
+        } else {
+            neg.style.background = 'linear-gradient(135deg, #6c8aff, #4f46e5)';
+            neg.style.border = 'none';
+            pos.style.background = 'var(--el)';
+            pos.style.border = '1px solid var(--brd)';
+        }
+    }
+
+    function handleLorentzState(data) {
+        // Update charge buttons
+        if (data.charge !== undefined) updateChargeButtons(data.charge);
+
+        // Update quiz mode
+        lorentzQuizActive = data.quizMode || false;
+        var qBtn = document.getElementById('btnQuizMode');
+        var qLabel = document.getElementById('quizModeLabel');
+        if (lorentzQuizActive) {
+            qBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            qBtn.innerHTML = '&#128065; Quiz-Modus deaktivieren';
+            qLabel.textContent = 'An \u2013 F\u2097-Pfeil ausgeblendet';
+            qLabel.style.color = 'var(--err)';
+        } else {
+            qBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+            qBtn.innerHTML = '&#127891; Quiz-Modus aktivieren';
+            qLabel.textContent = 'Aus';
+            qLabel.style.color = 'var(--t3)';
+        }
+
+        // Update state bar
+        var bar = document.getElementById('lorentzStateBar');
+        if (data.state === 'running') {
+            bar.innerHTML = '<span style="color:var(--ok)">\u25cf</span> Simulation l\u00e4uft\u2026';
+        } else if (data.state === 'paused') {
+            bar.innerHTML = '<span style="color:var(--warn)">\u25cf</span> Pausiert';
+        } else {
+            bar.innerHTML = 'Bereit \u2013 Dr\u00fccke Play um zu starten';
+        }
     }
 
     // ==================== INIT ====================

@@ -78,6 +78,14 @@ JugendForscht/
 │   │   │   ├── PeriodicTableDisplay.cs # Periodensystem-UI in VR
 │   │   │   ├── BuilderAtom.cs          # Valenz, Ladung, Oktettregel
 │   │   │   └── BuilderTile.cs          # Poke-Button für PSE und Tools
+│   │   ├── Physics/            # Lorentz-Labor — Magnetfeld & Lorentzkraft
+│   │   │   ├── LorentzLabManager.cs    # Singleton-Orchestrator (Singleton)
+│   │   │   ├── MagneticFieldVolume.cs  # B-Feld-Box mit prozeduraler Pfeil-Visualisierung
+│   │   │   ├── ChargedParticle.cs      # Rigidbody-Teilchen mit F_L = q·(v×B)
+│   │   │   ├── VectorArrowDisplay.cs   # Echtzeit-Vektorpfeile (v, B, F_L) am Teilchen
+│   │   │   ├── FingerRuleChecker.cs    # Hand-Tracking: Drei-Finger-Regel Bewertung
+│   │   │   ├── FieldVolumeGrab.cs      # XR-Grab für B-Feld-Box per Pinch
+│   │   │   └── LorentzLabSetup.cs      # Szenen-Helfer: erzeugt Lab-Hierarchie
 │   │   ├── Quiz/               # Quiz-System
 │   │   │   ├── QuizManager.cs
 │   │   │   └── QuizButton.cs
@@ -139,11 +147,27 @@ JugendForscht/
 
 ### iPad-Controller
 - Dunkles Premium-UI, optimiert für Touch
-- **Hamburger-Menü** — Fach (Chemie / Physik) und Thema (Keilstrichformel / Chiralität & Isomerie) über Popup wählbar
+- **Hamburger-Menü** — Fach (Chemie / Physik) und Thema (Keilstrichformel / Chiralität & Isomerie / Lorentz-Labor) über Popup wählbar
 - **Verbindungsleiste** — Echtzeit-Anzeige verbundener Geräte (rot/grün) und Gerätepopup
 - Tutorial starten/pausieren/fortsetzen
 - Moleküle laden (Schnellauswahl + Freitextsuche), für beide Themenbereiche
 - Chiralitätswerkzeuge: Zentren erkennen, Enantiomere/Diastereomere/Konformere erzeugen, cis/trans, Konstitutionsisomere, Meso-Erkennung
+- Lorentz-Labor: Simulation steuern, Ladung/Feld/Geschwindigkeit einstellen, Quiz- und Finger-Regel-Modus
+
+### Lorentz-Labor (Physik-Modul)
+
+Tischplatten-Experiment-Simulation der Lorentzkraft $F_L = q \cdot (\vec{v} \times \vec{B})$:
+
+- **Magnetfeld-Box** (0,5 × 0,5 × 0,5 m) — prozedurales 6×6×6-Pfeilgitter in Echtzeit, greifbar per Pinch-Geste (XR-Grab)
+- **Geladenes Teilchen** — fliegt von links in das Feld und wird auf einer Kreisbahn abgelenkt (Rigidbody + FixedUpdate, VR-Handedness-korrigiert)
+- **Vektorpfeile am Teilchen** — v (grün), B (cyan), F_L (orange) skalieren und drehen sich live mit der Physik-Simulation
+- **Quiz-Modus** — F_L-Pfeil ausblenden; Schüler schätzen Ablenkungsrichtung
+- **Drei-Finger-Regel** (UVW-Regel):
+  - Über iPad aktivierbar
+  - Erkennt per Hand-Tracking die Richtung von Daumen (→ v), Zeigefinger (→ B) und Mittelfinger (→ F_L)
+  - Beschriftete Labels schweben an den Fingerspitzen
+  - Alle Pfeilspitzen **grün** bei ≤ 20° Abweichung aller drei Finger, **rot** sonst
+- **Lehrersteuerung** — Feldstärke (0,1–5 T), Geschwindigkeit (0,05–1 m/s), Ladungsvorzeichen (Proton/Elektron) über iPad-Slider
 
 ---
 
@@ -176,6 +200,7 @@ Die Tutorial-Timeline wird über ein Editor-Skript generiert:
 - **XR SDK**: Meta XR SDK 83.0.0, XR Interaction Toolkit 2.6.5
 - **Shader**: Custom Unlit mit GPU-Instancing + Stereo-Support
 - **Networking**: Eigener WebSocket-Server (System.Net.Sockets)
+- **Physik**: Unity-Rigidbody mit Handedness-Korrektur für Lorentzkraft
 - **API**: PubChem REST API (3D-Konformer als JSON)
 - **Web**: Plotly.js Dashboard auf Vercel
 
