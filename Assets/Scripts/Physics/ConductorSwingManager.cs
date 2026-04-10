@@ -28,6 +28,7 @@ public class ConductorSwingManager : MonoBehaviour
     public ConductorSwing conductor;
     public SwingVectorDisplay vectorDisplay;
     public SwingFieldGrab fieldGrab;
+    public FingerRuleChecker fingerRuleChecker;
 
     // ════════════════════════════════════════════════════════════
     //  Einstellungen
@@ -163,6 +164,24 @@ public class ConductorSwingManager : MonoBehaviour
             conductor.current = ampere;
     }
 
+    /// <summary>Drei-Finger-Regel togglen.</summary>
+    public void ToggleFingerRule()
+    {
+        EnsureFingerRuleChecker();
+        if (fingerRuleChecker != null)
+            fingerRuleChecker.Toggle();
+    }
+
+    /// <summary>Drei-Finger-Regel an/aus.</summary>
+    public void SetFingerRule(bool enabled)
+    {
+        EnsureFingerRuleChecker();
+        if (fingerRuleChecker != null)
+            fingerRuleChecker.SetActive(enabled);
+    }
+
+    public bool IsFingerRuleActive => fingerRuleChecker != null && fingerRuleChecker.IsActive;
+
     // ════════════════════════════════════════════════════════════
     //  Automatische Erzeugung
     // ════════════════════════════════════════════════════════════
@@ -228,6 +247,22 @@ public class ConductorSwingManager : MonoBehaviour
         Vector3 pos = cam.transform.position + forward * 0.6f + right * 0.4f;
         pos.y = cam.transform.position.y - 0.1f;
         transform.position = pos;
+    }
+
+    private void EnsureFingerRuleChecker()
+    {
+        if (fingerRuleChecker != null) return;
+
+        fingerRuleChecker = FindObjectOfType<FingerRuleChecker>();
+        if (fingerRuleChecker == null)
+        {
+            GameObject obj = new GameObject("Finger-Regel Checker (Schaukel)");
+            obj.transform.SetParent(transform, false);
+            fingerRuleChecker = obj.AddComponent<FingerRuleChecker>();
+        }
+        fingerRuleChecker.mode = FingerRuleChecker.FingerRuleMode.Swing;
+        fingerRuleChecker.fieldVolume = fieldVolume;
+        fingerRuleChecker.conductorSwing = conductor;
     }
 
     // ════════════════════════════════════════════════════════════

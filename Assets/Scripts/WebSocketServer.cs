@@ -1556,6 +1556,10 @@ uU();cn();
                 mgr.SetCurrent(floatValue);
                 BroadcastMessage($"{{\"type\":\"status\",\"message\":\"I = {floatValue:F1} A\"}}");
                 break;
+            case "finger_rule":
+                mgr.ToggleFingerRule();
+                BroadcastSwingState(mgr);
+                break;
             default:
                 BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Unbekannter Schaukel-Befehl: {action}\"}}");
                 break;
@@ -1567,9 +1571,10 @@ uU();cn();
         bool on = mgr.conductor != null && mgr.conductor.IsCurrentOn;
         int dir = mgr.conductor != null ? mgr.conductor.currentDirection : 1;
         bool quiz = mgr.IsQuizMode;
+        bool finger = mgr.IsFingerRuleActive;
         float field = mgr.fieldVolume != null ? mgr.fieldVolume.fieldStrength : 0.33f;
         float cur = mgr.conductor != null ? mgr.conductor.current : 5f;
-        BroadcastMessage($"{{\"type\":\"swing_state\",\"currentOn\":{on.ToString().ToLower()},\"currentDir\":{dir},\"quizMode\":{quiz.ToString().ToLower()},\"fieldStrength\":{field:F2},\"current\":{cur:F1}}}");
+        BroadcastMessage($"{{\"type\":\"swing_state\",\"currentOn\":{on.ToString().ToLower()},\"currentDir\":{dir},\"quizMode\":{quiz.ToString().ToLower()},\"fingerRule\":{finger.ToString().ToLower()},\"fieldStrength\":{field:F2},\"current\":{cur:F1}}}");
     }
 
     // ════════════════════════════════════════════════════════════
@@ -1612,6 +1617,10 @@ uU();cn();
                 mgr.SetResistance(floatValue);
                 BroadcastMessage($"{{\"type\":\"status\",\"message\":\"R = {floatValue:F2} Ω\"}}");
                 break;
+            case "finger_rule":
+                mgr.ToggleFingerRule();
+                BroadcastInductionState(mgr);
+                break;
             default:
                 BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Unbekannter Induktions-Befehl: {action}\"}}");
                 break;
@@ -1625,7 +1634,8 @@ uU();cn();
         float field = mgr.fieldVolume != null ? mgr.fieldVolume.fieldStrength : 0.33f;
         float res = mgr.loop != null ? mgr.loop.resistance : 0.15f;
         int flowSign = mgr.CurrentFlowSign;
-        BroadcastMessage($"{{\"type\":\"induction_state\",\"slitOpen\":{slit.ToString().ToLower()},\"phase\":\"{ph}\",\"fieldStrength\":{field:F2},\"resistance\":{res:F2},\"flowSign\":{flowSign}}}");
+        bool finger = mgr.IsFingerRuleActive;
+        BroadcastMessage($"{{\"type\":\"induction_state\",\"slitOpen\":{slit.ToString().ToLower()},\"phase\":\"{ph}\",\"fieldStrength\":{field:F2},\"resistance\":{res:F2},\"flowSign\":{flowSign},\"fingerRule\":{finger.ToString().ToLower()}}}");
     }
 
     [Serializable]

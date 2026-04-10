@@ -657,6 +657,22 @@ body {
             </button>
         </div>
 
+        <!-- Drei-Finger-Regel -->
+        <div class="card">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Drei-Finger-Regel</span>
+                <span id="swingFingerLabel" style="font-size:11px;color:var(--t3);text-transform:none;letter-spacing:0">Aus</span>
+            </div>
+            <p style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:14px">
+                Erkennt per Hand-Tracking, ob die rechte Hand die UVW-Regel
+                korrekt zeigt: Daumen&nbsp;=&nbsp;I, Zeigefinger&nbsp;=&nbsp;B, Mittelfinger&nbsp;=&nbsp;F<sub>L</sub>.
+            </p>
+            <button class="btn" onclick="swingToggleFingerRule()" id="btnSwingFinger"
+                style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);font-size:15px;padding:14px">
+                &#9995; Finger-Regel aktivieren
+            </button>
+        </div>
+
         <!-- Parameter -->
         <div class="card">
             <div class="card-label">Parameter</div>
@@ -748,6 +764,22 @@ body {
             <div id="inductionFlowDir" style="font-size:13px;padding:4px 0;color:var(--t3);display:none">
                 Stromrichtung: <span id="inductionFlowLabel" style="font-weight:600;color:#facc15">--</span>
             </div>
+        </div>
+
+        <!-- Drei-Finger-Regel -->
+        <div class="card">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Drei-Finger-Regel</span>
+                <span id="inductionFingerLabel" style="font-size:11px;color:var(--t3);text-transform:none;letter-spacing:0">Aus</span>
+            </div>
+            <p style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:14px">
+                Erkennt per Hand-Tracking, ob die rechte Hand die UVW-Regel
+                korrekt zeigt: Daumen&nbsp;=&nbsp;v, Zeigefinger&nbsp;=&nbsp;B, Mittelfinger&nbsp;=&nbsp;F.
+            </p>
+            <button class="btn" onclick="inductionToggleFingerRule()" id="btnInductionFinger"
+                style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);font-size:15px;padding:14px">
+                &#9995; Finger-Regel aktivieren
+            </button>
         </div>
 
         <!-- Parameter -->
@@ -1696,6 +1728,25 @@ body {
         send({ type:'swing', action:'quiz_mode' });
     }
 
+    var swingFingerActive = false;
+    function swingToggleFingerRule() {
+        swingFingerActive = !swingFingerActive;
+        send({ type:'swing', action:'finger_rule' });
+        var btn = document.getElementById('btnSwingFinger');
+        var label = document.getElementById('swingFingerLabel');
+        if (swingFingerActive) {
+            btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            btn.innerHTML = '&#9995; Finger-Regel deaktivieren';
+            label.textContent = 'An';
+            label.style.color = 'var(--ok)';
+        } else {
+            btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            btn.innerHTML = '&#9995; Finger-Regel aktivieren';
+            label.textContent = 'Aus';
+            label.style.color = 'var(--t3)';
+        }
+    }
+
     function swingSetField(val) {
         val = parseFloat(val);
         document.getElementById('swingFieldVal').textContent = val.toFixed(2) + ' T';
@@ -1737,6 +1788,24 @@ body {
             qBtn.innerHTML = '&#127891; Quiz-Modus aktivieren';
             qLabel.textContent = 'Aus';
             qLabel.style.color = 'var(--t3)';
+        }
+
+        // Finger rule
+        if (data.fingerRule !== undefined) {
+            swingFingerActive = data.fingerRule;
+            var fBtn = document.getElementById('btnSwingFinger');
+            var fLabel = document.getElementById('swingFingerLabel');
+            if (swingFingerActive) {
+                fBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                fBtn.innerHTML = '&#9995; Finger-Regel deaktivieren';
+                fLabel.textContent = 'An';
+                fLabel.style.color = 'var(--ok)';
+            } else {
+                fBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                fBtn.innerHTML = '&#9995; Finger-Regel aktivieren';
+                fLabel.textContent = 'Aus';
+                fLabel.style.color = 'var(--t3)';
+            }
         }
 
         // Sliders
@@ -1828,6 +1897,25 @@ body {
         send({ type:'induction', action:'set_resistance', floatValue: val });
     }
 
+    var inductionFingerActive = false;
+    function inductionToggleFingerRule() {
+        inductionFingerActive = !inductionFingerActive;
+        send({ type:'induction', action:'finger_rule' });
+        var btn = document.getElementById('btnInductionFinger');
+        var label = document.getElementById('inductionFingerLabel');
+        if (inductionFingerActive) {
+            btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            btn.innerHTML = '&#9995; Finger-Regel deaktivieren';
+            label.textContent = 'An';
+            label.style.color = 'var(--ok)';
+        } else {
+            btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+            btn.innerHTML = '&#9995; Finger-Regel aktivieren';
+            label.textContent = 'Aus';
+            label.style.color = 'var(--t3)';
+        }
+    }
+
     function handleInductionState(data) {
         // Spalt
         inductionSlitOpen = data.slitOpen || false;
@@ -1872,6 +1960,24 @@ body {
         if (data.resistance !== undefined) {
             document.getElementById('sliderInductionRes').value = data.resistance;
             document.getElementById('inductionResVal').textContent = parseFloat(data.resistance).toFixed(2) + ' \u03A9';
+        }
+
+        // Finger rule
+        if (data.fingerRule !== undefined) {
+            inductionFingerActive = data.fingerRule;
+            var fBtn = document.getElementById('btnInductionFinger');
+            var fLabel = document.getElementById('inductionFingerLabel');
+            if (inductionFingerActive) {
+                fBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                fBtn.innerHTML = '&#9995; Finger-Regel deaktivieren';
+                fLabel.textContent = 'An';
+                fLabel.style.color = 'var(--ok)';
+            } else {
+                fBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                fBtn.innerHTML = '&#9995; Finger-Regel aktivieren';
+                fLabel.textContent = 'Aus';
+                fLabel.style.color = 'var(--t3)';
+            }
         }
     }
 

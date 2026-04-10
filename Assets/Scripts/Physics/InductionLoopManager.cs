@@ -26,6 +26,7 @@ public class InductionLoopManager : MonoBehaviour
     public MagneticFieldVolume fieldVolume;
     public InductionLoop loop;
     public InductionLoopGrab loopGrab;
+    public FingerRuleChecker fingerRuleChecker;
 
     // ════════════════════════════════════════════════════════════
     //  Einstellungen
@@ -113,6 +114,24 @@ public class InductionLoopManager : MonoBehaviour
     /// <summary>Stromrichtung: +1=CW, -1=CCW, 0=keiner.</summary>
     public int CurrentFlowSign => loop != null ? loop.CurrentFlowSign : 0;
 
+    /// <summary>Drei-Finger-Regel togglen.</summary>
+    public void ToggleFingerRule()
+    {
+        EnsureFingerRuleChecker();
+        if (fingerRuleChecker != null)
+            fingerRuleChecker.Toggle();
+    }
+
+    /// <summary>Drei-Finger-Regel an/aus.</summary>
+    public void SetFingerRule(bool enabled)
+    {
+        EnsureFingerRuleChecker();
+        if (fingerRuleChecker != null)
+            fingerRuleChecker.SetActive(enabled);
+    }
+
+    public bool IsFingerRuleActive => fingerRuleChecker != null && fingerRuleChecker.IsActive;
+
     /// <summary>Aktuelle Phase.</summary>
     public string PhaseString
     {
@@ -189,6 +208,22 @@ public class InductionLoopManager : MonoBehaviour
         Vector3 pos = cam.transform.position + forward * 0.6f;
         pos.y = cam.transform.position.y - 0.05f;
         transform.position = pos;
+    }
+
+    private void EnsureFingerRuleChecker()
+    {
+        if (fingerRuleChecker != null) return;
+
+        fingerRuleChecker = FindObjectOfType<FingerRuleChecker>();
+        if (fingerRuleChecker == null)
+        {
+            GameObject obj = new GameObject("Finger-Regel Checker (Induktion)");
+            obj.transform.SetParent(transform, false);
+            fingerRuleChecker = obj.AddComponent<FingerRuleChecker>();
+        }
+        fingerRuleChecker.mode = FingerRuleChecker.FingerRuleMode.Induction;
+        fingerRuleChecker.fieldVolume = fieldVolume;
+        fingerRuleChecker.inductionLoop = loop;
     }
 
     // ════════════════════════════════════════════════════════════
