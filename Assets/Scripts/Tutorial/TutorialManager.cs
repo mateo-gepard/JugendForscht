@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Video;
 using System.Collections;
 using System.Collections.Generic;
@@ -85,6 +85,11 @@ public class TutorialManager : MonoBehaviour
     private float floatTimer = 0f;
 
     private WebSocketServer cachedWebSocket;
+
+    // VR buttons shown during pause
+    private GameObject vrButtonContainer;
+    private QuizButton vrWeiterButton;
+    private QuizButton vrNochmalButton;
 
     // ════════════════════════════════════════════════════════════
     // ANIMATION CONSTANTS
@@ -217,11 +222,13 @@ public class TutorialManager : MonoBehaviour
         currentUnitIndex = -1;
         videoReady = false;
 
+        HideVRPauseButtons();
+
         OnTutorialStateChanged?.Invoke(false);
         OnContinueButtonStateChanged?.Invoke(false);
     }
 
-    /// <summary>Advance to the next unit (called when iPad "Weiter" is pressed).</summary>
+    /// <summary>Advance to the next unit (called when iPad "Weiter" is pressed or VR button).</summary>
     public void ContinueToNextStep()
     {
         if (!isTutorialActive || !isWaitingForContinue) return;
@@ -229,6 +236,7 @@ public class TutorialManager : MonoBehaviour
         // Debug.Log("[Tutorial] Continue pressed");
         isWaitingForContinue = false;
         OnContinueButtonStateChanged?.Invoke(false);
+        HideVRPauseButtons();
 
         if (transitionCoroutine != null)
             StopCoroutine(transitionCoroutine);
@@ -244,6 +252,7 @@ public class TutorialManager : MonoBehaviour
         // Debug.Log("[Tutorial] Going back");
         isWaitingForContinue = false;
         OnContinueButtonStateChanged?.Invoke(false);
+        HideVRPauseButtons();
 
         if (transitionCoroutine != null)
         {
@@ -381,6 +390,9 @@ public class TutorialManager : MonoBehaviour
             // Notify iPad
             string unitName = timeline.units[currentUnitIndex].name;
             NotifyIPad($"{{\"type\":\"tutorial\",\"status\":\"waitingContinue\",\"unit\":{currentUnitIndex},\"unitName\":\"{unitName}\"}}");
+
+            // Show VR buttons so user can continue/replay from within the headset
+            ShowVRPauseButtons();
 
             // Debug.Log($"[Tutorial] Paused – completed unit: {unitName}");
         }
@@ -985,6 +997,110 @@ public class TutorialManager : MonoBehaviour
         float h = videoScale;
         videoDisplayPanel.transform.localScale = new Vector3(w, h, 1f);
         videoDisplayPanel.SetActive(true);
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // VR PAUSE BUTTONS (Weiter / Nochmal)
+    // ════════════════════════════════════════════════════════════
+
+    private void ShowVRPauseButtons()
+    {
+        if (vrButtonContainer == null)
+            CreateVRPauseButtons();
+
+        if (vrButtonContainer == null) return;
+
+        // Position below the video panel
+        if (videoDisplayPanel != null)
+        {
+            Vector3 videoPos = videoDisplayPanel.transform.position;
+            Vector3 down = -videoDisplayPanel.transform.up;
+            Vector3 buttonPos = videoPos + down * (videoScale * 0.6f);
+            vrButtonContainer.transform.position = buttonPos;
+            vrButtonContainer.transform.rotation = videoDisplayPanel.transform.rotation;
+        }
+
+        vrButtonContainer.SetActive(true);
+
+        // Reset button states
+        if (vrWeiterButton != null) vrWeiterButton.ResetButton();
+        if (vrNochmalButton != null) vrNochmalButton.ResetButton();
+    }
+
+    private void HideVRPauseButtons()
+    {
+        if (vrButtonContainer != null)
+            vrButtonContainer.SetActive(false);
+    }
+
+    private void CreateVRPauseButtons()
+    {
+        vrButtonContainer = new GameObject("TutorialVRButtons");
+
+        float btnWidth = 0.12f;
+        float btnHeight = 0.04f;
+        float btnDepth = 0.015f;
+        float spacing = 0.14f;
+
+        // ── "Weiter" Button (right, green) ──
+        GameObject weiterObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        weiterObj.name = "WeiterButton";
+        weiterObj.transform.SetParent(vrButtonContainer.transform, false);
+        weiterObj.transform.localPosition = new Vector3(spacing / 2f, 0, 0);
+        weiterObj.transform.localScale = new Vector3(btnWidth, btnHeight, btnDepth);
+
+        var weiterBtn = weiterObj.AddComponent<QuizButton>();
+        weiterBtn.answerIndex = 0;
+        weiterBtn.normalColor = new Color(0.1f, 0.45f, 0.2f, 1f);
+        weiterBtn.hoverColor = new Color(0.15f, 0.65f, 0.3f, 1f);
+        weiterBtn.cooldownTime = 0.8f;
+        weiterBtn.OnPressed += (idx) => ContinueToNextStep();
+
+        // Label
+        var weiterLabel = new GameObject("Label");
+        weiterLabel.transform.SetParent(weiterObj.transform, false);
+        weiterLabel.transform.localPosition = new Vector3(0, 0, -0.6f);
+        weiterLabel.transform.localRotation = Quaternion.Euler(0, 180, 0);
+        var weiterTM = weiterLabel.AddComponent<TextMesh>();
+        weiterTM.text = "▶ Weiter";
+        weiterTM.fontSize = 32;
+        weiterTM.characterSize = 0.025f;
+        weiterTM.anchor = TextAnchor.MiddleCenter;
+        weiterTM.alignment = TextAlignment.Center;
+        weiterTM.color = Color.white;
+
+        vrWeiterButton = weiterBtn;
+
+        // ── "Nochmal" Button (left, blue) ──
+        GameObject nochmalObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        nochmalObj.name = "NochmalButton";
+        nochmalObj.transform.SetParent(vrButtonContainer.transform, false);
+        nochmalObj.transform.localPosition = new Vector3(-spacing / 2f, 0, 0);
+        nochmalObj.transform.localScale = new Vector3(btnWidth, btnHeight, btnDepth);
+
+        var nochmalBtn = nochmalObj.AddComponent<QuizButton>();
+        nochmalBtn.answerIndex = 1;
+        nochmalBtn.normalColor = new Color(0.15f, 0.25f, 0.5f, 1f);
+        nochmalBtn.hoverColor = new Color(0.2f, 0.35f, 0.7f, 1f);
+        nochmalBtn.cooldownTime = 0.8f;
+        nochmalBtn.OnPressed += (idx) => GoToPreviousStep();
+
+        // Label
+        var nochmalLabel = new GameObject("Label");
+        nochmalLabel.transform.SetParent(nochmalObj.transform, false);
+        nochmalLabel.transform.localPosition = new Vector3(0, 0, -0.6f);
+        nochmalLabel.transform.localRotation = Quaternion.Euler(0, 180, 0);
+        var nochmalTM = nochmalLabel.AddComponent<TextMesh>();
+        nochmalTM.text = "↺ Nochmal";
+        nochmalTM.fontSize = 32;
+        nochmalTM.characterSize = 0.025f;
+        nochmalTM.anchor = TextAnchor.MiddleCenter;
+        nochmalTM.alignment = TextAlignment.Center;
+        nochmalTM.color = Color.white;
+
+        vrNochmalButton = nochmalBtn;
+
+        vrButtonContainer.SetActive(false);
     }
 
     // ════════════════════════════════════════════════════════════
