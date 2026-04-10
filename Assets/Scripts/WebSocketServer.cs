@@ -559,6 +559,23 @@ public class WebSocketServer : MonoBehaviour
 
                 BroadcastMessage("{\"type\":\"status\",\"message\":\"Alles gelöscht\"}");
             }
+            else if (data.type == "vr_panel")
+            {
+                // Toggle VR chirality control panel visibility
+                bool visible = data.visible;
+                Debug.Log($"[WebSocket] VR Panel toggle: visible={visible}");
+                if (chiralityPanel != null)
+                {
+                    chiralityPanel.gameObject.SetActive(visible);
+                }
+                else if (visible)
+                {
+                    // Create panel if it doesn't exist yet
+                    var go = new GameObject("ChiralityPanel");
+                    chiralityPanel = go.AddComponent<ChiralityPanelDisplay>();
+                    chiralityPanel.Initialize();
+                }
+            }
         }
         catch (Exception e)
         {
@@ -659,10 +676,18 @@ public class WebSocketServer : MonoBehaviour
                 HandleChiralityCommand("detect");
                 break;
             case "chirality_clear":
-                // Clear BOTH chirality markers AND isomer displays
+                // Clear EVERYTHING: chirality markers, isomer displays, molecule, plane
                 HandleChiralityCommand("clear");
                 var animator = FindObjectOfType<IsomerAnimator>();
                 if (animator != null) animator.ClearEnantiomer();
+                if (library != null) library.ClearCurrentMolecule();
+                if (moleculeRenderer == null)
+                    moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+                if (moleculeRenderer != null)
+                {
+                    var pa = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
+                    if (pa != null) pa.SetPlaneVisibility(false);
+                }
                 break;
             case "generate_enantiomer":
                 HandleIsomerCommand("mirror", 0);
@@ -1279,5 +1304,6 @@ uU();cn();
         public string mode;     // For mode switch: "keilstrich" or "isomerie"
         public int center;      // For isomer inversion: chiral center atom ID
         public int answer;      // For quiz: selected answer index
+        public bool visible;    // For vr_panel: show/hide
     }
 }

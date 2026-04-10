@@ -355,10 +355,10 @@ body {
             </div>
         </div>
 
-        <!-- Chirality & Isomer Actions -->
         <div class="card">
             <div class="card-label">Werkzeuge</div>
             <div class="iso-actions">
+                <button class="btn" onclick="toggleVRPanel()" id="btnVRPanel" style="background:linear-gradient(135deg, #374151, #1f2937);width:100%;margin-bottom:8px;border:1px solid #4b5563">&#127916; VR Control Panel ein/ausblenden</button>
                 <button class="btn btn-chiral" onclick="detectChirality()" id="btnDetect">&#128269; Chiralitätszentren erkennen</button>
                 <button class="btn btn-iso" onclick="generateEnantiomer()" id="btnEnantiomer">&#9883; Enantiomer erzeugen</button>
                 <button class="btn btn-iso" onclick="generateDiastereomer()" id="btnDiastereomer" style="background:linear-gradient(135deg, #06b6d4, #8b5cf6)">&#128256; Diastereomer erzeugen</button>
@@ -757,6 +757,15 @@ body {
     function generateConstitutional() {
         send({ type: 'isomer', action: 'constitutional' });
         showToast('Suche Konstitutionsisomer\u2026');
+    }
+
+    var vrPanelVisible = true;
+    function toggleVRPanel() {
+        vrPanelVisible = !vrPanelVisible;
+        send({ type: 'vr_panel', visible: vrPanelVisible });
+        var btn = document.getElementById('btnVRPanel');
+        btn.textContent = vrPanelVisible ? '\uD83C\uDFAC VR Control Panel ausblenden' : '\uD83C\uDFAC VR Control Panel einblenden';
+        showToast(vrPanelVisible ? 'VR Panel eingeblendet' : 'VR Panel ausgeblendet');
     }
 
     function clearAll() {
