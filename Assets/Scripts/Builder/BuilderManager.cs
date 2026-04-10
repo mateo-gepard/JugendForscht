@@ -696,12 +696,18 @@ public class BuilderManager : MonoBehaviour
 
     // ═══════════ MOVE TABLE ═══════════
 
+    private Vector3 lastHandPos;
+
     private void StartMovingTable(Vector3 fingerPos, Hand hand)
     {
         if (periodicTable == null || periodicTable.TableTransform == null) return;
         isMovingTable = true;
         movingHand = hand;
-        moveOffset = periodicTable.TableTransform.position - fingerPos;
+        
+        if (hand.GetJointPose(HandJointId.HandIndexTip, out Pose tip))
+            lastHandPos = tip.position;
+        else
+            lastHandPos = fingerPos;
     }
 
     private void UpdateMoveTable()
@@ -711,9 +717,10 @@ public class BuilderManager : MonoBehaviour
 
         if (movingHand.GetJointPose(HandJointId.HandIndexTip, out Pose tip))
         {
-            Vector3 target = tip.position + moveOffset;
-            periodicTable.MoveTableTo(Vector3.Lerp(
-                periodicTable.TableTransform.position, target, Time.deltaTime * 15f));
+            Vector3 delta = tip.position - lastHandPos;
+            periodicTable.MoveTableDelta(delta);
+            periodicTable.FaceCamera();
+            lastHandPos = tip.position;
         }
     }
 

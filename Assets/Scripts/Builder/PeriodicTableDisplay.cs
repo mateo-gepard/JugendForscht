@@ -367,11 +367,25 @@ public class PeriodicTableDisplay : MonoBehaviour
         tableRoot.transform.rotation = Quaternion.LookRotation(fwd) * Quaternion.Euler(tiltAngle, 0, 0);
     }
 
-    /// <summary>Move the entire table to a new world position (called by BuilderManager move-tool)</summary>
-    public void MoveTableTo(Vector3 worldPos)
+    /// <summary>Move the entire table by a delta offset</summary>
+    public void MoveTableDelta(Vector3 delta)
     {
         if (tableRoot == null) return;
-        tableRoot.transform.position = worldPos;
+        tableRoot.transform.position += delta;
+    }
+
+    /// <summary>Rotates the table to continually face the camera</summary>
+    public void FaceCamera()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || tableRoot == null) return;
+        
+        Vector3 fwd = cam.transform.forward; 
+        fwd.y = 0; 
+        fwd.Normalize();
+        if (fwd.magnitude < 0.01f) fwd = Vector3.forward;
+        
+        tableRoot.transform.rotation = Quaternion.LookRotation(fwd) *  Quaternion.Euler(tiltAngle, 0, 0);
     }
 
     private void UpdateWorldPositions()
