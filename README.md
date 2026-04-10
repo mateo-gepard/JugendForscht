@@ -78,14 +78,21 @@ JugendForscht/
 │   │   │   ├── PeriodicTableDisplay.cs # Periodensystem-UI in VR
 │   │   │   ├── BuilderAtom.cs          # Valenz, Ladung, Oktettregel
 │   │   │   └── BuilderTile.cs          # Poke-Button für PSE und Tools
-│   │   ├── Physics/            # Lorentz-Labor — Magnetfeld & Lorentzkraft
-│   │   │   ├── LorentzLabManager.cs    # Singleton-Orchestrator (Singleton)
+│   │   ├── Physics/            # Physik-Module — Magnetfeld & Lorentzkraft
+│   │   │   ├── LorentzLabManager.cs    # Singleton-Orchestrator Lorentz-Labor
 │   │   │   ├── MagneticFieldVolume.cs  # B-Feld-Box mit prozeduraler Pfeil-Visualisierung
 │   │   │   ├── ChargedParticle.cs      # Rigidbody-Teilchen mit F_L = q·(v×B)
 │   │   │   ├── VectorArrowDisplay.cs   # Echtzeit-Vektorpfeile (v, B, F_L) am Teilchen
-│   │   │   ├── FingerRuleChecker.cs    # Hand-Tracking: Drei-Finger-Regel Bewertung
+│   │   │   ├── FingerRuleChecker.cs    # Hand-Tracking: Drei-Finger-Regel (alle Modi)
 │   │   │   ├── FieldVolumeGrab.cs      # XR-Grab für B-Feld-Box per Pinch
-│   │   │   └── LorentzLabSetup.cs      # Szenen-Helfer: erzeugt Lab-Hierarchie
+│   │   │   ├── LorentzLabSetup.cs      # Szenen-Helfer: erzeugt Lab-Hierarchie
+│   │   │   ├── ConductorSwing.cs       # Leiterschaukel — analytisches Pendel-ODE
+│   │   │   ├── ConductorSwingManager.cs # Singleton-Orchestrator Leiterschaukel
+│   │   │   ├── SwingVectorDisplay.cs   # Vektorpfeile I, B, F_L am Stab
+│   │   │   ├── SwingFieldGrab.cs       # XR-Grab für Hufeisenmagneten
+│   │   │   ├── InductionLoop.cs        # Fallende Leiterschleife — Induktion+Lenz
+│   │   │   ├── InductionLoopManager.cs # Singleton-Orchestrator Leiterschleife
+│   │   │   └── InductionLoopGrab.cs    # XR-Grab für Leiterschleife
 │   │   ├── Quiz/               # Quiz-System
 │   │   │   ├── QuizManager.cs
 │   │   │   └── QuizButton.cs
@@ -153,6 +160,8 @@ JugendForscht/
 - Moleküle laden (Schnellauswahl + Freitextsuche), für beide Themenbereiche
 - Chiralitätswerkzeuge: Zentren erkennen, Enantiomere/Diastereomere/Konformere erzeugen, cis/trans, Konstitutionsisomere, Meso-Erkennung
 - Lorentz-Labor: Simulation steuern, Ladung/Feld/Geschwindigkeit einstellen, Quiz- und Finger-Regel-Modus
+- Leiterschaukel: Strom ein/aus, Stromrichtung, Magnetfeld umkehren, Pendel-Reset, Quiz- und Finger-Regel-Modus
+- Fallende Leiterschleife: Schleife fallen lassen, Reset, Spalt öffnen/schließen (Lenz-Vergleich), Phasenanazeige, Finger-Regel-Modus
 
 ### Lorentz-Labor (Physik-Modul)
 
@@ -162,12 +171,59 @@ Tischplatten-Experiment-Simulation der Lorentzkraft $F_L = q \cdot (\vec{v} \tim
 - **Geladenes Teilchen** — fliegt von links in das Feld und wird auf einer Kreisbahn abgelenkt (Rigidbody + FixedUpdate, VR-Handedness-korrigiert)
 - **Vektorpfeile am Teilchen** — v (grün), B (cyan), F_L (orange) skalieren und drehen sich live mit der Physik-Simulation
 - **Quiz-Modus** — F_L-Pfeil ausblenden; Schüler schätzen Ablenkungsrichtung
-- **Drei-Finger-Regel** (UVW-Regel):
-  - Über iPad aktivierbar
-  - Erkennt per Hand-Tracking die Richtung von Daumen (→ v), Zeigefinger (→ B) und Mittelfinger (→ F_L)
-  - Beschriftete Labels schweben an den Fingerspitzen
-  - Alle Pfeilspitzen **grün** bei ≤ 20° Abweichung aller drei Finger, **rot** sonst
-- **Lehrersteuerung** — Feldstärke (0,1–5 T), Geschwindigkeit (0,05–1 m/s), Ladungsvorzeichen (Proton/Elektron) über iPad-Slider
+- **Drei-Finger-Regel** — Daumen = v, Zeigefinger = B, Mittelfinger = F_L (Modus: Lorentz)
+- **Lehrersteuerung** — Feldstärke (0,03–3 T), Geschwindigkeit (0,05–1 m/s), Ladungsvorzeichen (Proton/Elektron)
+
+### Leiterschaukel (Physik-Modul)
+
+Simulation des klassischen Schulexperiments: stromdurchflossener Leiter schwingt im Magnetfeld.
+
+**Physik** — Analytisches Pendel-ODE (kein Rigidbody/HingeJoint):
+$$\ddot{\theta} = -\frac{g}{L}\sin\theta - \gamma\dot{\theta} + \frac{F_{\text{tangential}}}{m \cdot L} \cdot \cos\theta$$
+Lorentzkraft: $F_L = I \cdot L \cdot (\vec{B} \times \hat{I})$ (Unity-LHS-Korrektur: Argumente getauscht)
+
+- **Visualisierung** — Kupferstab hängt an zwei dynamisch gestreckten Metallstrangen; Farbe zeigt Stromrichtung (orange = +, blau = −)
+- **Vektorpfeile** — I (rot), B (cyan), F_L (orange); im Quiz-Modus wird F_L ausgeblendet
+- **Feldrichtung** — vertikal (Vector3.up), modelliert Hufeisenmagnet; Umkehren per Knopf möglich
+- **Drei-Finger-Regel** — Daumen = I, Zeigefinger = B, Mittelfinger = F_L (Modus: Swing)
+- **Steuerung** — Strom ein/aus, Stromrichtung, Magnetfeld umkehren, Pendel-Reset, Stromstärke (0,5–20 A)
+
+### Fallende Leiterschleife (Physik-Modul)
+
+Demonstration von elektromagnetischer Induktion und der Lenzschen Regel: rechteckige Leiterschleife fällt durch ein Magnetfeld.
+
+**Physik** — Analytische 1D-Integration (symplektisches Euler):
+$$\text{EMF} = -\frac{d\Phi}{dt} = B \cdot w \cdot |v|, \quad I = \frac{\text{EMF}}{R}, \quad F_L = B^2 w^2 |v| / R$$
+
+| Phase | Beschreibung | Bremswirkung |
+|-------|--------------|-------------|
+| Oberhalb | Freier Fall, kein Fluss | Nein |
+| Eintauchen | Fluss ↑ → I im Uhrzeigersinn (CW) | **Ja** |
+| Komplett im Feld | dΦ/dt = 0 → freier Fall | Nein |
+| Austauchen | Fluss ↓ → I gegen Uhrzeigersinn (CCW) | **Ja** |
+| Unterhalb | Kein Fluss | Nein |
+
+- **Spalt-Modus** — Stromkreis offen (R→∞), kein Induktionsstrom → freier Fall ohne Bremsung (Lenz-Vergleich)
+- **Stromrichtungsanzeige** — 3D-Label "I ↻" / "I ↺" über der Schleife + iPad-Anzeige
+- **Scrollende Strompfeile** — 12 animierte Pfeile entlang des Schleifenumfangs
+- **Rote Bremskraft-Pfeil** — zeigt die Lorentzkraft nach oben
+- **Drei-Finger-Regel** — Daumen = v, Zeigefinger = B, Mittelfinger = F (Modus: Induction)
+- **Steuerung** — Drop, Reset, Spalt öffnen/schließen, Feldstärke (0,03–3 T), Widerstand (0,01–2 Ω)
+
+### Drei-Finger-Regel (übergreifend)
+
+Das `FingerRuleChecker.cs` unterstützt drei Modi und funktioniert in allen Physik-Experimenten:
+
+| Modus | Daumen | Zeigefinger | Mittelfinger |
+|-------|--------|-------------|-------------|
+| Lorentz | v (Geschwindigkeit) | B (Magnetfeld) | F_L (Lorentzkraft) |
+| Swing | I (Stromrichtung) | B (Magnetfeld) | F_L (Lorentzkraft) |
+| Induction | v (Fallgeschwindigkeit) | B (Magnetfeld) | F (Kraft auf Ladungsträger) |
+
+- **Per-Finger-Farbe** — jeder Fingertip hat ein eigenes Material; Daumen kann grün sein während Mittelfinger noch rot ist
+- **30° Toleranz** — Winkelabweichung pro Finger (erweiterbar über `angleThreshold`)
+- **Labels an Fingerspitzen** — "Ursache: v/I", "Ursache: B", "Wirkung: F" als schwebende TextMesh-Beschriftungen
+- **3D-Vektorpfeile** — pro Finger ein farbiger Pfeil in Fingerrichtung mit Tip-Kugel
 
 ### Mathematik-Modul: Riemannsche Flächen
 
@@ -208,11 +264,13 @@ Die Tutorial-Timeline wird über ein Editor-Skript generiert:
 
 - **Engine**: Unity 2022.3 LTS (Built-in Render Pipeline)
 - **XR SDK**: Meta XR SDK 83.0.0, XR Interaction Toolkit 2.6.5
-- **Shader**: Custom Unlit mit GPU-Instancing + Stereo-Support
-- **Networking**: Eigener WebSocket-Server (System.Net.Sockets)
-- **Physik**: Unity-Rigidbody mit Handedness-Korrektur für Lorentzkraft
+- **Shader**: Custom Unlit mit GPU-Instancing + Stereo-Support (`Custom/MoleculeUnlit`)
+- **Networking**: Eigener WebSocket-Server (System.Net.Sockets, Port 8080, JSON-Protokoll)
+- **Physik**: Unity-Rigidbody (Lorentz) + Analytische ODE-Integration ohne Rigidbody (Schaukel, Induktion)
+- **Koordinatensystem-Korrektur**: Unity-LHS: `Cross(B, v)` statt `Cross(v, B)` für Rechtshändigkeit in VR
 - **API**: PubChem REST API (3D-Konformer als JSON)
 - **Web**: Plotly.js Dashboard auf Vercel
+- **Komplexe Zahlen**: Analytische Fortsetzung für Riemannsche Flächen (eigener Parser + Mesh-Generator)
 
 ---
 
