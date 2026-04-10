@@ -636,6 +636,10 @@ public class WebSocketServer : MonoBehaviour
             Debug.Log("[WebSocket] Leiterschaukel wird aufgeräumt");
             Destroy(ConductorSwingManager.Instance.gameObject);
         }
+        if (currentMode != "riemann" && riemannManager != null)
+        {
+            riemannManager.Deactivate();
+        }
 
         if (moleculeRenderer == null)
             moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
@@ -740,9 +744,6 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = true;
                 planeAlign.SetPlaneVisibility(true);
             }
-
-            // Deactivate Riemann when switching away
-            if (riemannManager != null) riemannManager.Deactivate();
         }
     }
 
