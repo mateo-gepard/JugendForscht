@@ -1,18 +1,26 @@
-# MolekülVR — Molekulare Geometrie in Virtual Reality
+# MolekülVR — Immersives MINT-Labor in Virtual Reality
 
 [![Unity](https://img.shields.io/badge/Unity-2022.3_LTS-black?logo=unity)](https://unity.com/)
 [![Meta Quest](https://img.shields.io/badge/Meta%20Quest%203-blue?logo=meta)](https://www.meta.com/quest/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Lines of Code](https://img.shields.io/badge/Lines_of_Code-31k+-informational)]()
 
-> **Jugend Forscht** — Untersuchung der Effektivität von Virtual Reality beim Erlernen molekularer Strukturen
+> **Jugend Forscht** — Untersuchung der Effektivität von Virtual Reality beim Erlernen naturwissenschaftlicher Konzepte in Chemie, Physik und Mathematik
 
 ---
 
 ## Übersicht
 
-VR-Lernumgebung für Meta Quest 3, in der Schüler molekulare Geometrien (Tetraeder, Trigonal-planar, Gewinkelt, …) interaktiv in 3D erlernen. Das Projekt besteht aus:
+Vollständige VR-Lernumgebung für Meta Quest 3, in der Schüler molekulare Geometrien, elektromagnetische Phänomene und komplexe mathematische Strukturen interaktiv in 3D erleben. Das Projekt umfasst drei Fachbereiche:
 
-- **VR-App** (Unity / Meta Quest 3) — 3D-Molekülvisualisierung, Tutorial-System, Hand-Tracking
+| Modul | Fach | Themen |
+|-------|------|--------|
+| 🧪 **Chemie** | Molekulare Geometrie | Keilstrichformel, Chiralität, Isomerie, VR-Baukasten |
+| ⚡ **Physik** | Elektromagnetismus | Lorentzkraft, Leiterschaukel, Induktion & Lenz'sche Regel |
+| 📐 **Mathematik** | Komplexe Analysis | Riemannsche Flächen, analytische Fortsetzung, Domain Coloring |
+
+Das System besteht aus:
+- **VR-App** (Unity / Meta Quest 3) — 3D-Visualisierung, Tutorial-System, Hand-Tracking
 - **iPad-Controller** — WebSocket-basierte Fernsteuerung im Browser
 - **Web-Dashboard** — Statistische Auswertung der Studienergebnisse ([Live](https://jugend-forscht.vercel.app))
 
@@ -93,21 +101,31 @@ JugendForscht/
 │   │   │   ├── InductionLoop.cs        # Fallende Leiterschleife — Induktion+Lenz
 │   │   │   ├── InductionLoopManager.cs # Singleton-Orchestrator Leiterschleife
 │   │   │   └── InductionLoopGrab.cs    # XR-Grab für Leiterschleife
+│   │   ├── Math/               # Mathematik-Module — Riemannsche Flächen
+│   │   │   ├── RiemannSurfaceDisplay.cs   # 3D-Box, Probe, Labels, Grid
+│   │   │   ├── RiemannSurfaceManager.cs   # WebSocket-Anbindung, UI-Steuerung
+│   │   │   ├── RiemannMeshGenerator.cs    # Mesh-Generierung mit analytischer Fortsetzung
+│   │   │   ├── FunctionParser.cs          # Parser für komplexe Ausdrücke
+│   │   │   └── BillboardLabel.cs          # Labels drehen sich zur Kamera
 │   │   ├── Quiz/               # Quiz-System
-│   │   │   ├── QuizManager.cs
-│   │   │   └── QuizButton.cs
+│   │   │   ├── QuizManager.cs          # Fragelogik & Auswertung
+│   │   │   ├── QuizDisplay.cs          # 3D-Anzeige in VR
+│   │   │   ├── QuizButton.cs           # VR-Poke-Buttons mit Hand-Collider-Erkennung
+│   │   │   └── FingerTipPoker.cs       # Fingerspitzen-Collider
 │   │   ├── Tutorial/           # Video-basiertes Tutorial-System
-│   │   │   ├── TutorialManager.cs      # Haupt-Controller (Singleton)
+│   │   │   ├── TutorialManager.cs      # Haupt-Controller (Singleton + VR-Pause-Buttons)
 │   │   │   ├── TutorialTimeline.cs     # ScriptableObject mit Zeitstempeln
 │   │   │   ├── TutorialCue.cs          # Datenklassen für Einblendungen
 │   │   │   └── Editor/
 │   │   │       └── TutorialBuilder.cs  # Editor-Tool zum Generieren der Timeline
 │   │   ├── VR/                 # Hand-Tracking, Controller, Rotation
+│   │   │   └── HandRotationController.cs  # Pinch-Geste → Objektrotation
 │   │   └── WebSocketServer.cs  # HTTP + WebSocket Server für iPad-Controller
 │   ├── Scenes/
 │   │   └── SampleScene.unity   # Hauptszene
 │   ├── Shaders/
 │   │   ├── MoleculeUnlit.shader        # GPU-Instanced Unlit für Atome/Bonds
+│   │   ├── RiemannSurface.shader       # Double-Sided, Vertex Colors, Cull Off
 │   │   └── HandTrackingClean.shader    # Stereo-kompatibles Hand-Mesh
 │   ├── Tutorial/
 │   │   ├── 0304.mp4                    # Tutorial-Video (Git LFS)
@@ -125,46 +143,40 @@ JugendForscht/
 
 ## Features
 
-### Molekül-Visualisierung
+### 🧪 Chemie
+
+#### Molekül-Visualisierung
 - **Ball-and-Stick-Modell** mit stereochemischer Darstellung (Keil-/Strichbindungen)
 - **PubChem-Integration** — beliebige Moleküle per Name laden (Aspirin, Glucose, Koffein, …)
-- **Hand-Tracking** — Moleküle mit Händen greifen und drehen
+- **Hand-Tracking** — Moleküle mit Händen greifen und drehen (Pinch-Geste)
 - Optimiert für Quest 3: Low-Poly-Meshes, GPU-Instancing, Mesh-Combining
 
-### VR-Molekülbaukasten (Builder)
+#### VR-Molekülbaukasten (Builder)
 - **Interaktives Periodensystem** — in 3D ausklappbar, realistische physikalische Anordnung
 - **Hand-Interaktion** — Atome via *Pinch*-Geste aus dem PSE ziehen und frei im Raum platzieren
 - **Dynamischer Aufbau** — Atome durch Heranziehen verbinden (Einfach-, Doppel-, Dreifachbindungen)
 - **Modifikations-Tools** — Formale Ladungen ändern (Kationen/Anionen beeinflussen Valenz), Bindungen löschen
-- **Chemische Validierung** — Echtzeit-Prüfung der Oktett- und Duettregel per *Compile*-Button; validiert das Konstrukt und konvertiert es ins Rendering-System.
+- **Chemische Validierung** — Echtzeit-Prüfung der Oktett- und Duettregel per *Compile*-Button
 
-### Tutorial-System
+#### Tutorial-System
 - Einzelnes Video mit automatischen Pausen an definierten Zeitpunkten
 - 3D-Einblendungen (Moleküle, Pfeile, Keilstrichformeln) synchron zum Video
 - 11 Einheiten: Einführung → Bindungsarten → Keilstrichformel → Elektronenpaarabstoßung → 5 Geometrien → Abschluss
-- Steuerung über iPad oder VR-Controller
+- **VR-Pause-Buttons** — „▶ Weiter" und „◀ Nochmal" erscheinen als physische 3D-Buttons unter dem Video
+- Steuerung über iPad **und** direkt in VR per Finger-Poke
 
-### Quiz-System
+#### Quiz-System
 - **20 Fragen** direkt in VR (10 × Keilstrichformel für Klasse 9, 10 × Chiralität für Klasse 11)
 - Schwebende VR-Anzeige mit Antwort-Buttons, Fortschrittsanzeige und Erklärungen
 - 2D-Bildanzeige: Keilstrich-Diagramme werden als Quad in VR eingeblendet
 - Automatischer Molekülwechsel passend zur Frage
 - Auswertungsbildschirm mit Punktzahl und Rating
-- Steuerung über iPad (Quiz starten/beenden) und VR (Antworten antippen)
 
-### iPad-Controller
-- Dunkles Premium-UI, optimiert für Touch
-- **Hamburger-Menü** — Fach (Chemie / Physik / Mathematik) und Thema (Keilstrichformel / Chiralität / Lorentz-Labor / Riemannsche Flächen) über Popup wählbar
-- **Verbindungsleiste** — Echtzeit-Anzeige verbundener Geräte (rot/grün) und Gerätepopup
-- Tutorial starten/pausieren/fortsetzen
-- Moleküle laden (Schnellauswahl + Freitextsuche), für beide Themenbereiche
-- Chiralitätswerkzeuge: Zentren erkennen, Enantiomere/Diastereomere/Konformere erzeugen, cis/trans, Konstitutionsisomere, Meso-Erkennung
-- Lorentz-Labor: Simulation steuern, Ladung/Feld/Geschwindigkeit einstellen, Quiz- und Finger-Regel-Modus
-- Leiterschaukel: Strom ein/aus, Stromrichtung, Magnetfeld umkehren, Pendel-Reset, Quiz- und Finger-Regel-Modus
-- Fallende Leiterschleife: Schleife fallen lassen, Reset, Spalt öffnen/schließen (Lenz-Vergleich), Phasenanazeige, Finger-Regel-Modus
+---
 
-### Lorentz-Labor (Physik-Modul)
+### ⚡ Physik
 
+#### Lorentz-Labor
 Tischplatten-Experiment-Simulation der Lorentzkraft $F_L = q \cdot (\vec{v} \times \vec{B})$:
 
 - **Magnetfeld-Box** (0,5 × 0,5 × 0,5 m) — prozedurales 6×6×6-Pfeilgitter in Echtzeit, greifbar per Pinch-Geste (XR-Grab)
@@ -174,8 +186,7 @@ Tischplatten-Experiment-Simulation der Lorentzkraft $F_L = q \cdot (\vec{v} \tim
 - **Drei-Finger-Regel** — Daumen = v, Zeigefinger = B, Mittelfinger = F_L (Modus: Lorentz)
 - **Lehrersteuerung** — Feldstärke (0,03–3 T), Geschwindigkeit (0,05–1 m/s), Ladungsvorzeichen (Proton/Elektron)
 
-### Leiterschaukel (Physik-Modul)
-
+#### Leiterschaukel
 Simulation des klassischen Schulexperiments: stromdurchflossener Leiter schwingt im Magnetfeld.
 
 **Physik** — Analytisches Pendel-ODE (kein Rigidbody/HingeJoint):
@@ -186,10 +197,8 @@ Lorentzkraft: $F_L = I \cdot L \cdot (\vec{B} \times \hat{I})$ (Unity-LHS-Korrek
 - **Vektorpfeile** — I (rot), B (cyan), F_L (orange); im Quiz-Modus wird F_L ausgeblendet
 - **Feldrichtung** — vertikal (Vector3.up), modelliert Hufeisenmagnet; Umkehren per Knopf möglich
 - **Drei-Finger-Regel** — Daumen = I, Zeigefinger = B, Mittelfinger = F_L (Modus: Swing)
-- **Steuerung** — Strom ein/aus, Stromrichtung, Magnetfeld umkehren, Pendel-Reset, Stromstärke (0,5–20 A)
 
-### Fallende Leiterschleife (Physik-Modul)
-
+#### Fallende Leiterschleife
 Demonstration von elektromagnetischer Induktion und der Lenzschen Regel: rechteckige Leiterschleife fällt durch ein Magnetfeld.
 
 **Physik** — Analytische 1D-Integration (symplektisches Euler):
@@ -208,9 +217,8 @@ $$\text{EMF} = -\frac{d\Phi}{dt} = B \cdot w \cdot |v|, \quad I = \frac{\text{EM
 - **Scrollende Strompfeile** — 12 animierte Pfeile entlang des Schleifenumfangs
 - **Rote Bremskraft-Pfeil** — zeigt die Lorentzkraft nach oben
 - **Drei-Finger-Regel** — Daumen = v, Zeigefinger = B, Mittelfinger = F (Modus: Induction)
-- **Steuerung** — Drop, Reset, Spalt öffnen/schließen, Feldstärke (0,03–3 T), Widerstand (0,01–2 Ω)
 
-### Drei-Finger-Regel (übergreifend)
+#### Drei-Finger-Regel (übergreifend)
 
 Das `FingerRuleChecker.cs` unterstützt drei Modi und funktioniert in allen Physik-Experimenten:
 
@@ -225,15 +233,31 @@ Das `FingerRuleChecker.cs` unterstützt drei Modi und funktioniert in allen Phys
 - **Labels an Fingerspitzen** — "Ursache: v/I", "Ursache: B", "Wirkung: F" als schwebende TextMesh-Beschriftungen
 - **3D-Vektorpfeile** — pro Finger ein farbiger Pfeil in Fingerrichtung mit Tip-Kugel
 
-### Mathematik-Modul: Riemannsche Flächen
+---
+
+### 📐 Mathematik — Riemannsche Flächen
 
 Visualisierung von komplexen Funktionen und ihren Riemannschen Flächen in 3D:
 
-- **Echtzeit-Parser & Analytische Fortsetzung** — Eingabe von komplexen Funktionen (z.B. `z^(1/3)`, `log(z)`) über das iPad-UI. Der Algorithmus erkennt automatisch die Anzahl der Blätter und generiert die Fläche über numerische analytische Fortsetzung.
+- **Echtzeit-Parser & Analytische Fortsetzung** — Eingabe von komplexen Funktionen (z.B. `z^(1/2)`, `z^(1/3)`, `log(z)`) über das iPad-UI. Der Algorithmus erkennt automatisch die Anzahl der Blätter und generiert die Fläche über numerische analytische Fortsetzung.
 - **Domain Coloring** — Farbton (Hue) zeigt das Argument (Phase), Helligkeit zeigt den Betrag ($|f(z)|$) der komplexen Zahl an.
 - **Interaktiver 3D-Graph** — Die generierte Mesh wird in einer 40cm-Box gerendert. Wie bei Molekülen kann die gesamte Fläche per Pinch-Geste gegriffen und im Raum gedreht werden.
-- **Finger-Tap Probing** — Berührt man die komplexe Basisebene (y=0) mit dem Zeigefinger, wird eine vertikale Schnittlinie durch die Fläche gezeichnet und die exakten Werte für $z$ und $f(z)$ werden live in VR eingeblendet.
-- **Dynamische Skalierung** — Die Definitionsgrenze für den Betrag $|z|$ lässt sich live am iPad verstellen, die Höhe (Y-Achse) wird unabhängig davon automatisch skaliert.
+- **Sichtbare Komplexe Ebene** — Die Inputebene ($y = 0$) wird als halbtransparentes Quad mit Unity-Style Grid-Linien dargestellt.
+- **Finger-Poke Probing** — Den Zeigefinger auf die komplexe Ebene legen löst eine vertikale Schnittlinie aus. Alle Schnittpunkte mit der Fläche (auch über mehrere Blätter) werden markiert, mit exakten Werten für $z$ und $f(z)$ als Billboard-Labels.
+- **Dynamische Skalierung** — Input-Bereich ($|z|$) live am iPad einstellbar. Die Höhe (Y-Achse = $\text{Re}(f(z))$) skaliert unabhängig basierend auf der tatsächlichen Funktionswertspanne.
+- **Double-Sided Rendering** — Custom Shader (`Custom/RiemannSurface`) mit `Cull Off` und Normal-Flipping, sodass die Fläche von jeder Seite korrekt beleuchtet sichtbar ist.
+
+---
+
+### iPad-Controller
+
+Dunkles Premium-UI, optimiert für Touch:
+
+- **Hamburger-Menü** — Fach (Chemie / Physik / Mathematik) und Thema über Popup wählbar
+- **Verbindungsleiste** — Echtzeit-Anzeige verbundener Geräte (rot/grün) und Gerätepopup
+- **Chemie**: Tutorial starten/pausieren/fortsetzen, Moleküle laden (Schnellauswahl + Freitextsuche), Chiralitätswerkzeuge, Keilstrich-Erkennung
+- **Physik**: Simulation steuern, Ladung/Feld/Geschwindigkeit einstellen, Quiz- und Finger-Regel-Modus
+- **Mathematik**: Funktion per Taschenrechner-UI eingeben, Maximalwert ändern, Oberfläche rendern/löschen
 
 ---
 
@@ -257,6 +281,7 @@ Die Tutorial-Timeline wird über ein Editor-Skript generiert:
 | Bond-Rerender-Debounce (5×/s) | Kein Frame-Drop bei Rotation |
 | Keine Bond-Collider | Reduzierte Physik-Last |
 | Quality-Tier "Low" für Android | Keine Schatten, keine Reflections |
+| Shader-Isolation | Riemann-Shader getrennt von Molekül-Shader (keine Cross-Contamination) |
 
 ---
 
@@ -264,13 +289,14 @@ Die Tutorial-Timeline wird über ein Editor-Skript generiert:
 
 - **Engine**: Unity 2022.3 LTS (Built-in Render Pipeline)
 - **XR SDK**: Meta XR SDK 83.0.0, XR Interaction Toolkit 2.6.5
-- **Shader**: Custom Unlit mit GPU-Instancing + Stereo-Support (`Custom/MoleculeUnlit`)
-- **Networking**: Eigener WebSocket-Server (System.Net.Sockets, Port 8080, JSON-Protokoll)
+- **Shader**: `Custom/MoleculeUnlit` (GPU-Instancing + Stereo) · `Custom/RiemannSurface` (Double-Sided, Vertex Colors)
+- **Networking**: Eigener WebSocket-Server (System.Net.Sockets, Port 8080, JSON-Protokoll, resiliente Message-Pipeline)
 - **Physik**: Unity-Rigidbody (Lorentz) + Analytische ODE-Integration ohne Rigidbody (Schaukel, Induktion)
-- **Koordinatensystem-Korrektur**: Unity-LHS: `Cross(B, v)` statt `Cross(v, B)` für Rechtshändigkeit in VR
+- **Koordinatensystem**: Unity-LHS: `Cross(B, v)` statt `Cross(v, B)` für Rechtshändigkeit in VR
 - **API**: PubChem REST API (3D-Konformer als JSON)
+- **Komplexe Analysis**: Eigener Parser + Mesh-Generator mit numerischer analytischer Fortsetzung
 - **Web**: Plotly.js Dashboard auf Vercel
-- **Komplexe Zahlen**: Analytische Fortsetzung für Riemannsche Flächen (eigener Parser + Mesh-Generator)
+- **Codeumfang**: ~31.000 Zeilen (143 Dateien: C#, Shader, HTML)
 
 ---
 
@@ -289,5 +315,6 @@ MIT — siehe [LICENSE](LICENSE)
 ---
 
 <p align="center">
-  <b>🔬 Wissenschaft trifft Virtual Reality 🥽</b>
+  <b>🔬 Wissenschaft trifft Virtual Reality 🥽</b><br>
+  <i>Chemie · Physik · Mathematik — alles in einer immersiven Lernumgebung</i>
 </p>
