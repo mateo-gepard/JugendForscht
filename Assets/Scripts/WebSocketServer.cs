@@ -584,6 +584,10 @@ public class WebSocketServer : MonoBehaviour
             {
                 HandleSwingCommand(data.action, data.floatValue);
             }
+            else if (data.type == "induction")
+            {
+                HandleInductionCommand(data.action, data.floatValue);
+            }
             else if (data.type == "riemann")
             {
                 HandleRiemannCommand(data.action, data.func, data.maxVal);
@@ -635,6 +639,11 @@ public class WebSocketServer : MonoBehaviour
         {
             Debug.Log("[WebSocket] Leiterschaukel wird aufgeräumt");
             Destroy(ConductorSwingManager.Instance.gameObject);
+        }
+        if (currentMode != "induction" && InductionLoopManager.Instance != null)
+        {
+            Debug.Log("[WebSocket] Induktionsschleife wird aufgeräumt");
+            Destroy(InductionLoopManager.Instance.gameObject);
         }
         if (currentMode != "riemann" && riemannManager != null)
         {
@@ -716,6 +725,26 @@ public class WebSocketServer : MonoBehaviour
                 go.AddComponent<ConductorSwingManager>();
             }
             BroadcastMessage("{\"type\":\"status\",\"message\":\"Leiterschaukel aktiv\"}");
+        }
+        else if (currentMode == "induction")
+        {
+            // Induktions-Modus: Fallende Leiterschleife
+            SetStereoDisplay(false);
+            if (planeAlign != null)
+            {
+                planeAlign.showPlaneInVR = false;
+                planeAlign.SetPlaneVisibility(false);
+            }
+            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
+            if (library != null) library.ClearCurrentMolecule();
+
+            if (InductionLoopManager.Instance == null)
+            {
+                var go = new GameObject("InductionLoopManager");
+                PositionInFrontOfCamera(go, 0.6f, -0.05f);
+                go.AddComponent<InductionLoopManager>();
+            }
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Induktionsschleife aktiv\"}");
         }
         else if (currentMode == "riemann")
         {
@@ -1541,6 +1570,61 @@ uU();cn();
         float field = mgr.fieldVolume != null ? mgr.fieldVolume.fieldStrength : 0.33f;
         float cur = mgr.conductor != null ? mgr.conductor.current : 5f;
         BroadcastMessage($"{{\"type\":\"swing_state\",\"currentOn\":{on.ToString().ToLower()},\"currentDir\":{dir},\"quizMode\":{quiz.ToString().ToLower()},\"fieldStrength\":{field:F2},\"current\":{cur:F1}}}");
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  Induktionsschleife
+    // ════════════════════════════════════════════════════════════
+
+    private void HandleInductionCommand(string action, float floatValue)
+    {
+        var mgr = InductionLoopManager.Instance;
+        if (mgr == null)
+        {
+            var go = new GameObject("InductionLoopManager");
+            PositionInFrontOfCamera(go, 0.6f, -0.05f);
+            mgr = go.AddComponent<InductionLoopManager>();
+        }
+
+        switch (action)
+        {
+            case "drop":
+                mgr.Drop();
+                BroadcastInductionState(mgr);
+                break;
+            case "reset":
+                mgr.ResetExperiment();
+                BroadcastInductionState(mgr);
+                break;
+            case "toggle_slit":
+                mgr.ToggleSlit();
+                BroadcastInductionState(mgr);
+                break;
+            case "set_slit":
+                mgr.SetSlit(floatValue > 0.5f);
+                BroadcastInductionState(mgr);
+                break;
+            case "set_field_strength":
+                mgr.SetFieldStrength(floatValue);
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"B = {floatValue:F2} T\"}}");
+                break;
+            case "set_resistance":
+                mgr.SetResistance(floatValue);
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"R = {floatValue:F2} Ω\"}}");
+                break;
+            default:
+                BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Unbekannter Induktions-Befehl: {action}\"}}");
+                break;
+        }
+    }
+
+    private void BroadcastInductionState(InductionLoopManager mgr)
+    {
+        bool slit = mgr.IsSlitOpen;
+        string ph = mgr.PhaseString;
+        float field = mgr.fieldVolume != null ? mgr.fieldVolume.fieldStrength : 0.33f;
+        float res = mgr.loop != null ? mgr.loop.resistance : 0.5f;
+        BroadcastMessage($"{{\"type\":\"induction_state\",\"slitOpen\":{slit.ToString().ToLower()},\"phase\":\"{ph}\",\"fieldStrength\":{field:F2},\"resistance\":{res:F2}}}");
     }
 
     [Serializable]

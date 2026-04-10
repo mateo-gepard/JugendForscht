@@ -700,6 +700,100 @@ body {
         </div>
     </div>
 
+    <!-- ==================== INDUKTION TAB ==================== -->
+    <div class="tab-content" id="contentInduction">
+
+        <!-- Formel -->
+        <div class="card" style="text-align:center;padding:18px 20px">
+            <div style="font-size:20px;font-weight:700;letter-spacing:1px;margin-bottom:4px">
+                EMF = &minus;d&Phi;/dt &nbsp;&nbsp; | &nbsp;&nbsp; F<sub>L</sub> = B&sup2;w&sup2;v / R
+            </div>
+            <div style="font-size:12px;color:var(--t3)">Elektromagnetische Induktion &ndash; Lenzsche Regel</div>
+        </div>
+
+        <!-- Drop + Reset -->
+        <div class="card">
+            <div class="card-label">Experiment</div>
+            <div class="row" style="margin-bottom:10px">
+                <button class="btn btn-confirm" onclick="inductionDrop()" style="flex:1;font-size:15px;padding:14px">
+                    &#11015; Schleife fallen lassen
+                </button>
+                <button class="btn btn-danger" onclick="inductionReset()" style="flex:1;font-size:15px;padding:14px">
+                    &#128260; Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Spalt (Isolator) -->
+        <div class="card">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>Spalt / Isolator</span>
+                <span id="inductionSlitLabel" style="font-size:11px;color:var(--t3);text-transform:none;letter-spacing:0">Geschlossen</span>
+            </div>
+            <p style="font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:14px">
+                &Ouml;ffnet den Stromkreis. Kein Induktionsstrom &rarr; kein Bremsen &rarr; freier Fall!
+            </p>
+            <button class="btn" onclick="inductionToggleSlit()" id="btnInductionSlit"
+                style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);font-size:15px;padding:14px">
+                &#128268; Spalt &ouml;ffnen
+            </button>
+        </div>
+
+        <!-- Phase-Anzeige -->
+        <div class="card">
+            <div class="card-label">Aktuelle Phase</div>
+            <div id="inductionPhaseBar" style="font-size:14px;padding:8px 0;color:var(--t2)">
+                Bereit &ndash; Dr&uuml;cke &bdquo;Drop&ldquo; zum Starten
+            </div>
+        </div>
+
+        <!-- Parameter -->
+        <div class="card">
+            <div class="card-label">Parameter</div>
+            <div style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span>Magnetfeldst&auml;rke</span>
+                    <span id="inductionFieldVal" style="color:var(--acc);font-weight:600">0.33 T</span>
+                </div>
+                <input type="range" id="sliderInductionField" min="0.03" max="1.7" step="0.01" value="0.33"
+                    oninput="inductionSetField(this.value)"
+                    style="width:100%;accent-color:var(--acc)">
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span>Widerstand</span>
+                    <span id="inductionResVal" style="color:var(--ok);font-weight:600">0.50 &Omega;</span>
+                </div>
+                <input type="range" id="sliderInductionRes" min="0.05" max="2.0" step="0.05" value="0.5"
+                    oninput="inductionSetResistance(this.value)"
+                    style="width:100%;accent-color:var(--ok)">
+            </div>
+        </div>
+
+        <!-- Legende -->
+        <div class="card">
+            <div class="card-label">Legende</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#c0c0c8;flex-shrink:0"></span>
+                    <span>Leiterschleife (silber/orange bei Strom)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#ffd700;flex-shrink:0"></span>
+                    <span><b>I<sub>ind</sub></b> &ndash; Induktionsstrom-Pfeile (gelb)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#ef4444;flex-shrink:0"></span>
+                    <span><b>F<sub>L</sub></b> &ndash; Bremskraft (rot, nach oben)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:16px;height:4px;border-radius:2px;background:#6c8aff;flex-shrink:0"></span>
+                    <span><b>B</b> &ndash; Magnetfeld (blau, Volumen-Pfeile)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== RIEMANN SURFACE TAB ==================== -->
     <div class="tab-content" id="contentRiemann">
 
@@ -838,6 +932,11 @@ body {
                 <div class="ot"><div class="on">Leiterschaukel</div><div class="od">Kraft auf stromdurchflossenen Leiter &ndash; Klasse 9</div></div>
                 <span class="oc">&#10003;</span>
             </div>
+            <div class="opt" id="optInduction" onclick="selectTopic('induction')" style="display:none">
+                <span class="oi">&#128161;</span>
+                <div class="ot"><div class="on">Fallende Leiterschleife</div><div class="od">Induktion &amp; Lenzsche Regel &ndash; Oberstufe</div></div>
+                <span class="oc">&#10003;</span>
+            </div>
             <div class="opt" id="optRiemann" onclick="selectTopic('riemann')" style="display:none">
                 <span class="oi">&#128200;</span>
                 <div class="ot"><div class="on">Riemannsche Fl&auml;chen</div><div class="od">Komplexe Funktionen in 3D &ndash; Oberstufe</div></div>
@@ -891,6 +990,7 @@ body {
         document.getElementById('optChiralitaet').style.display = subj === 'chemie' ? '' : 'none';
         document.getElementById('optLorentz').style.display = subj === 'physik' ? '' : 'none';
         document.getElementById('optSwing').style.display = subj === 'physik' ? '' : 'none';
+        document.getElementById('optInduction').style.display = subj === 'physik' ? '' : 'none';
         document.getElementById('optRiemann').style.display = subj === 'mathematik' ? '' : 'none';
         // Brand aktualisieren
         var brandNames = { chemie: 'Chemie', physik: 'Physik', mathematik: 'Mathematik' };
@@ -905,6 +1005,7 @@ body {
         document.getElementById('optChiralitaet').classList.toggle('sel', topic === 'isomerie');
         document.getElementById('optLorentz').classList.toggle('sel', topic === 'lorentz');
         document.getElementById('optSwing').classList.toggle('sel', topic === 'swing');
+        document.getElementById('optInduction').classList.toggle('sel', topic === 'induction');
         document.getElementById('optRiemann').classList.toggle('sel', topic === 'riemann');
         switchTab(topic);
         closeNavPopup();
@@ -955,6 +1056,7 @@ body {
         document.getElementById('contentIsomerie').className = tab === 'isomerie' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentLorentz').className = tab === 'lorentz' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentSwing').className = tab === 'swing' ? 'tab-content active' : 'tab-content';
+        document.getElementById('contentInduction').className = tab === 'induction' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentRiemann').className = tab === 'riemann' ? 'tab-content active' : 'tab-content';
         // Breadcrumb
         var bcSubject = document.querySelector('#breadcrumb b:first-of-type');
@@ -965,6 +1067,9 @@ body {
         } else if (tab === 'swing') {
             bcSubject.textContent = 'Physik';
             bcTopic.textContent = 'Leiterschaukel';
+        } else if (tab === 'induction') {
+            bcSubject.textContent = 'Physik';
+            bcTopic.textContent = 'Fallende Leiterschleife';
         } else if (tab === 'riemann') {
             bcSubject.textContent = 'Mathematik';
             bcTopic.textContent = 'Riemannsche Fl\u00e4chen';
@@ -974,7 +1079,7 @@ body {
         }
         // Builder-Button nur in Chemie
         var builderBtn = document.getElementById('btnBuilder');
-        if (builderBtn) builderBtn.parentElement.style.display = (tab === 'lorentz' || tab === 'swing' || tab === 'riemann') ? 'none' : '';
+        if (builderBtn) builderBtn.parentElement.style.display = (tab === 'lorentz' || tab === 'swing' || tab === 'induction' || tab === 'riemann') ? 'none' : '';
         // Mode an Unity senden
         var mode = tab;
         send({ type: 'mode', mode: mode });
@@ -1049,6 +1154,8 @@ body {
             handleLorentzState(data);
         } else if (data.type === 'swing_state') {
             handleSwingState(data);
+        } else if (data.type === 'induction_state') {
+            handleInductionState(data);
         }
     }
 
@@ -1694,6 +1801,72 @@ body {
         document.getElementById('riemannInput').value = '';
         document.getElementById('riemannFormulaDisplay').innerHTML = 'f(z) = &hellip;';
         showToast('Fl\u00e4che gel\u00f6scht', 'ok');
+    }
+
+    // ==================== INDUKTIONSSCHLEIFE ====================
+    var inductionSlitOpen = false;
+
+    function inductionDrop()   { send({ type:'induction', action:'drop' }); }
+    function inductionReset()  { send({ type:'induction', action:'reset' }); updateInductionPhase('idle'); }
+
+    function inductionToggleSlit() {
+        send({ type:'induction', action:'toggle_slit' });
+    }
+
+    function inductionSetField(val) {
+        val = parseFloat(val);
+        document.getElementById('inductionFieldVal').textContent = val.toFixed(2) + ' T';
+        send({ type:'induction', action:'set_field_strength', floatValue: val });
+    }
+
+    function inductionSetResistance(val) {
+        val = parseFloat(val);
+        document.getElementById('inductionResVal').textContent = val.toFixed(2) + ' \u03A9';
+        send({ type:'induction', action:'set_resistance', floatValue: val });
+    }
+
+    function handleInductionState(data) {
+        // Spalt
+        inductionSlitOpen = data.slitOpen || false;
+        var sBtn = document.getElementById('btnInductionSlit');
+        var sLabel = document.getElementById('inductionSlitLabel');
+        if (inductionSlitOpen) {
+            sBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            sBtn.innerHTML = '&#128268; Spalt schlie\u00dfen';
+            sLabel.textContent = 'Offen \u2013 kein Strom';
+            sLabel.style.color = 'var(--err)';
+        } else {
+            sBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
+            sBtn.innerHTML = '&#128268; Spalt \u00f6ffnen';
+            sLabel.textContent = 'Geschlossen';
+            sLabel.style.color = 'var(--t3)';
+        }
+
+        // Phase
+        if (data.phase) updateInductionPhase(data.phase);
+
+        // Sliders
+        if (data.fieldStrength !== undefined) {
+            document.getElementById('sliderInductionField').value = data.fieldStrength;
+            document.getElementById('inductionFieldVal').textContent = parseFloat(data.fieldStrength).toFixed(2) + ' T';
+        }
+        if (data.resistance !== undefined) {
+            document.getElementById('sliderInductionRes').value = data.resistance;
+            document.getElementById('inductionResVal').textContent = parseFloat(data.resistance).toFixed(2) + ' \u03A9';
+        }
+    }
+
+    function updateInductionPhase(ph) {
+        var bar = document.getElementById('inductionPhaseBar');
+        var labels = {
+            idle:     'Bereit \u2013 Dr\u00fccke \u201eDrop\u201c zum Starten',
+            above:    '<span style="color:var(--t2)">\u25cf</span> Oberhalb des Feldes \u2013 freier Fall',
+            entering: '<span style="color:var(--ok)">\u25cf</span> Eintauchen \u2013 Induktionsstrom bremst!',
+            inside:   '<span style="color:var(--warn)">\u25cf</span> Komplett im Feld \u2013 kein d\u03A6/dt \u2013 freier Fall',
+            exiting:  '<span style="color:var(--ok)">\u25cf</span> Austauchen \u2013 Strom umkehrt, bremst erneut!',
+            below:    '<span style="color:var(--t3)">\u25cf</span> Unterhalb \u2013 durchgefallen'
+        };
+        bar.innerHTML = labels[ph] || labels.idle;
     }
 
     // ==================== INIT ====================
