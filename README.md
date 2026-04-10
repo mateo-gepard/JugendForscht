@@ -129,11 +129,21 @@ JugendForscht/
 - 11 Einheiten: Einführung → Bindungsarten → Keilstrichformel → Elektronenpaarabstoßung → 5 Geometrien → Abschluss
 - Steuerung über iPad oder VR-Controller
 
+### Quiz-System
+- **20 Fragen** direkt in VR (10 × Keilstrichformel für Klasse 9, 10 × Chiralität für Klasse 11)
+- Schwebende VR-Anzeige mit Antwort-Buttons, Fortschrittsanzeige und Erklärungen
+- 2D-Bildanzeige: Keilstrich-Diagramme werden als Quad in VR eingeblendet
+- Automatischer Molekülwechsel passend zur Frage
+- Auswertungsbildschirm mit Punktzahl und Rating
+- Steuerung über iPad (Quiz starten/beenden) und VR (Antworten antippen)
+
 ### iPad-Controller
 - Dunkles Premium-UI, optimiert für Touch
+- **Hamburger-Menü** — Fach (Chemie / Physik) und Thema (Keilstrichformel / Chiralität & Isomerie) über Popup wählbar
+- **Verbindungsleiste** — Echtzeit-Anzeige verbundener Geräte (rot/grün) und Gerätepopup
 - Tutorial starten/pausieren/fortsetzen
-- Moleküle laden (Schnellauswahl + Freitextsuche)
-- Echtzeit-Verbindungsstatus
+- Moleküle laden (Schnellauswahl + Freitextsuche), für beide Themenbereiche
+- Chiralitätswerkzeuge: Zentren erkennen, Enantiomere/Diastereomere/Konformere erzeugen, cis/trans, Konstitutionsisomere, Meso-Erkennung
 
 ---
 
