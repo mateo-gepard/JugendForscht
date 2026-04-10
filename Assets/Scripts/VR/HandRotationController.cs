@@ -93,6 +93,18 @@ public class HandRotationController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called by BuilderManager after rendering a builder molecule.
+    /// Forces a re-lookup of the renderer and plane alignment.
+    /// </summary>
+    public void ForceRefreshReferences()
+    {
+        moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+        if (moleculeRenderer != null)
+            planeAlignment = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
+        Debug.Log($"[HandRotation] ForceRefresh: renderer={moleculeRenderer != null}, planeAlign={planeAlignment != null}");
+    }
+
     void Update()
     {
         // Re-find renderer if lost (e.g. after builder re-enables it)
@@ -186,7 +198,7 @@ public class HandRotationController : MonoBehaviour
         // Start grabbing
         if (shouldGrab && !isGrabbing)
         {
-            // Debug.Log($"[HandRotation] {hand.Handedness} hand pinch detected: {pinchStrength:F2}");
+            Debug.Log($"[HandRotation] {hand.Handedness} pinch START: {pinchStrength:F2}, renderer={moleculeRenderer != null}, active={moleculeRenderer?.gameObject.activeInHierarchy}");
             StartGrab(hand, ref isGrabbing, ref lastHandPosition);
         }
         // Stop grabbing
@@ -260,6 +272,12 @@ public class HandRotationController : MonoBehaviour
             {
                 targetTransform = animator.IsomerClone.transform;
             }
+        }
+
+        // Diagnostic: log every 60 frames while rotating
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"[HandRotation] Rotating target={targetTransform.name}, children={targetTransform.childCount}, pos={targetTransform.position}, delta={delta.magnitude:F4}");
         }
 
         // Get camera reference for relative rotation

@@ -678,6 +678,13 @@ public class BuilderManager : MonoBehaviour
                     renderer.transform.position = cam.transform.position + cam.transform.forward * 0.5f;
             }
         }
+
+        // Force HandRotationController to re-find the renderer
+        var hrc = FindObjectOfType<HandRotationController>();
+        if (hrc != null)
+        {
+            hrc.ForceRefreshReferences();
+        }
     }
 
     private System.Collections.IEnumerator ResetHighlightsAfterDelay(List<BuilderAtom> atoms, float delay)
