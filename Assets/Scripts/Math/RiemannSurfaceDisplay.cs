@@ -26,7 +26,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
     public Color probeLineColor = new Color(0f, 0.9f, 1f, 0.8f); // Cyan
 
     [Header("Interaction")]
-    public float tapDistance = 0.05f; // Max finger distance to complex plane for tap
+    public float tapDistance = 0.12f; // Max finger distance to complex plane for tap (12cm — generous)
 
     // Runtime state
     private GameObject surfaceMeshObj;
@@ -37,6 +37,11 @@ public class RiemannSurfaceDisplay : MonoBehaviour
     private List<GameObject> probeLabels = new List<GameObject>();
     private ParsedFunction currentFunction;
     private string currentFunctionText = "";
+
+    // Scaling factors — must match those from RiemannMeshGenerator
+    private float inputScale;   // boxSize / (2 * maxVal) — for X/Z
+    private float heightScale;  // boxSize / (2 * maxHeight) — for Y (set after mesh generation)
+    private float maxHeight;    // actual max |Re(f(z))| found during mesh generation
 
     // Label showing the function below the plot
     private TextMeshPro functionLabel;
@@ -230,7 +235,10 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
     void GenerateAndShowMesh()
     {
-        Mesh mesh = RiemannMeshGenerator.Generate(currentFunction, maxVal, boxSize);
+        Mesh mesh = RiemannMeshGenerator.Generate(currentFunction, maxVal, boxSize, out float mh);
+        maxHeight = mh;
+        inputScale = boxSize / (2f * maxVal);
+        heightScale = boxSize / (2f * maxHeight);
 
         surfaceMeshObj = new GameObject("RiemannSurface");
         surfaceMeshObj.transform.SetParent(boxContainer.transform, false);
@@ -305,7 +313,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
     /// <summary>
     /// Called when a finger taps a point on the complex plane.
-    /// worldPos should be in the local space of this display.
+    /// localPos is in the local space of boxContainer.
     /// </summary>
     public void ProbePoint(Vector3 localPos)
     {
@@ -313,61 +321,66 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
         ClearProbe();
 
-        float scale = boxSize / (2f * maxVal);
         float half = boxSize / 2f;
 
-        // Convert local position to complex coordinates
-        double re = localPos.x / scale;
-        double im = localPos.z / scale;
+        // Convert local position to complex coordinates using inputScale
+        double re = localPos.x / inputScale;
+        double im = localPos.z / inputScale;
 
         // Clamp to bounds
         re = System.Math.Max(-maxVal, System.Math.Min(maxVal, re));
         im = System.Math.Max(-maxVal, System.Math.Min(maxVal, im));
 
-        // Draw vertical probe line
-        Vector3 lineStart = new Vector3((float)re * scale, -half, (float)im * scale);
-        Vector3 lineEnd = new Vector3((float)re * scale, half, (float)im * scale);
-        probeLine = CreateLine(lineStart, lineEnd, probeLineColor, 0.0015f, boxContainer.transform);
+        // X/Z position in box-local space
+        float probeX = (float)re * inputScale;
+        float probeZ = (float)im * inputScale;
 
-        // Find intersections
+        // Draw vertical probe line (full height of box)
+        Vector3 lineStart = new Vector3(probeX, -half, probeZ);
+        Vector3 lineEnd = new Vector3(probeX, half, probeZ);
+        probeLine = CreateLine(lineStart, lineEnd, probeLineColor, 0.002f, boxContainer.transform);
+
+        // Find intersections (function values at this z for each sheet)
         var intersections = RiemannMeshGenerator.FindIntersections(
             currentFunction, re, im, maxVal);
 
-        // Display intersection labels
+        // Draw intersection dots and labels
         Complex z = new Complex(re, im);
         for (int i = 0; i < intersections.Count; i++)
         {
             var w = intersections[i];
-            float yPos = Mathf.Clamp((float)w.Real * scale, -half, half);
+            // Y position uses the SAME heightScale as the mesh generator
+            float yPos = Mathf.Clamp((float)w.Real * heightScale, -half, half);
 
-            // Intersection dot
+            // Intersection dot (bright, visible)
             var dot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             dot.transform.SetParent(boxContainer.transform, false);
-            dot.transform.localPosition = new Vector3((float)re * scale, yPos, (float)im * scale);
-            dot.transform.localScale = Vector3.one * 0.008f;
+            dot.transform.localPosition = new Vector3(probeX, yPos, probeZ);
+            dot.transform.localScale = Vector3.one * 0.012f; // 1.2cm — visible in VR
             var dotMr = dot.GetComponent<MeshRenderer>();
             dotMr.material = new Material(Shader.Find("Unlit/Color") ?? Shader.Find("Standard"));
-            dotMr.material.color = Color.cyan;
+            dotMr.material.color = Color.yellow;
             dotMr.shadowCastingMode = ShadowCastingMode.Off;
-            Destroy(dot.GetComponent<Collider>()); // Remove collider
+            Destroy(dot.GetComponent<Collider>());
             probeLabels.Add(dot);
 
-            // Label: "z = a+bi → f(z) = c+di"
+            // Label: show z and f(z) values
             string zText = FormatComplex(z);
             string wText = FormatComplex(w);
-            string labelText = $"z={zText}\nf(z)={wText}";
+            string labelText = $"z = {zText}\nf(z) = {wText}";
 
-            var label = CreateTextLabel(
-                new Vector3((float)re * scale + 0.02f, yPos + 0.01f, (float)im * scale),
-                labelText, Color.cyan, 0.012f, boxContainer.transform);
+            // Offset label to the right so it doesn't overlap the line
+            var label = CreateProbeLabel(
+                new Vector3(probeX + 0.035f, yPos + 0.005f, probeZ),
+                labelText, Color.white, 2.5f, boxContainer.transform);
             probeLabels.Add(label);
         }
 
-        // Label at base showing the tapped coordinates
+        // Base label at the bottom showing tapped z-coordinate
         string baseText = $"z = {FormatComplex(z)}";
-        var baseLabel = CreateTextLabel(
-            new Vector3((float)re * scale, -half - 0.015f, (float)im * scale),
-            baseText, new Color(1f, 1f, 0.5f), 0.01f, boxContainer.transform);
+        var baseLabel = CreateProbeLabel(
+            new Vector3(probeX, -half - 0.025f, probeZ),
+            baseText, new Color(1f, 1f, 0.5f), 2f, boxContainer.transform);
         probeLabels.Add(baseLabel);
     }
 
@@ -380,48 +393,66 @@ public class RiemannSurfaceDisplay : MonoBehaviour
     }
 
     /// <summary>
-    /// Called every frame to check for finger taps on the complex plane.
+    /// Called every frame to check for finger pokes on the complex plane.
+    /// Uses index finger proximity to the y=0 plane (no pinch gesture, which would conflict with rotation).
     /// </summary>
     private float lastProbeTime = 0f;
-    private const float probeCooldown = 0.5f; // Minimum time between probes
+    private const float probeCooldown = 1.0f;
+    private HandRotationController cachedHRC;
+    private Vector3 prevFingerPosR, prevFingerPosL;
+    private bool wasInsideR = false, wasInsideL = false;
 
     public void CheckFingerTap()
     {
         if (boxContainer == null) return;
         if (Time.time - lastProbeTime < probeCooldown) return;
 
-        // Get hands from HandRotationController (they are assigned in the inspector)
-        var hrc = FindObjectOfType<HandRotationController>();
-        if (hrc == null) return;
+        // Cache the HandRotationController
+        if (cachedHRC == null)
+            cachedHRC = UnityEngine.Object.FindObjectOfType<HandRotationController>();
+        if (cachedHRC == null) return;
 
-        TryFingerTap(hrc.rightHand);
-        TryFingerTap(hrc.leftHand);
+        TryFingerPoke(cachedHRC.rightHand, ref prevFingerPosR, ref wasInsideR);
+        TryFingerPoke(cachedHRC.leftHand, ref prevFingerPosL, ref wasInsideL);
     }
 
-    private void TryFingerTap(Hand hand)
+    private void TryFingerPoke(Hand hand, ref Vector3 prevPos, ref bool wasInside)
     {
-        if (hand == null || !hand.IsTrackedDataValid) return;
+        if (hand == null || !hand.IsTrackedDataValid)
+        {
+            wasInside = false;
+            return;
+        }
 
         if (!hand.GetJointPose(HandJointId.HandIndexTip, out Pose tipPose))
+        {
+            wasInside = false;
             return;
+        }
 
         // Convert to local space of the box
         Vector3 localTip = boxContainer.transform.InverseTransformPoint(tipPose.position);
         float half = boxSize / 2f;
 
-        // Check if finger is near the complex plane (y ≈ 0) and within bounds
-        if (Mathf.Abs(localTip.y) < tapDistance &&
-            Mathf.Abs(localTip.x) < half &&
-            Mathf.Abs(localTip.z) < half)
+        // Check if finger is within the box's X/Z bounds
+        bool inXZ = Mathf.Abs(localTip.x) < half && Mathf.Abs(localTip.z) < half;
+
+        // Check if finger is near the complex plane (y ≈ 0)
+        bool nearPlane = Mathf.Abs(localTip.y) < tapDistance;
+
+        bool isInside = inXZ && nearPlane;
+
+        // Detect "poke": finger just entered the zone (transition from outside to inside)
+        if (isInside && !wasInside)
         {
-            // Check for pinch gesture
-            float pinch = hand.GetFingerPinchStrength(HandFinger.Index);
-            if (pinch > 0.7f)
-            {
             lastProbeTime = Time.time;
-                ProbePoint(localTip);
-            }
+            // Snap the probe to y=0 (the complex plane)
+            Vector3 probePos = new Vector3(localTip.x, 0f, localTip.z);
+            ProbePoint(probePos);
         }
+
+        wasInside = isInside;
+        prevPos = localTip;
     }
 
     // ════════════════════════════════════════════════════════════
@@ -492,6 +523,33 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         return obj;
     }
 
+    /// <summary>
+    /// Create a probe label that is large enough to read in VR and always faces the camera.
+    /// </summary>
+    static GameObject CreateProbeLabel(Vector3 position, string text, Color color,
+        float fontSize, Transform parent)
+    {
+        var obj = new GameObject("ProbeLabel");
+        obj.transform.SetParent(parent, false);
+        obj.transform.localPosition = position;
+
+        var tmp = obj.AddComponent<TextMeshPro>();
+        tmp.text = text;
+        tmp.fontSize = fontSize;
+        tmp.color = color;
+        tmp.alignment = TextAlignmentOptions.Left;
+        tmp.enableWordWrapping = false;
+        tmp.fontStyle = FontStyles.Bold;
+
+        var rt = tmp.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(0.25f, 0.08f); // Wide enough for "z = 1.23+4.56i\nf(z) = ..."
+
+        // Add billboard behaviour so label always faces the camera
+        obj.AddComponent<BillboardLabel>();
+
+        return obj;
+    }
+
     static string FormatComplex(Complex c)
     {
         double re = System.Math.Round(c.Real, 2);
@@ -515,5 +573,19 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         ClearSurface();
         if (surfaceMaterial != null) Destroy(surfaceMaterial);
         if (lineMaterial != null) Destroy(lineMaterial);
+    }
+}
+
+/// <summary>
+/// Simple component that makes a label always face the VR camera.
+/// </summary>
+public class BillboardLabel : MonoBehaviour
+{
+    void LateUpdate()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+        transform.rotation = Quaternion.LookRotation(
+            transform.position - cam.transform.position, Vector3.up);
     }
 }

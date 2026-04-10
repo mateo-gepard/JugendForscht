@@ -30,7 +30,7 @@ public static class RiemannMeshGenerator
     /// <param name="radialSteps">Number of radial sample points</param>
     /// <param name="angularStepsPerSheet">Number of angular samples per sheet</param>
     public static Mesh Generate(ParsedFunction func, float maxVal, float boxSize,
-        int radialSteps = 40, int angularStepsPerSheet = 100)
+        out float maxHeightUsed, int radialSteps = 40, int angularStepsPerSheet = 100)
     {
         int sheets = func.Sheets;
         int totalAngularSteps = angularStepsPerSheet * sheets;
@@ -159,6 +159,7 @@ public static class RiemannMeshGenerator
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
 
+        maxHeightUsed = maxHeight;
         return mesh;
     }
 
