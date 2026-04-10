@@ -628,6 +628,11 @@ public class BuilderManager : MonoBehaviour
 
         Debug.Log("[Builder] Molekül ist valide! Konvertiere und rendere...");
         MoleculeData molData = ConvertToMoleculeData();
+        
+        // VSEPR-Optimierung: Räumlichen Bau korrigieren
+        MoleculeOptimizer.Optimize(molData);
+        Debug.Log("[Builder] VSEPR-Optimierung angewendet.");
+        
         StopBuilder();
 
         // Use MoleculeLibrary pipeline for proper positioning, rotation, clear support
@@ -690,7 +695,7 @@ public class BuilderManager : MonoBehaviour
             idMap[ba] = i;
             Vector3 rel = ba.transform.position;
             if (placedAtoms.Count > 0) rel -= placedAtoms[0].transform.position;
-            mol.atoms.Add(new AtomData(i, ba.elementSymbol, rel * 10f));
+            mol.atoms.Add(new AtomData(i, ba.elementSymbol, rel));
             if (counts.ContainsKey(ba.elementSymbol)) counts[ba.elementSymbol]++;
             else counts[ba.elementSymbol] = 1;
         }

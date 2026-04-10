@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -82,6 +82,27 @@ public class MoleculePlaneAlignment : MonoBehaviour
 
     private float moleculeRadius;
     private float depthThreshold;
+
+    /// <summary>
+    /// Berechnet den aktuellen geometrischen Schwerpunkt des Moleküls
+    /// aus den Bounds aller Kind-Renderer (Atome + Bonds).
+    /// Dies verhindert den Orbit-Bug nach manueller Rotation.
+    /// </summary>
+    public Vector3 GetDynamicCentroid()
+    {
+        if (renderer == null) return fixedCentroid;
+        Renderer[] childRenderers = renderer.GetComponentsInChildren<Renderer>();
+        if (childRenderers.Length == 0) return renderer.transform.position;
+
+        Vector3 sum = Vector3.zero;
+        int count = 0;
+        foreach (var r in childRenderers)
+        {
+            sum += r.bounds.center;
+            count++;
+        }
+        return sum / count;
+    }
 
     /// <summary>
     /// Initialisiert die Ebenen-Ausrichtung für ein neues Molekül
@@ -293,9 +314,9 @@ public class MoleculePlaneAlignment : MonoBehaviour
                 // Debug.Log("[PlaneAlignment] Pausing at 360° - cycle complete");
             }
             
-            // Use RotateAround to spin molecule around the fixed centroid point
-            // This keeps the centroid at the same world position while the molecule rotates
-            renderer.transform.RotateAround(fixedCentroid, Vector3.up, rotationAngle);
+            // Use RotateAround with DYNAMIC centroid to prevent orbit after hand rotation
+            Vector3 currentCentroid = GetDynamicCentroid();
+            renderer.transform.RotateAround(currentCentroid, Vector3.up, rotationAngle);
             
             // Update atom world positions after rotation
             UpdateAtomWorldPositions();
@@ -1454,7 +1475,7 @@ public class MoleculePlaneAlignment : MonoBehaviour
     /// <summary>
     /// Aktualisiert die Welt-Positionen aller Atome
     /// </summary>
-    private void UpdateAtomWorldPositions()
+    public void UpdateAtomWorldPositions()
     {
         atomWorldPositions.Clear();
         foreach (var atom in currentMolecule.atoms)
@@ -1663,12 +1684,6 @@ public class MoleculePlaneAlignment : MonoBehaviour
         // Plane renderer
         if (planeRenderer != null)
         {
-            // Debug.Log($"[PlaneRenderer] enabled={planeRenderer.enabled}, " +
-            //          $"visible={planeRenderer.isVisible}, " +
-            //          $"material={planeRenderer.sharedMaterial?.name}, " +
-            //          $"shader={planeRenderer.sharedMaterial?.shader.name}, " +
-            //          $"color={planeRenderer.sharedMaterial?.color}, " +
-            //          $"renderQueue={planeRenderer.sharedMaterial?.renderQueue}");
         }
         
         // Molecule renderers

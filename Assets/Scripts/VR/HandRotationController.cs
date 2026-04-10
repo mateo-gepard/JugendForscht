@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Oculus.Interaction;
 using Oculus.Interaction.Input;
 
@@ -222,6 +222,13 @@ public class HandRotationController : MonoBehaviour
 
     void UpdateRotation(Hand hand, ref Vector3 lastHandPosition)
     {
+        // Re-find renderer if lost (e.g. after builder re-enables it)
+        if (moleculeRenderer == null || !moleculeRenderer.gameObject.activeInHierarchy)
+        {
+            moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
+            if (moleculeRenderer != null)
+                planeAlignment = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
+        }
         if (moleculeRenderer == null) return;
 
         // Get current index finger tip position

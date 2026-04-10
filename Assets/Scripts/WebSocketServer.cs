@@ -27,6 +27,7 @@ public class WebSocketServer : MonoBehaviour
 
     // Current UI mode
     private string currentMode = "keilstrich";
+    private ChiralityPanelDisplay chiralityPanel;
 
     private TcpListener tcpListener;
     private Thread listenerThread;
@@ -564,12 +565,31 @@ public class WebSocketServer : MonoBehaviour
     private void HandleModeSwitch(string mode)
     {
         currentMode = mode ?? "keilstrich";
-        // Debug.Log($"[WebSocket] Mode switched to: {currentMode}");
+        Debug.Log($"[WebSocket] Mode switched to: {currentMode}");
 
         if (moleculeRenderer == null)
             moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
 
         var planeAlign = moleculeRenderer?.GetComponent<MoleculePlaneAlignment>();
+        
+        // Handle Chirality VR Panel Visibility
+        // The iPad UI tab "Chiralität" sends mode "isomerie"
+        if (currentMode == "isomerie")
+        {
+            if (chiralityPanel == null)
+            {
+                var go = new GameObject("ChiralityPanel");
+                chiralityPanel = go.AddComponent<ChiralityPanelDisplay>();
+                chiralityPanel.Initialize();
+                Debug.Log("[WebSocket] ChiralityPanel created and initialized");
+            }
+            chiralityPanel.gameObject.SetActive(true);
+            Debug.Log("[WebSocket] ChiralityPanel shown");
+        }
+        else
+        {
+            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
+        }
 
         if (currentMode == "isomerie")
         {
@@ -588,6 +608,25 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = true;
                 planeAlign.SetPlaneVisibility(true);
             }
+        }
+    }
+
+    /// <summary>
+    /// Router for VR panel commands
+    /// </summary>
+    public void HandleVRControlPanelCommand(string command)
+    {
+        switch (command)
+        {
+            case "chirality_detect":
+                HandleChiralityCommand("detect");
+                break;
+            case "generate_isomers":
+                HandleChiralityCommand("generate_isomers");
+                break;
+            case "superposition_mode":
+                HandleChiralityCommand("superposition_mode");
+                break;
         }
     }
 
