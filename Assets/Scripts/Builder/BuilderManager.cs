@@ -581,9 +581,46 @@ public class BuilderManager : MonoBehaviour
         if (!allValid)
         {
             foreach (var a in invalid) a.SetHighlight(true);
-            Debug.Log($"[Builder] Ungültig! {invalid.Count} Atome verletzen die Oktettregel.");
+            string errorText = $"Fehler: {invalid.Count} Atome verletzen die Oktettregel!";
+            Debug.Log($"[Builder] Ungültig! {errorText}");
+            
             if (webSocket != null)
-                webSocket.BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Fehler: {invalid.Count} Atome verletzen die Oktettregel!\"}}");
+                webSocket.BroadcastMessage($"{{\"type\":\"status\",\"message\":\"{errorText}\"}}");
+                
+            // === VR ERROR MESSAGE PIPELINE ===
+            if (builderRoot != null)
+            {
+                var errObj = new GameObject("VR_ErrorMsg");
+                errObj.transform.SetParent(builderRoot.transform);
+                // Position it somewhat in front of the periodic table, near eye level
+                Camera cam = Camera.main;
+                if (cam != null)
+                {
+                    errObj.transform.position = cam.transform.position + cam.transform.forward * 0.45f + Vector3.down * 0.1f;
+                    errObj.transform.rotation = Quaternion.LookRotation(cam.transform.forward);
+                }
+                
+                var tm = errObj.AddComponent<TextMesh>();
+                tm.text = errorText;
+                tm.color = Color.red;
+                tm.characterSize = 0.005f;
+                tm.fontSize = 40;
+                tm.anchor = TextAnchor.MiddleCenter;
+                tm.alignment = TextAlignment.Center;
+                
+                // Add a black background for readability
+                var bg = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                bg.transform.SetParent(errObj.transform, false);
+                bg.transform.localPosition = new Vector3(0, 0, 0.01f);
+                bg.transform.localScale = new Vector3(0.5f, 0.08f, 1f);
+                Destroy(bg.GetComponent<Collider>());
+                var mat = new Material(Shader.Find("Unlit/Color"));
+                mat.color = new Color(0, 0, 0, 0.8f);
+                bg.GetComponent<Renderer>().material = mat;
+                
+                Destroy(errObj, 3.5f); // Automatically disappear after 3.5 seconds
+            }
+
             // Highlights nach 3 Sekunden zurücksetzen
             StartCoroutine(ResetHighlightsAfterDelay(invalid, 3f));
             return;

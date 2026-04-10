@@ -904,11 +904,13 @@ public class WebSocketServer : MonoBehaviour
         {
             var go = new GameObject("BuilderManager");
             builder = go.AddComponent<BuilderManager>();
-            builder.webSocket = this;
             builder.moleculeLibrary = library;
             // ElementDatabase will be auto-found from MoleculeLibrary
             Debug.Log("[WebSocket] Auto-created BuilderManager");
         }
+        
+        // Ensure webSocket reference is always set
+        builder.webSocket = this;
 
         if (action == "start")
         {
