@@ -616,16 +616,35 @@ public class WebSocketServer : MonoBehaviour
     /// </summary>
     public void HandleVRControlPanelCommand(string command)
     {
+        Debug.Log($"[WebSocket] VR Panel command: {command}");
         switch (command)
         {
             case "chirality_detect":
                 HandleChiralityCommand("detect");
                 break;
-            case "generate_isomers":
-                HandleChiralityCommand("generate_isomers");
+            case "chirality_clear":
+                HandleChiralityCommand("clear");
                 break;
-            case "superposition_mode":
-                HandleChiralityCommand("superposition_mode");
+            case "generate_enantiomer":
+                HandleIsomerCommand("mirror", 0);
+                break;
+            case "generate_diastereomer":
+                HandleIsomerCommand("diastereomer", 0);
+                break;
+            case "generate_conformer":
+                HandleIsomerCommand("conformer", 0);
+                break;
+            case "test_meso":
+                HandleIsomerCommand("meso", 0);
+                break;
+            case "generate_cistrans":
+                HandleIsomerCommand("cistrans", 0);
+                break;
+            case "generate_constitutional":
+                HandleIsomerCommand("constitutional", 0);
+                break;
+            case "test_overlay":
+                HandleIsomerCommand("overlay", 0);
                 break;
         }
     }

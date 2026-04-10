@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Oculus.Interaction.Input;
 
 /// <summary>
-/// VR Control Panel für chirality functions.
+/// VR Control Panel für Chiralität-Werkzeuge.
 /// Erscheint wenn "Chiralität"-Tab auf iPad aktiv ist.
+/// Enthält alle 8 Werkzeuge aus der iPad-UI.
 /// - Poke: Zeigefinger-Tipp berührt Buttons (lokale Distanzprüfung)
-/// - Move: Pinch zum verschieben, Toggle via Pointer-Klick
+/// - Move: Toggle via Poke, dann Pinch zum Verschieben
 /// </summary>
 public class ChiralityPanelDisplay : MonoBehaviour
 {
@@ -16,19 +17,20 @@ public class ChiralityPanelDisplay : MonoBehaviour
     public Hand leftHand;
 
     [Header("Layout")]
-    public float panelWidth = 0.3f;    // 30cm
-    public float panelHeight = 0.18f;  // 18cm
-    public float buttonSize = 0.055f;  // 5.5cm buttons
-    public float buttonSpacing = 0.015f;
+    public float panelWidth = 0.35f;   // 35cm
+    public float panelHeight = 0.35f;  // 35cm – braucht mehr Platz für 8 Buttons
+    public float buttonW = 0.14f;      // 14cm button width
+    public float buttonH = 0.032f;     // 3.2cm button height
+    public float buttonGap = 0.008f;   // gap between buttons
 
     [Header("Interaction")]
     [Range(0.5f, 1f)] public float pinchThreshold = 0.7f;
     [Range(0.1f, 0.5f)] public float pinchReleaseThreshold = 0.35f;
-    
+
     private GameObject panelRoot;
-    
+
     // Poke cooldown
-    private float lastPokeTimeR = -1f, lastPokeTimeL = -1f;
+    private float lastPokeTime = -1f;
     private const float POKE_COOLDOWN = 0.5f;
 
     // Movement
@@ -41,8 +43,11 @@ public class ChiralityPanelDisplay : MonoBehaviour
     private class PanelButton
     {
         public string id;
+        public string label;
         public GameObject obj;
         public Material mat;
+        public Color baseColor;
+        public float halfW, halfH;
     }
     private List<PanelButton> buttons = new List<PanelButton>();
 
@@ -68,8 +73,7 @@ public class ChiralityPanelDisplay : MonoBehaviour
     {
         Camera cam = Camera.main;
         if (cam == null) return;
-        
-        // Horizontal-forward (kein nach-unten-Kippen)
+
         Vector3 groundForward = cam.transform.forward;
         groundForward.y = 0;
         if (groundForward.sqrMagnitude < 0.01f) groundForward = Vector3.forward;
@@ -77,7 +81,7 @@ public class ChiralityPanelDisplay : MonoBehaviour
 
         // 35cm vor dem User, leicht unter Augenhöhe
         Vector3 targetPos = cam.transform.position + groundForward * 0.35f;
-        targetPos.y = cam.transform.position.y - 0.1f;
+        targetPos.y = cam.transform.position.y - 0.08f;
 
         transform.position = targetPos;
         FaceCamera();
@@ -102,60 +106,102 @@ public class ChiralityPanelDisplay : MonoBehaviour
         panelRoot = new GameObject("PanelRoot");
         panelRoot.transform.SetParent(transform, false);
 
-        // Background Quad
+        // ─────────── Background ───────────
         var bg = GameObject.CreatePrimitive(PrimitiveType.Quad);
         bg.transform.SetParent(panelRoot.transform, false);
         bg.transform.localScale = new Vector3(panelWidth, panelHeight, 1f);
         Destroy(bg.GetComponent<Collider>());
-        
         var bgMat = new Material(Shader.Find("Unlit/Color") ?? Shader.Find("UI/Default"));
         bgMat.color = new Color(0.06f, 0.03f, 0.08f); // dark purple
         bg.GetComponent<Renderer>().material = bgMat;
 
-        // Title
-        CreateLabel("Chiralität", new Vector3(0, panelHeight * 0.33f, -0.005f), 40, 0.0015f, Color.white);
+        // ─────────── Title ───────────
+        float topY = panelHeight * 0.42f;
+        CreateLabel("Chiralität", new Vector3(0, topY, -0.003f), 48, 0.0014f, Color.white);
 
-        // 3 Buttons in einer Reihe
-        float totalBtnWidth = 3 * buttonSize + 2 * buttonSpacing;
-        float startX = -totalBtnWidth / 2 + buttonSize / 2;
-        float btnY = -0.005f;
+        // ─────────── Werkzeug-Buttons (2 Spalten × 4 Reihen) ───────────
+        // Links: Erkennen, Enantiomer, Diastereomer, Konformer
+        // Rechts: Meso, cis/trans, Konstitution, Überlagerung
 
-        CreateButton("detect",       "Erkennen",    new Color(0.2f, 0.55f, 1f),  new Vector3(startX, btnY, -0.005f));
-        CreateButton("isomers",      "Isomere",     new Color(0.7f, 0.25f, 0.85f), new Vector3(startX + buttonSize + buttonSpacing, btnY, -0.005f));
-        CreateButton("superposition","Überlapp.",    new Color(1f, 0.5f, 0.15f),  new Vector3(startX + 2*(buttonSize + buttonSpacing), btnY, -0.005f));
+        float colLeft  = -0.075f;
+        float colRight =  0.075f;
+        float startY   =  0.10f;
+        float rowStep  = -(buttonH + buttonGap);
 
-        // Move Button (klein, rechts oben)
-        CreateButton("move", "✥", new Color(0.45f, 0.45f, 0.45f),
-            new Vector3(panelWidth * 0.42f, panelHeight * 0.35f, -0.005f), isSmall: true);
+        // Row 0
+        AddToolButton("chirality_detect",      "Erkennen",      new Color(0.2f, 0.55f, 1f),   colLeft,  startY + rowStep * 0);
+        AddToolButton("test_meso",             "Meso-Test",     new Color(0.06f, 0.73f, 0.51f),colRight, startY + rowStep * 0);
+        // Row 1
+        AddToolButton("generate_enantiomer",   "Enantiomer",    new Color(0.7f, 0.25f, 0.85f), colLeft,  startY + rowStep * 1);
+        AddToolButton("generate_cistrans",     "cis/trans",     new Color(0.93f, 0.27f, 0.37f),colRight, startY + rowStep * 1);
+        // Row 2
+        AddToolButton("generate_diastereomer", "Diastereomer",  new Color(0.02f, 0.71f, 0.83f),colLeft,  startY + rowStep * 2);
+        AddToolButton("generate_constitutional","Konstitution", new Color(0.39f, 0.40f, 0.95f),colRight, startY + rowStep * 2);
+        // Row 3
+        AddToolButton("generate_conformer",    "Konformer",     new Color(0.96f, 0.62f, 0.04f),colLeft,  startY + rowStep * 3);
+        AddToolButton("test_overlay",          "Überlagerung",  new Color(1f, 0.5f, 0.15f),    colRight, startY + rowStep * 3);
+
+        // ─────────── Clear + Move (unten) ───────────
+        float bottomY = startY + rowStep * 4 - 0.01f;
+        AddToolButton("chirality_clear", "Alles löschen", new Color(0.7f, 0.15f, 0.15f),
+                      0, bottomY, fullWidth: true);
+
+        // Move-Button (rechts oben, klein)
+        AddMoveButton(panelWidth * 0.40f, topY);
     }
 
-    private void CreateButton(string id, string label, Color color, Vector3 localPos, bool isSmall = false)
+    private void AddToolButton(string id, string label, Color color, float x, float y, bool fullWidth = false)
     {
         var obj = new GameObject($"Btn_{id}");
         obj.transform.SetParent(panelRoot.transform, false);
-        obj.transform.localPosition = localPos;
+        obj.transform.localPosition = new Vector3(x, y, -0.003f);
 
-        float size = isSmall ? buttonSize * 0.5f : buttonSize;
+        float w = fullWidth ? (buttonW * 2 + buttonGap) : buttonW;
+        float h = buttonH;
 
-        // Button visual
+        // Visual
         var vis = GameObject.CreatePrimitive(PrimitiveType.Cube);
         vis.transform.SetParent(obj.transform, false);
-        vis.transform.localScale = new Vector3(size, size, 0.008f);
+        vis.transform.localScale = new Vector3(w, h, 0.006f);
         Destroy(vis.GetComponent<Collider>());
-
         var mat = new Material(Shader.Find("Unlit/Color") ?? Shader.Find("UI/Default"));
         mat.color = color;
         vis.GetComponent<Renderer>().material = mat;
 
         // Label
-        float charSize = isSmall ? 0.0012f : 0.0015f;
-        int fontSize = isSmall ? 30 : 36;
-        CreateLabel(label, new Vector3(0, 0, -0.006f), fontSize, charSize, Color.white, obj.transform);
+        CreateLabel(label, new Vector3(0, 0, -0.005f), 32, 0.0009f, Color.white, obj.transform);
 
-        var btn = new PanelButton { id = id, obj = obj, mat = mat };
-        buttons.Add(btn);
+        buttons.Add(new PanelButton
+        {
+            id = id, label = label, obj = obj, mat = mat,
+            baseColor = color, halfW = w / 2, halfH = h / 2
+        });
+    }
 
-        if (id == "move") moveButtonMat = mat;
+    private void AddMoveButton(float x, float y)
+    {
+        var obj = new GameObject("Btn_move");
+        obj.transform.SetParent(panelRoot.transform, false);
+        obj.transform.localPosition = new Vector3(x, y, -0.003f);
+
+        float s = 0.025f;
+        var vis = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        vis.transform.SetParent(obj.transform, false);
+        vis.transform.localScale = new Vector3(s, s, 0.006f);
+        Destroy(vis.GetComponent<Collider>());
+        var mat = new Material(Shader.Find("Unlit/Color") ?? Shader.Find("UI/Default"));
+        mat.color = new Color(0.45f, 0.45f, 0.45f);
+        vis.GetComponent<Renderer>().material = mat;
+        moveButtonMat = mat;
+
+        CreateLabel("+", new Vector3(0, 0, -0.005f), 32, 0.0009f, Color.white, obj.transform);
+
+        buttons.Add(new PanelButton
+        {
+            id = "move", label = "+", obj = obj, mat = mat,
+            baseColor = new Color(0.45f, 0.45f, 0.45f),
+            halfW = s / 2, halfH = s / 2
+        });
     }
 
     private void CreateLabel(string text, Vector3 localPos, int fontSize, float charSize, Color color, Transform parent = null)
@@ -174,9 +220,15 @@ public class ChiralityPanelDisplay : MonoBehaviour
         tm.fontStyle = FontStyle.Bold;
     }
 
+    // ═══════════════════ UPDATE ═══════════════════
+
     void Update()
     {
-        HandlePokes();
+        // Always check pokes (unless we're mid-move)
+        if (!isMovingPanel)
+            HandlePokes();
+
+        // Handle movement if move mode is active
         if (moveModeActive)
             HandleMovePinch();
     }
@@ -185,119 +237,114 @@ public class ChiralityPanelDisplay : MonoBehaviour
 
     private void HandlePokes()
     {
-        if (isMovingPanel) return;
-        CheckPoke(rightHand, ref lastPokeTimeR);
-        CheckPoke(leftHand, ref lastPokeTimeL);
+        CheckPoke(rightHand);
+        CheckPoke(leftHand);
     }
 
-    private void CheckPoke(Hand hand, ref float lastPokeTime)
+    private void CheckPoke(Hand hand)
     {
         if (hand == null || !hand.IsTrackedDataValid) return;
         if (Time.time - lastPokeTime < POKE_COOLDOWN) return;
-
         if (!hand.GetJointPose(HandJointId.HandIndexTip, out Pose tip)) return;
 
         // Transformiere Fingerspitze in lokalen Panel-Raum
         Vector3 localTip = panelRoot.transform.InverseTransformPoint(tip.position);
 
         // Prüfe ob Finger innerhalb der Panel-Tiefe ist (lokales Z)
-        float depthThresh = 0.04f;
+        // Negatives Z = vor dem Panel (Panel-Front zeigt in -Z Richtung von local space)
+        float depthThresh = 0.05f;
         if (Mathf.Abs(localTip.z) > depthThresh) return;
 
-        // Prüfe jeden Button in lokalen Koordinaten
+        // Prüfe jeden Button
         foreach (var b in buttons)
         {
             if (b.obj == null) continue;
             Vector3 localBtn = panelRoot.transform.InverseTransformPoint(b.obj.transform.position);
-            
-            float halfSize = (b.id == "move" ? buttonSize * 0.25f : buttonSize * 0.5f);
-            
-            if (Mathf.Abs(localTip.x - localBtn.x) < halfSize &&
-                Mathf.Abs(localTip.y - localBtn.y) < halfSize)
+
+            if (Mathf.Abs(localTip.x - localBtn.x) < b.halfW &&
+                Mathf.Abs(localTip.y - localBtn.y) < b.halfH)
             {
-                OnButtonClicked(b.id);
+                OnButtonClicked(b);
                 lastPokeTime = Time.time;
-                
-                // Kurzes visuelles Feedback
-                StartCoroutine(FlashButton(b.mat, b.id == "move"));
                 return;
             }
         }
     }
 
-    private System.Collections.IEnumerator FlashButton(Material mat, bool isMoveBtn)
+    private void OnButtonClicked(PanelButton btn)
     {
-        if (mat == null) yield break;
-        Color original = mat.color;
-        mat.color = Color.white;
-        yield return new WaitForSeconds(0.15f);
-        if (isMoveBtn)
-            mat.color = moveModeActive ? new Color(0.15f, 0.75f, 0.5f) : new Color(0.45f, 0.45f, 0.45f);
-        else
-            mat.color = original;
-    }
+        Debug.Log($"[ChiralityPanel] Button pressed: {btn.id}");
 
-    private void OnButtonClicked(string id)
-    {
-        Debug.Log($"[ChiralityPanel] Button pressed: {id}");
-        
-        if (id == "move")
+        // Flash feedback
+        StartCoroutine(FlashButton(btn));
+
+        if (btn.id == "move")
         {
             moveModeActive = !moveModeActive;
             if (moveButtonMat != null)
-            {
-                moveButtonMat.color = moveModeActive ? new Color(0.15f, 0.75f, 0.5f) : new Color(0.45f, 0.45f, 0.45f);
-            }
+                moveButtonMat.color = moveModeActive
+                    ? new Color(0.15f, 0.75f, 0.5f)
+                    : btn.baseColor;
+            Debug.Log($"[ChiralityPanel] Move mode: {moveModeActive}");
             return;
         }
 
+        // Route all tool commands to WebSocketServer
         if (webSocket == null)
             webSocket = FindObjectOfType<WebSocketServer>();
 
         if (webSocket != null)
         {
-            switch (id)
-            {
-                case "detect":
-                    webSocket.HandleVRControlPanelCommand("chirality_detect");
-                    break;
-                case "isomers":
-                    webSocket.HandleVRControlPanelCommand("generate_isomers");
-                    break;
-                case "superposition":
-                    webSocket.HandleVRControlPanelCommand("superposition_mode");
-                    break;
-            }
+            webSocket.HandleVRControlPanelCommand(btn.id);
+        }
+        else
+        {
+            Debug.LogWarning("[ChiralityPanel] WebSocketServer not found!");
         }
     }
 
-    // ═══════════════════ MOVE (PINCH) ═══════════════════
+    private System.Collections.IEnumerator FlashButton(PanelButton btn)
+    {
+        if (btn.mat == null) yield break;
+        btn.mat.color = Color.white;
+        yield return new WaitForSeconds(0.15f);
+        // Restore: move button depends on toggle state
+        if (btn.id == "move")
+            btn.mat.color = moveModeActive ? new Color(0.15f, 0.75f, 0.5f) : btn.baseColor;
+        else
+            btn.mat.color = btn.baseColor;
+    }
+
+    // ═══════════════════ MOVE (PINCH-TO-DRAG) ═══════════════════
 
     private void HandleMovePinch()
     {
-        bool rPinching = IsPinching(rightHand);
-        bool lPinching = IsPinching(leftHand);
-
-        if (!isMovingPanel && (rPinching || lPinching))
+        if (!isMovingPanel)
         {
-            Hand activeHand = rPinching ? rightHand : leftHand;
-            if (activeHand.GetJointPose(HandJointId.HandIndexTip, out Pose tip))
+            // Check if either hand starts pinching
+            Hand activeHand = GetPinchingHand();
+            if (activeHand != null && activeHand.GetJointPose(HandJointId.HandIndexTip, out Pose tip))
             {
                 isMovingPanel = true;
                 movingHand = activeHand;
                 moveOffset = transform.position - tip.position;
                 FaceCamera();
+                Debug.Log("[ChiralityPanel] Move started");
             }
         }
-        else if (isMovingPanel)
+        else
         {
-            if (movingHand == null || !movingHand.IsTrackedDataValid || !IsPinching(movingHand, pinchReleaseThreshold))
+            // Release?
+            if (movingHand == null || !movingHand.IsTrackedDataValid ||
+                movingHand.GetFingerPinchStrength(HandFinger.Index) < pinchReleaseThreshold)
             {
                 isMovingPanel = false;
                 movingHand = null;
+                Debug.Log("[ChiralityPanel] Move ended");
                 return;
             }
 
+            // Follow hand
             if (movingHand.GetJointPose(HandJointId.HandIndexTip, out Pose tip))
             {
                 transform.position = tip.position + moveOffset;
@@ -306,10 +353,14 @@ public class ChiralityPanelDisplay : MonoBehaviour
         }
     }
 
-    private bool IsPinching(Hand hand, float threshold = -1)
+    private Hand GetPinchingHand()
     {
-        if (hand == null || !hand.IsTrackedDataValid) return false;
-        if (threshold < 0) threshold = pinchThreshold;
-        return hand.GetFingerIsPinching(HandFinger.Index) && hand.GetFingerPinchStrength(HandFinger.Index) > threshold;
+        if (rightHand != null && rightHand.IsTrackedDataValid &&
+            rightHand.GetFingerPinchStrength(HandFinger.Index) > pinchThreshold)
+            return rightHand;
+        if (leftHand != null && leftHand.IsTrackedDataValid &&
+            leftHand.GetFingerPinchStrength(HandFinger.Index) > pinchThreshold)
+            return leftHand;
+        return null;
     }
 }
