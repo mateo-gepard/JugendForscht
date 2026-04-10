@@ -84,6 +84,11 @@ public class LorentzLabManager : MonoBehaviour
         EnsureComponents();
     }
 
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     // ════════════════════════════════════════════════════════════
     //  Öffentliche API (Phase 2 wird diese aufrufen)
     // ════════════════════════════════════════════════════════════

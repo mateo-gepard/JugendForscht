@@ -625,6 +625,18 @@ public class WebSocketServer : MonoBehaviour
         currentMode = mode ?? "keilstrich";
         Debug.Log($"[WebSocket] Mode switched to: {currentMode}");
 
+        // ── Aufräumen: vorherige Physik-Experimente zerstören ──
+        if (currentMode != "lorentz" && LorentzLabManager.Instance != null)
+        {
+            Debug.Log("[WebSocket] Lorentz-Labor wird aufgeräumt");
+            Destroy(LorentzLabManager.Instance.gameObject);
+        }
+        if (currentMode != "swing" && ConductorSwingManager.Instance != null)
+        {
+            Debug.Log("[WebSocket] Leiterschaukel wird aufgeräumt");
+            Destroy(ConductorSwingManager.Instance.gameObject);
+        }
+
         if (moleculeRenderer == null)
             moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
 

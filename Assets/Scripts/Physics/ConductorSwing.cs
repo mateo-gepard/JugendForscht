@@ -49,6 +49,9 @@ public class ConductorSwing : MonoBehaviour
     [Tooltip("Dämpfung des Pendels (Angular Drag)")]
     public float pendulumDamping = 0.5f;
 
+    [Tooltip("Effektive Fallbeschleunigung (reduziert für VR-Maßstab)")]
+    public float customGravity = 2f;
+
     [Header("Referenzen")]
     [Tooltip("Wird automatisch gesucht")]
     public MagneticFieldVolume fieldVolume;
@@ -137,7 +140,7 @@ public class ConductorSwing : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.useGravity = true;
+        rb.useGravity = false; // custom gravity statt Unity-Standard (9.81 → 2 m/s²)
         rb.mass = 0.05f;
         rb.drag = 0.1f;
         rb.angularDrag = pendulumDamping;
@@ -154,6 +157,9 @@ public class ConductorSwing : MonoBehaviour
 
     void FixedUpdate()
     {
+        // Reduzierte Schwerkraft immer anwenden (statt Unity 9.81)
+        rb.AddForce(Vector3.down * customGravity * rb.mass, ForceMode.Force);
+
         if (!currentOn || fieldVolume == null)
         {
             currentForce = Vector3.zero;
@@ -161,9 +167,9 @@ public class ConductorSwing : MonoBehaviour
             return;
         }
 
-        // Technische Stromrichtung: entlang lokaler Y-Achse des Stabs
-        // (Y weil der Stab waagerecht hängt, Y = Längsachse)
-        currentDirection3D = transform.TransformDirection(Vector3.up * currentDirection).normalized;
+        // Technische Stromrichtung: entlang lokaler X-Achse des Stabs
+        // (Stab liegt waagerecht entlang X)
+        currentDirection3D = transform.TransformDirection(Vector3.right * currentDirection).normalized;
 
         Vector3 B = fieldVolume.GetWorldFieldVector();
 
@@ -184,11 +190,13 @@ public class ConductorSwing : MonoBehaviour
 
     private void BuildVisuals()
     {
-        // Kupferstab (Zylinder entlang lokaler Y)
+        // Kupferstab (Zylinder waagerecht entlang lokaler X)
         GameObject cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         cylinder.name = "Kupferstab";
         cylinder.transform.SetParent(transform, false);
         cylinder.transform.localPosition = Vector3.zero;
+        // Zylinder 90° kippen: Unity-Cylinder ist Y-up → nach Rotation liegt er in X
+        cylinder.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
         cylinder.transform.localScale = new Vector3(
             conductorRadius * 2f, conductorLength * 0.5f, conductorRadius * 2f
         );
@@ -206,48 +214,24 @@ public class ConductorSwing : MonoBehaviour
         meshRenderer.sharedMaterial = conductorMaterial;
 
         // Aufhängefäden (dünne Stäbe von Stab-Ende nach oben)
+        // Stab liegt in X → Offset entlang X für linkes/rechtes Stabende
         strandLeft = CreateStrand("Faden_Links", -conductorLength * 0.45f);
         strandRight = CreateStrand("Faden_Rechts", conductorLength * 0.45f);
     }
 
-    private GameObject CreateStrand(string name, float yOffset)
+    private GameObject CreateStrand(string name, float xOffset)
     {
-        GameObject strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        strand.name = name;
-        strand.transform.SetParent(transform, false);
-
-        // Von Stab-Ende gerade nach oben
-        strand.transform.localPosition = new Vector3(0f, yOffset, 0f)
-            + Vector3.up * 0f; // Wird vom Pivot angepasst
-        // Eigentlich: Faden von der Aufhängung zum Stab. Vereinfacht als
-        // dünner Zylinder der in Y geht.
-        float halfLen = pendulumLength * 0.5f;
-        strand.transform.localPosition = new Vector3(0f, pendulumLength * 0.5f, 0f);
-        strand.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-
-        // Pivot-Trick: der Faden ist entlang der Eltern-Y, aber versetzt
-        // zum Stab-Ende. Hier vereinfacht.
-        strand.transform.localPosition = new Vector3(
-            0f, pendulumLength * 0.5f, 0f
-        );
-
-        // Wir modellieren die Fäden einfacher: sie hängen von Hinge-Anchor,
-        // Der Stab bewegt sich ja nur in eine Ebene. Kosmetisch genug.
-        // Hier: Faden vom oberen Fixpunkt zum Stab-Rand
-        // Setze als Kind des Stabs. Wird im LateUpdate korrigiert? Nein, zu komplex.
-
-        // Einfach: 2 dünne Zylinder die von den Stab-Enden nach oben gehen
-        strand.transform.localPosition = new Vector3(0f, 0f, 0f);
-        strand.transform.localScale = new Vector3(0.002f, pendulumLength * 0.5f, 0.002f);
-
-        // Position am Stabende
-        // Stab liegt in Y-Richtung, also offset in Y
+        // Offset-Objekt am Stabende (in X)
         var offsetObj = new GameObject(name + "_Offset");
         offsetObj.transform.SetParent(transform, false);
-        offsetObj.transform.localPosition = new Vector3(0f, yOffset, 0f);
+        offsetObj.transform.localPosition = new Vector3(xOffset, 0f, 0f);
 
+        // Dünner Zylinder der vom Stabende gerade nach oben geht
+        GameObject strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        strand.name = name;
         strand.transform.SetParent(offsetObj.transform, false);
         strand.transform.localPosition = new Vector3(0f, pendulumLength * 0.5f, 0f);
+        strand.transform.localScale = new Vector3(0.002f, pendulumLength * 0.5f, 0.002f);
 
         var col = strand.GetComponent<Collider>();
         if (col != null) Destroy(col);
@@ -296,9 +280,9 @@ public class ConductorSwing : MonoBehaviour
         hinge.connectedAnchor = transform.position + Vector3.up * pendulumLength;
         hinge.autoConfigureConnectedAnchor = false;
 
-        // Achse: Pendel schwingt um die Stab-Längsachse (lokale Y)
-        // → Hinge-Achse = lokale Y
-        hinge.axis = Vector3.up;
+        // Achse: Stab liegt in X, Pendel schwingt in Z
+        // → Hinge-Achse = lokale X (entlang Stab)  →  erlaubt Rotation in der YZ-Ebene
+        hinge.axis = Vector3.right;
 
         // Grenzen optional (nicht nötig, Physik + Gravity reicht)
         hinge.useLimits = false;

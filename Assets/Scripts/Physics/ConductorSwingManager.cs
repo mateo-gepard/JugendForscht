@@ -37,8 +37,8 @@ public class ConductorSwingManager : MonoBehaviour
     [Tooltip("B-Feld Stärke in Tesla")]
     public float defaultFieldStrength = 0.33f;
 
-    [Tooltip("Lokale Feldrichtung")]
-    public Vector3 defaultFieldDirection = Vector3.forward;
+    [Tooltip("Lokale Feldrichtung (Y = vertikal wie Hufeisenmagnet)")]
+    public Vector3 defaultFieldDirection = Vector3.up;
 
     [Tooltip("Box-Größe des Magnetfelds")]
     public Vector3 defaultVolumeSize = new Vector3(0.4f, 0.4f, 0.4f);
@@ -74,6 +74,11 @@ public class ConductorSwingManager : MonoBehaviour
         PositionInFrontOfCamera();
 
         EnsureComponents();
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     // ════════════════════════════════════════════════════════════
