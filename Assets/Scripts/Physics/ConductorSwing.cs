@@ -5,20 +5,17 @@ using UnityEngine;
 /// in einem homogenen Magnetfeld. Fließt Strom, wirkt die Lorentzkraft
 /// F = I * L * (dl × B) und lenkt den Stab seitlich aus.
 ///
-/// Physik:
-///   F_L = I * L * (dI_hat × B)
-///   wobei dI_hat = technische Stromrichtung (normalisiert)
+/// Physik (analytisches Pendel statt HingeJoint):
+///   θ̈ = -(g/L)·sin(θ) - γ·θ̇ + F_ext/(m·L) · cos(θ)
 ///
-/// HANDEDNESS-KORREKTUR (wie ChargedParticle):
-///   Unity linkshändig → Cross(B, I_hat) statt Cross(I_hat, B)
-///   damit die Ablenkung mit der echten Rechte-Hand-Regel übereinstimmt.
+///   Lorentzkraft: F_L = I * L * Cross(B, Î)   (Unity-LHS-Korrektur)
+///   Nur die Z-Komponente (senkrecht zur Schwing-Ebene) erzeugt Drehmoment.
 ///
 /// Aufbau:
-///   - HingeJoint am oberen Ende simuliert das Pendel
-///   - Rigidbody für physikalische Schwingung + Dämpfung
-///   - Strom ein/aus + Richtungsumkehr per API
+///   - Kein Rigidbody/HingeJoint → rein kinematisch via Euler-Integration
+///   - Stab + 2 Aufhängefäden als visuelle Kinder
+///   - Fäden strecken sich dynamisch vom Fixpunkt zum Stabende
 /// </summary>
-[RequireComponent(typeof(Rigidbody))]
 public class ConductorSwing : MonoBehaviour
 {
     // ════════════════════════════════════════════════════════════
@@ -32,11 +29,11 @@ public class ConductorSwing : MonoBehaviour
     [Tooltip("Strom ein oder aus")]
     public bool currentOn = false;
 
-    [Tooltip("Technische Stromrichtung: +1 oder -1 entlang lokaler Y-Achse des Stabs")]
+    [Tooltip("Technische Stromrichtung: +1 oder -1 entlang Stab")]
     public int currentDirection = 1;
 
     [Header("Leiter")]
-    [Tooltip("Wirksame Leiterlänge in Metern (= Stablänge im Magnetfeld)")]
+    [Tooltip("Wirksame Leiterlänge in Metern")]
     public float conductorLength = 0.3f;
 
     [Tooltip("Radius des Kupferstabs")]
@@ -46,11 +43,14 @@ public class ConductorSwing : MonoBehaviour
     [Tooltip("Länge der Aufhängefäden")]
     public float pendulumLength = 0.25f;
 
-    [Tooltip("Dämpfung des Pendels (Angular Drag)")]
-    public float pendulumDamping = 0.5f;
+    [Tooltip("Dämpfung (γ) – je größer, desto schneller beruhigt sich das Pendel")]
+    public float damping = 1.2f;
 
-    [Tooltip("Effektive Fallbeschleunigung (reduziert für VR-Maßstab)")]
-    public float customGravity = 2f;
+    [Tooltip("Effektive Fallbeschleunigung")]
+    public float gravity = 3f;
+
+    [Tooltip("Masse des Stabs in kg")]
+    public float mass = 0.05f;
 
     [Header("Referenzen")]
     [Tooltip("Wird automatisch gesucht")]
@@ -63,30 +63,31 @@ public class ConductorSwing : MonoBehaviour
     [Header("Zustand")]
     [SerializeField] private Vector3 currentForce;
     [SerializeField] private Vector3 currentDirection3D;
+    [SerializeField] private float theta;       // Auslenkwinkel in Rad
+    [SerializeField] private float thetaDot;    // Winkelgeschwindigkeit
 
     public Vector3 CurrentForce => currentForce;
     public Vector3 CurrentDirectionWorld => currentDirection3D;
-
-    /// <summary>Ist der Strom aktiv?</summary>
     public bool IsCurrentOn => currentOn;
 
     // ════════════════════════════════════════════════════════════
     //  Interne Felder
     // ════════════════════════════════════════════════════════════
 
-    private Rigidbody rb;
-    private HingeJoint hinge;
     private MeshRenderer meshRenderer;
     private Material conductorMaterial;
 
     // Visuals
-    private GameObject strandLeft, strandRight;
+    private Transform barVisual;
+    private Transform strandLeftCyl, strandRightCyl;
+
+    // Pivot = Aufhängepunkt (lokal zum Parent)
+    private Vector3 pivotLocal;
 
     // ════════════════════════════════════════════════════════════
     //  Öffentliche API
     // ════════════════════════════════════════════════════════════
 
-    /// <summary>Strom einschalten.</summary>
     [ContextMenu("Strom EIN")]
     public void CurrentOn()
     {
@@ -94,7 +95,6 @@ public class ConductorSwing : MonoBehaviour
         UpdateVisualColor();
     }
 
-    /// <summary>Strom ausschalten.</summary>
     [ContextMenu("Strom AUS")]
     public void CurrentOff()
     {
@@ -103,34 +103,29 @@ public class ConductorSwing : MonoBehaviour
         UpdateVisualColor();
     }
 
-    /// <summary>Strom toggeln.</summary>
     public void ToggleCurrent()
     {
         if (currentOn) CurrentOff();
         else CurrentOn();
     }
 
-    /// <summary>Stromrichtung umkehren.</summary>
     [ContextMenu("Stromrichtung umkehren")]
     public void ReverseCurrentDirection()
     {
         currentDirection = -currentDirection;
     }
 
-    /// <summary>Setzt die Stromrichtung explizit (+1 oder -1).</summary>
     public void SetCurrentDirection(int dir)
     {
         currentDirection = dir >= 0 ? 1 : -1;
     }
 
-    /// <summary>Pendel zurück in Ruhelage.</summary>
     [ContextMenu("Pendel Reset")]
     public void ResetPendulum()
     {
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        transform.localPosition = Vector3.zero;
-        transform.localRotation = Quaternion.identity;
+        theta = 0f;
+        thetaDot = 0f;
+        ApplyPendulumPose();
     }
 
     // ════════════════════════════════════════════════════════════
@@ -139,53 +134,89 @@ public class ConductorSwing : MonoBehaviour
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.useGravity = false; // custom gravity statt Unity-Standard (9.81 → 2 m/s²)
-        rb.mass = 0.05f;
-        rb.drag = 0.1f;
-        rb.angularDrag = pendulumDamping;
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
-        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-
         if (fieldVolume == null)
             fieldVolume = FindObjectOfType<MagneticFieldVolume>();
 
+        // Pivot ist pendulumLength über der Startposition
+        pivotLocal = new Vector3(0f, pendulumLength, 0f);
+
         BuildVisuals();
-        SetupHinge();
         UpdateVisualColor();
+        ApplyPendulumPose();
     }
 
     void FixedUpdate()
     {
-        // Reduzierte Schwerkraft immer anwenden (statt Unity 9.81)
-        rb.AddForce(Vector3.down * customGravity * rb.mass, ForceMode.Force);
+        float dt = Time.fixedDeltaTime;
 
-        if (!currentOn || fieldVolume == null)
+        // ── Lorentzkraft berechnen ──
+        if (currentOn && fieldVolume != null)
+        {
+            // Stromrichtung entlang lokaler X des Eltern-Transforms
+            // (der Stab dreht sich ja mit dem Pendel, also rotieren wir mit)
+            Vector3 barRight = BarWorldRight();
+            currentDirection3D = barRight * currentDirection;
+            Vector3 B = fieldVolume.GetWorldFieldVector();
+            currentForce = current * conductorLength * Vector3.Cross(B, currentDirection3D);
+        }
+        else
         {
             currentForce = Vector3.zero;
             currentDirection3D = Vector3.zero;
-            return;
         }
 
-        // Technische Stromrichtung: entlang lokaler X-Achse des Stabs
-        // (Stab liegt waagerecht entlang X)
-        currentDirection3D = transform.TransformDirection(Vector3.right * currentDirection).normalized;
+        // ── Pendel-ODE: θ̈ = -(g/L)·sin(θ) - γ·θ̇ + F_tangential/(m·L) ──
+        // Tangentialkomponente der Lorentz-Kraft in Schwingrichtung (Z im Parent-Space)
+        Vector3 forceLocal = transform.parent != null
+            ? transform.parent.InverseTransformDirection(currentForce)
+            : currentForce;
+        float F_tangential = forceLocal.z; // Z = Schwingrichtung
 
-        Vector3 B = fieldVolume.GetWorldFieldVector();
+        float thetaDDot = -(gravity / pendulumLength) * Mathf.Sin(theta)
+                        - damping * thetaDot
+                        + F_tangential * Mathf.Cos(theta) / (mass * pendulumLength);
 
-        // ────────────────────────────────────────────────
-        // HANDEDNESS-KORREKTUR (identisch zu ChargedParticle):
-        // Reale Physik: F = I * L * (dI × B)   (rechtshändig)
-        // Unity (LHS):  Cross(dI, B) → FALSCHES Vorzeichen
-        // Korrekt:      F = I * L * Cross(B, dI)
-        // ────────────────────────────────────────────────
-        currentForce = current * conductorLength * Vector3.Cross(B, currentDirection3D);
+        // Symplektisches Euler (energieerhaltend genug für VR)
+        thetaDot += thetaDDot * dt;
+        theta += thetaDot * dt;
 
-        rb.AddForce(currentForce, ForceMode.Force);
+        // Sicherheitsbegrenzung
+        theta = Mathf.Clamp(theta, -Mathf.PI * 0.45f, Mathf.PI * 0.45f);
+
+        ApplyPendulumPose();
     }
 
     // ════════════════════════════════════════════════════════════
-    //  Visuals: Kupferstab + Aufhängefäden
+    //  Pendel-Geometrie
+    // ════════════════════════════════════════════════════════════
+
+    /// <summary>Setzt Position + Rotation anhand von θ.</summary>
+    private void ApplyPendulumPose()
+    {
+        // Stab-Position: hängt am Pivot, schwingt in Z-Richtung (lokal)
+        //   y = pivot.y - L·cos(θ)
+        //   z = L·sin(θ)
+        float y = pivotLocal.y - pendulumLength * Mathf.Cos(theta);
+        float z = pendulumLength * Mathf.Sin(theta);
+        transform.localPosition = new Vector3(0f, y, z);
+
+        // Rotation: Stab kippt um die X-Achse (Stab liegt in X)
+        transform.localRotation = Quaternion.Euler(theta * Mathf.Rad2Deg, 0f, 0f);
+
+        // Fäden: von den Stabenden zum Fixpunkt strecken
+        UpdateStrands();
+    }
+
+    /// <summary>Aktuelle Welt-Rechts-Richtung des Stabs.</summary>
+    private Vector3 BarWorldRight()
+    {
+        if (transform.parent != null)
+            return transform.parent.TransformDirection(Vector3.right);
+        return Vector3.right;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    //  Visuals
     // ════════════════════════════════════════════════════════════
 
     private void BuildVisuals()
@@ -195,13 +226,12 @@ public class ConductorSwing : MonoBehaviour
         cylinder.name = "Kupferstab";
         cylinder.transform.SetParent(transform, false);
         cylinder.transform.localPosition = Vector3.zero;
-        // Zylinder 90° kippen: Unity-Cylinder ist Y-up → nach Rotation liegt er in X
         cylinder.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
         cylinder.transform.localScale = new Vector3(
             conductorRadius * 2f, conductorLength * 0.5f, conductorRadius * 2f
         );
+        barVisual = cylinder.transform;
 
-        // Collider entfernen (Physik über HingeJoint)
         var col = cylinder.GetComponent<Collider>();
         if (col != null) Destroy(col);
 
@@ -213,35 +243,60 @@ public class ConductorSwing : MonoBehaviour
         );
         meshRenderer.sharedMaterial = conductorMaterial;
 
-        // Aufhängefäden (dünne Stäbe von Stab-Ende nach oben)
-        // Stab liegt in X → Offset entlang X für linkes/rechtes Stabende
-        strandLeft = CreateStrand("Faden_Links", -conductorLength * 0.45f);
-        strandRight = CreateStrand("Faden_Rechts", conductorLength * 0.45f);
+        // Aufhängefäden
+        strandLeftCyl = CreateStrandCylinder("Faden_Links");
+        strandRightCyl = CreateStrandCylinder("Faden_Rechts");
     }
 
-    private GameObject CreateStrand(string name, float xOffset)
+    private Transform CreateStrandCylinder(string name)
     {
-        // Offset-Objekt am Stabende (in X)
-        var offsetObj = new GameObject(name + "_Offset");
-        offsetObj.transform.SetParent(transform, false);
-        offsetObj.transform.localPosition = new Vector3(xOffset, 0f, 0f);
-
-        // Dünner Zylinder der vom Stabende gerade nach oben geht
         GameObject strand = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         strand.name = name;
-        strand.transform.SetParent(offsetObj.transform, false);
-        strand.transform.localPosition = new Vector3(0f, pendulumLength * 0.5f, 0f);
-        strand.transform.localScale = new Vector3(0.002f, pendulumLength * 0.5f, 0.002f);
+        // Fäden sind Kinder des ConductorSwing-Parents (nicht des Stabs),
+        // damit sie sich unabhängig zwischen Fixpunkt und Stabende strecken
+        Transform parent = transform.parent != null ? transform.parent : transform;
+        strand.transform.SetParent(parent, false);
 
-        var col = strand.GetComponent<Collider>();
-        if (col != null) Destroy(col);
+        var c = strand.GetComponent<Collider>();
+        if (c != null) Destroy(c);
 
         var mr = strand.GetComponent<MeshRenderer>();
         Material mat = new Material(conductorMaterial);
         mat.color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
         mr.sharedMaterial = mat;
 
-        return offsetObj;
+        return strand.transform;
+    }
+
+    private void UpdateStrands()
+    {
+        if (strandLeftCyl == null || strandRightCyl == null) return;
+
+        // Fixpunkte (lokal im Parent): gleiche X wie Stabenden, Y = Pivot-Höhe
+        float halfBar = conductorLength * 0.45f;
+
+        UpdateSingleStrand(strandLeftCyl, -halfBar);
+        UpdateSingleStrand(strandRightCyl, halfBar);
+    }
+
+    private void UpdateSingleStrand(Transform strandT, float xOffset)
+    {
+        // Stabende in Parent-Space
+        Vector3 barEnd = transform.localPosition
+            + transform.localRotation * new Vector3(xOffset, 0f, 0f);
+
+        // Fixpunkt oben
+        Vector3 fixPoint = new Vector3(xOffset, pivotLocal.y, 0f);
+
+        // Mitte + Ausrichtung
+        Vector3 mid = (fixPoint + barEnd) * 0.5f;
+        Vector3 diff = fixPoint - barEnd;
+        float len = diff.magnitude;
+
+        strandT.localPosition = mid;
+        if (len > 0.001f)
+            strandT.localRotation = Quaternion.LookRotation(Vector3.forward, diff);
+        strandT.localScale = new Vector3(0.002f, len * 0.5f, 0.002f);
     }
 
     private void UpdateVisualColor()
@@ -250,41 +305,13 @@ public class ConductorSwing : MonoBehaviour
 
         if (currentOn)
         {
-            // Kupfer-Orange-Rot wenn Strom fließt
             conductorMaterial.color = currentDirection > 0
-                ? new Color(1f, 0.6f, 0.2f, 1f)   // + Richtung: warm orange
-                : new Color(0.3f, 0.6f, 1f, 1f);   // - Richtung: kühl blau
+                ? new Color(1f, 0.6f, 0.2f, 1f)
+                : new Color(0.3f, 0.6f, 1f, 1f);
         }
         else
         {
-            // Kupferfarbe wenn kein Strom
             conductorMaterial.color = new Color(0.85f, 0.55f, 0.25f, 1f);
         }
-    }
-
-    // ════════════════════════════════════════════════════════════
-    //  HingeJoint Setup
-    // ════════════════════════════════════════════════════════════
-
-    private void SetupHinge()
-    {
-        // ConfigurableJoint statt HingeJoint für mehr Kontrolle
-        // Pendel schwingt in der XZ-Ebene (Stab hängt in Y)
-        // Anchor: am Pendel-Aufhängepunkt (direkt über dem Stab)
-
-        hinge = gameObject.AddComponent<HingeJoint>();
-        hinge.anchor = new Vector3(0f, 0f, 0f);
-
-        // Verbinden mit dem Parent (Aufhänge-Punkt = connected body = null → Welt)
-        // Der Aufhängepunkt ist pendulumLength über dem Stab
-        hinge.connectedAnchor = transform.position + Vector3.up * pendulumLength;
-        hinge.autoConfigureConnectedAnchor = false;
-
-        // Achse: Stab liegt in X, Pendel schwingt in Z
-        // → Hinge-Achse = lokale X (entlang Stab)  →  erlaubt Rotation in der YZ-Ebene
-        hinge.axis = Vector3.right;
-
-        // Grenzen optional (nicht nötig, Physik + Gravity reicht)
-        hinge.useLimits = false;
     }
 }

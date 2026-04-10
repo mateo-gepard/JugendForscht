@@ -180,19 +180,12 @@ public class ConductorSwingManager : MonoBehaviour
             fieldVolume.volumeSize = defaultVolumeSize;
         }
 
-        // Aufhänge-Punkt: oben in der Mitte der Box
+        // Stab: Startposition = Ruhelage unter dem Pivot (Pivot = Oberkante Box)
         if (conductor == null)
         {
-            // Pivot = oberer Rand des Magnetfeld-Volumens
-            GameObject pivotObj = new GameObject("Pendel-Pivot");
-            pivotObj.transform.SetParent(transform, false);
-            pivotObj.transform.localPosition = new Vector3(
-                0f, defaultVolumeSize.y * 0.5f, 0f
-            );
-
-            // Stab hängt unter dem Pivot
             GameObject stabObj = new GameObject("Leiterschaukel");
             stabObj.transform.SetParent(transform, false);
+            // Ruhelage: direkt unter dem Pivotpunkt
             stabObj.transform.localPosition = new Vector3(
                 0f, defaultVolumeSize.y * 0.5f - defaultPendulumLength, 0f
             );
