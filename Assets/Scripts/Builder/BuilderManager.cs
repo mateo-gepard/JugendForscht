@@ -635,7 +635,7 @@ public class BuilderManager : MonoBehaviour
         
         StopBuilder();
 
-        // Use MoleculeLibrary pipeline for proper positioning, rotation, clear support
+         // Use MoleculeLibrary pipeline for proper positioning, rotation, clear support
         var lib = moleculeLibrary ?? FindObjectOfType<MoleculeLibrary>();
         if (lib != null)
         {
@@ -645,6 +645,10 @@ public class BuilderManager : MonoBehaviour
             {
                 renderer.gameObject.SetActive(true);
                 
+                // Disable mesh combining for builder molecules (same as isomer clones)
+                // This ensures individual atom GameObjects survive for rotation/interaction
+                renderer.disableMeshCombining = true;
+                
                 // Disable plane (white quad) for builder molecules
                 var planeAlign = renderer.GetComponent<MoleculePlaneAlignment>();
                 if (planeAlign != null)
@@ -653,6 +657,8 @@ public class BuilderManager : MonoBehaviour
                     planeAlign.SetPlaneVisibility(false);
                 }
                 renderer.enableStereoDisplay = false;
+                
+                Debug.Log($"[Builder] Renderer ready: active={renderer.gameObject.activeInHierarchy}, meshCombine=OFF");
             }
             lib.DisplayBuilderMolecule(molData);
         }
