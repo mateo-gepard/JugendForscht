@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using System;
-using System.Numerics;
 using System.Collections.Generic;
 using TMPro;
 using Oculus.Interaction.Input;
+using Complex = System.Numerics.Complex;
+using Vector2 = UnityEngine.Vector2;
+using Vector3 = UnityEngine.Vector3;
+using Quaternion = UnityEngine.Quaternion;
 
 /// <summary>
 /// VR display for Riemann surfaces.
@@ -280,7 +283,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
 
             // Set rect size
             var rt = functionLabel.GetComponent<RectTransform>();
-            rt.sizeDelta = new UnityEngine.Vector2(0.5f, 0.05f);
+            rt.sizeDelta = new Vector2(0.5f, 0.05f);
         }
 
         functionLabel.text = $"f(z) = {currentFunctionText}";
@@ -438,7 +441,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         obj.transform.SetParent(parent, false);
         obj.transform.localPosition = position;
         obj.transform.localScale = new Vector3(radius, height / 2f, radius);
-        obj.transform.localRotation = UnityEngine.Quaternion.FromToRotation(Vector3.up, direction);
+        obj.transform.localRotation = Quaternion.FromToRotation(Vector3.up, direction);
 
         var mr = obj.GetComponent<MeshRenderer>();
         mr.material = new Material(Shader.Find("Unlit/Color") ?? Shader.Find("Standard"));
@@ -465,7 +468,7 @@ public class RiemannSurfaceDisplay : MonoBehaviour
         tmp.enableWordWrapping = false;
 
         var rt = tmp.GetComponent<RectTransform>();
-        rt.sizeDelta = new UnityEngine.Vector2(0.15f, 0.04f);
+        rt.sizeDelta = new Vector2(0.15f, 0.04f);
 
         return obj;
     }

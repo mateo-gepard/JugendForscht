@@ -1,7 +1,8 @@
 using UnityEngine;
 using System;
-using System.Numerics;
 using System.Collections.Generic;
+using Complex = System.Numerics.Complex;
+using Vector3 = UnityEngine.Vector3;
 
 /// <summary>
 /// Generates a 3D mesh for a Riemann surface from a parsed complex function.

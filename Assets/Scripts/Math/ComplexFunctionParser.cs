@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
+using Complex = System.Numerics.Complex;
 
 /// <summary>
 /// Parses a complex function string (e.g. "sqrt(z^2+1)") into an evaluable expression tree.
