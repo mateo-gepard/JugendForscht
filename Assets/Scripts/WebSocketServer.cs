@@ -584,6 +584,10 @@ public class WebSocketServer : MonoBehaviour
             {
                 HandleSwingCommand(data.action, data.floatValue);
             }
+            else if (data.type == "riemann")
+            {
+                HandleRiemannCommand(data.action, data.func, data.maxVal);
+            }
         }
         catch (Exception e)
         {
@@ -697,6 +701,25 @@ public class WebSocketServer : MonoBehaviour
             }
             BroadcastMessage("{\"type\":\"status\",\"message\":\"Leiterschaukel aktiv\"}");
         }
+        else if (currentMode == "riemann")
+        {
+            // Mathematik-Modus: Chemie/Physik-Visuals ausblenden
+            SetStereoDisplay(false);
+            if (planeAlign != null)
+            {
+                planeAlign.showPlaneInVR = false;
+                planeAlign.SetPlaneVisibility(false);
+            }
+            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
+            if (library != null) library.ClearCurrentMolecule();
+
+            // Riemann-Manager aktivieren
+            if (riemannManager == null)
+                riemannManager = FindObjectOfType<RiemannSurfaceManager>();
+            if (riemannManager != null) riemannManager.Activate();
+
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Riemannsche Flächen aktiv\"}");
+        }
         else
         {
             SetStereoDisplay(true);
@@ -705,6 +728,9 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = true;
                 planeAlign.SetPlaneVisibility(true);
             }
+
+            // Deactivate Riemann when switching away
+            if (riemannManager != null) riemannManager.Deactivate();
         }
     }
 
@@ -1510,10 +1536,56 @@ uU();cn();
         public string type;
         public string molecule;
         public string action;   // For tutorial/chirality/isomer/quiz commands
-        public string mode;     // For mode switch: "keilstrich", "isomerie", or "lorentz"
+        public string mode;     // For mode switch: "keilstrich", "isomerie", "lorentz", or "riemann"
         public int center;      // For isomer inversion: chiral center atom ID
         public int answer;      // For quiz: selected answer index
         public bool visible;    // For vr_panel: show/hide
         public float floatValue; // For lorentz: field strength, speed, etc.
+        public string func;    // For riemann: function expression (e.g. "sqrt(z)")
+        public float maxVal;   // For riemann: axis bounds
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // RIEMANN SURFACE
+    // ════════════════════════════════════════════════════════════
+
+    private RiemannSurfaceManager riemannManager;
+
+    private void HandleRiemannCommand(string action, string func, float maxVal)
+    {
+        if (riemannManager == null)
+            riemannManager = FindObjectOfType<RiemannSurfaceManager>();
+        if (riemannManager == null)
+        {
+            // Create manager if it doesn't exist
+            var go = new GameObject("RiemannSurfaceManager");
+            riemannManager = go.AddComponent<RiemannSurfaceManager>();
+        }
+
+        Debug.Log($"[WebSocket] Riemann command: action={action}, func={func}, maxVal={maxVal}");
+
+        switch (action)
+        {
+            case "plot":
+                if (!string.IsNullOrEmpty(func))
+                {
+                    riemannManager.PlotFunction(func, maxVal > 0 ? maxVal : 5f);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Plotting f(z) = {func}\"}}");
+                }
+                break;
+
+            case "clear":
+                riemannManager.Clear();
+                BroadcastMessage("{\"type\":\"status\",\"message\":\"Riemann surface cleared\"}");
+                break;
+
+            case "set_bounds":
+                if (maxVal > 0)
+                {
+                    riemannManager.SetBounds(maxVal);
+                    BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Bounds set to ±{maxVal}\"}}");
+                }
+                break;
+        }
     }
 }

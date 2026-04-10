@@ -242,7 +242,6 @@ public class HandRotationController : MonoBehaviour
 
     void UpdateRotation(Hand hand, ref Vector3 lastHandPosition)
     {
-        if (moleculeRenderer == null) return;
 
         // Get current index finger tip position
         if (!hand.GetJointPose(HandJointId.HandIndexTip, out Pose indexTipPose))
@@ -261,18 +260,42 @@ public class HandRotationController : MonoBehaviour
             return;
         }
 
-        // Determine which object to rotate: original or isomer clone (proximity-based)
-        Transform targetTransform = moleculeRenderer.transform;
-        var animator = FindObjectOfType<IsomerAnimator>();
-        if (animator != null && animator.IsShowingIsomer && animator.IsomerClone != null)
+        // Determine which object to rotate: molecule, isomer clone, or Riemann surface (proximity-based)
+        Transform targetTransform = moleculeRenderer != null ? moleculeRenderer.transform : null;
+
+        // Check for Riemann surface display
+        var riemannDisplay = FindObjectOfType<RiemannSurfaceDisplay>();
+        if (riemannDisplay != null && riemannDisplay.gameObject.activeInHierarchy)
         {
-            float distToOriginal = Vector3.Distance(currentHandPos, moleculeRenderer.transform.position);
-            float distToClone = Vector3.Distance(currentHandPos, animator.IsomerClone.transform.position);
-            if (distToClone < distToOriginal)
+            if (targetTransform == null)
             {
-                targetTransform = animator.IsomerClone.transform;
+                targetTransform = riemannDisplay.transform;
+            }
+            else
+            {
+                float distToMolecule = Vector3.Distance(currentHandPos, targetTransform.position);
+                float distToRiemann = Vector3.Distance(currentHandPos, riemannDisplay.transform.position);
+                if (distToRiemann < distToMolecule)
+                    targetTransform = riemannDisplay.transform;
             }
         }
+
+        // Check for isomer clone (only if molecule is the current target)
+        if (targetTransform != null && moleculeRenderer != null && targetTransform == moleculeRenderer.transform)
+        {
+            var animator = FindObjectOfType<IsomerAnimator>();
+            if (animator != null && animator.IsShowingIsomer && animator.IsomerClone != null)
+            {
+                float distToOriginal = Vector3.Distance(currentHandPos, moleculeRenderer.transform.position);
+                float distToClone = Vector3.Distance(currentHandPos, animator.IsomerClone.transform.position);
+                if (distToClone < distToOriginal)
+                {
+                    targetTransform = animator.IsomerClone.transform;
+                }
+            }
+        }
+
+        if (targetTransform == null) return;
 
         // Diagnostic: log every 60 frames while rotating
         if (Time.frameCount % 60 == 0)

@@ -700,6 +700,97 @@ body {
         </div>
     </div>
 
+    <!-- ==================== RIEMANN SURFACE TAB ==================== -->
+    <div class="tab-content" id="contentRiemann">
+
+        <!-- Formel-Anzeige -->
+        <div class="card" style="text-align:center;padding:18px 20px">
+            <div style="font-size:14px;color:var(--t3);margin-bottom:6px">Aktuelle Funktion</div>
+            <div id="riemannFormulaDisplay" style="font-size:22px;font-weight:700;letter-spacing:1px;font-family:monospace;min-height:30px;color:var(--acc)">
+                f(z) = &hellip;
+            </div>
+        </div>
+
+        <!-- Taschenrechner -->
+        <div class="card">
+            <div class="card-label">Funktionseingabe</div>
+            <input type="text" id="riemannInput" readonly placeholder="Funktion eingeben..." 
+                style="width:100%;padding:12px 14px;background:var(--el);border:1px solid var(--brd);border-radius:10px;color:var(--t1);font-size:16px;font-family:monospace;margin-bottom:12px;outline:none">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+                <button class="btn" onclick="rInput('7')" style="padding:12px;font-size:16px;background:var(--el)">7</button>
+                <button class="btn" onclick="rInput('8')" style="padding:12px;font-size:16px;background:var(--el)">8</button>
+                <button class="btn" onclick="rInput('9')" style="padding:12px;font-size:16px;background:var(--el)">9</button>
+                <button class="btn" onclick="rInput('/')" style="padding:12px;font-size:16px;color:var(--acc)">&divide;</button>
+                <button class="btn" onclick="rInput('^')" style="padding:12px;font-size:16px;color:var(--acc)">x<sup>n</sup></button>
+                <button class="btn" onclick="rInput('4')" style="padding:12px;font-size:16px;background:var(--el)">4</button>
+                <button class="btn" onclick="rInput('5')" style="padding:12px;font-size:16px;background:var(--el)">5</button>
+                <button class="btn" onclick="rInput('6')" style="padding:12px;font-size:16px;background:var(--el)">6</button>
+                <button class="btn" onclick="rInput('*')" style="padding:12px;font-size:16px;color:var(--acc)">&times;</button>
+                <button class="btn" onclick="rInput('(')" style="padding:12px;font-size:16px;color:var(--t2)">(</button>
+                <button class="btn" onclick="rInput('1')" style="padding:12px;font-size:16px;background:var(--el)">1</button>
+                <button class="btn" onclick="rInput('2')" style="padding:12px;font-size:16px;background:var(--el)">2</button>
+                <button class="btn" onclick="rInput('3')" style="padding:12px;font-size:16px;background:var(--el)">3</button>
+                <button class="btn" onclick="rInput('-')" style="padding:12px;font-size:16px;color:var(--acc)">&minus;</button>
+                <button class="btn" onclick="rInput(')')" style="padding:12px;font-size:16px;color:var(--t2)">)</button>
+                <button class="btn" onclick="rInput('0')" style="padding:12px;font-size:16px;background:var(--el)">0</button>
+                <button class="btn" onclick="rInput('.')" style="padding:12px;font-size:16px;background:var(--el)">.</button>
+                <button class="btn" onclick="rInput('z')" style="padding:12px;font-size:16px;font-weight:700;color:var(--ok)">z</button>
+                <button class="btn" onclick="rInput('+')" style="padding:12px;font-size:16px;color:var(--acc)">+</button>
+                <button class="btn" onclick="rInput('i')" style="padding:12px;font-size:16px;font-weight:700;color:var(--acc2)">i</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px">
+                <button class="btn" onclick="rInput('sqrt(')" style="padding:10px;font-size:13px;color:var(--acc2)">&radic;x</button>
+                <button class="btn" onclick="rInput('cbrt(')" style="padding:10px;font-size:13px;color:var(--acc2)">&sup3;&radic;x</button>
+                <button class="btn" onclick="rInput('log(')" style="padding:10px;font-size:13px;color:var(--acc2)">log</button>
+                <button class="btn" onclick="rInput('exp(')" style="padding:10px;font-size:13px;color:var(--acc2)">e<sup>x</sup></button>
+                <button class="btn" onclick="rInput('sin(')" style="padding:10px;font-size:13px;color:var(--acc2)">sin</button>
+                <button class="btn" onclick="rInput('cos(')" style="padding:10px;font-size:13px;color:var(--acc2)">cos</button>
+                <button class="btn" onclick="rInput('abs(')" style="padding:10px;font-size:13px;color:var(--acc2)">|z|</button>
+                <button class="btn" onclick="rInput('pi')" style="padding:10px;font-size:13px;color:var(--acc2)">&pi;</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:6px;margin-top:8px">
+                <button class="btn" onclick="rBackspace()" style="padding:12px;font-size:16px;background:rgba(248,113,113,.15);color:var(--err)">&larr;</button>
+                <button class="btn btn-danger" onclick="rClear()" style="padding:12px;font-size:14px">C</button>
+                <button class="btn btn-confirm" onclick="rPlot()" style="padding:12px;font-size:16px;font-weight:700">&crarr; Plotten</button>
+            </div>
+        </div>
+
+        <!-- Achsen-Begrenzung -->
+        <div class="card">
+            <div class="card-label">Achsen-Begrenzung</div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                <span>Maximalwert</span>
+                <span id="riemannMaxValDisplay" style="color:var(--acc);font-weight:600">&plusmn;5</span>
+            </div>
+            <input type="range" id="riemannMaxSlider" min="1" max="20" step="1" value="5"
+                oninput="rSetBounds(this.value)" style="width:100%;accent-color:var(--acc)">
+        </div>
+
+        <!-- Vorlagen -->
+        <div class="card">
+            <div class="card-label">Vorlagen</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                <button class="btn" onclick="rTemplate('sqrt(z)')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">&radic;z</button>
+                <button class="btn" onclick="rTemplate('cbrt(z)')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">&sup3;&radic;z</button>
+                <button class="btn" onclick="rTemplate('z^2')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">z&sup2;</button>
+                <button class="btn" onclick="rTemplate('log(z)')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">log(z)</button>
+                <button class="btn" onclick="rTemplate('1/z')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">1/z</button>
+                <button class="btn" onclick="rTemplate('sin(z)')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">sin(z)</button>
+                <button class="btn" onclick="rTemplate('z^(1/3)')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">z<sup>1/3</sup></button>
+                <button class="btn" onclick="rTemplate('sqrt(z^2-1)')" style="padding:12px;font-size:13px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">&radic;(z&sup2;-1)</button>
+                <button class="btn" onclick="rTemplate('z^3-1')" style="padding:12px;font-size:15px;background:linear-gradient(135deg,#6c8aff22,#a78bfa22);border:1px solid var(--brd)">z&sup3;-1</button>
+            </div>
+        </div>
+
+        <!-- Werkzeuge -->
+        <div class="card">
+            <div class="card-label">Werkzeuge</div>
+            <button class="btn btn-danger" onclick="rClearSurface()" style="width:100%;padding:14px;font-size:15px">
+                &#128465; Fl&auml;che l&ouml;schen
+            </button>
+        </div>
+    </div>
+
     <div class="info-line">Jugend Forscht &middot; Meta Quest 3 &middot; VR Lernumgebung</div>
 </div>
 
@@ -717,6 +808,11 @@ body {
             <div class="opt" id="optPhysik" onclick="selectSubject('physik')">
                 <span class="oi">&#9889;</span>
                 <div class="ot"><div class="on">Physik</div><div class="od">Lorentzkraft &ndash; Klasse 9</div></div>
+                <span class="oc">&#10003;</span>
+            </div>
+            <div class="opt" id="optMathematik" onclick="selectSubject('mathematik')">
+                <span class="oi">&#128202;</span>
+                <div class="ot"><div class="on">Mathematik</div><div class="od">Riemannsche Fl&auml;chen</div></div>
                 <span class="oc">&#10003;</span>
             </div>
         </div>
@@ -740,6 +836,11 @@ body {
             <div class="opt" id="optSwing" onclick="selectTopic('swing')" style="display:none">
                 <span class="oi">&#129522;</span>
                 <div class="ot"><div class="on">Leiterschaukel</div><div class="od">Kraft auf stromdurchflossenen Leiter &ndash; Klasse 9</div></div>
+                <span class="oc">&#10003;</span>
+            </div>
+            <div class="opt" id="optRiemann" onclick="selectTopic('riemann')" style="display:none">
+                <span class="oi">&#128200;</span>
+                <div class="ot"><div class="on">Riemannsche Fl&auml;chen</div><div class="od">Komplexe Funktionen in 3D &ndash; Oberstufe</div></div>
                 <span class="oc">&#10003;</span>
             </div>
         </div>
@@ -784,15 +885,19 @@ body {
         currentSubject = subj;
         document.getElementById('optChemie').classList.toggle('sel', subj === 'chemie');
         document.getElementById('optPhysik').classList.toggle('sel', subj === 'physik');
+        document.getElementById('optMathematik').classList.toggle('sel', subj === 'mathematik');
         // Zeige passende Themen
         document.getElementById('optKeilstrich').style.display = subj === 'chemie' ? '' : 'none';
         document.getElementById('optChiralitaet').style.display = subj === 'chemie' ? '' : 'none';
         document.getElementById('optLorentz').style.display = subj === 'physik' ? '' : 'none';
         document.getElementById('optSwing').style.display = subj === 'physik' ? '' : 'none';
+        document.getElementById('optRiemann').style.display = subj === 'mathematik' ? '' : 'none';
         // Brand aktualisieren
-        document.getElementById('brandSub').textContent = subj === 'chemie' ? 'Chemie' : 'Physik';
+        var brandNames = { chemie: 'Chemie', physik: 'Physik', mathematik: 'Mathematik' };
+        document.getElementById('brandSub').textContent = brandNames[subj] || 'Chemie';
         // Auto-select erstes Thema
         if (subj === 'physik') selectTopic('lorentz');
+        else if (subj === 'mathematik') selectTopic('riemann');
         else selectTopic('keilstrich');
     }
     function selectTopic(topic) {
@@ -800,6 +905,7 @@ body {
         document.getElementById('optChiralitaet').classList.toggle('sel', topic === 'isomerie');
         document.getElementById('optLorentz').classList.toggle('sel', topic === 'lorentz');
         document.getElementById('optSwing').classList.toggle('sel', topic === 'swing');
+        document.getElementById('optRiemann').classList.toggle('sel', topic === 'riemann');
         switchTab(topic);
         closeNavPopup();
     }
@@ -849,6 +955,7 @@ body {
         document.getElementById('contentIsomerie').className = tab === 'isomerie' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentLorentz').className = tab === 'lorentz' ? 'tab-content active' : 'tab-content';
         document.getElementById('contentSwing').className = tab === 'swing' ? 'tab-content active' : 'tab-content';
+        document.getElementById('contentRiemann').className = tab === 'riemann' ? 'tab-content active' : 'tab-content';
         // Breadcrumb
         var bcSubject = document.querySelector('#breadcrumb b:first-of-type');
         var bcTopic = document.getElementById('breadcrumbTopic');
@@ -858,13 +965,16 @@ body {
         } else if (tab === 'swing') {
             bcSubject.textContent = 'Physik';
             bcTopic.textContent = 'Leiterschaukel';
+        } else if (tab === 'riemann') {
+            bcSubject.textContent = 'Mathematik';
+            bcTopic.textContent = 'Riemannsche Fl\u00e4chen';
         } else {
             bcSubject.textContent = 'Chemie';
             bcTopic.textContent = tab === 'keilstrich' ? 'Keilstrichformel' : 'Chiralit\u00e4t & Isomerie';
         }
         // Builder-Button nur in Chemie
         var builderBtn = document.getElementById('btnBuilder');
-        if (builderBtn) builderBtn.parentElement.style.display = (tab === 'lorentz' || tab === 'swing') ? 'none' : '';
+        if (builderBtn) builderBtn.parentElement.style.display = (tab === 'lorentz' || tab === 'swing' || tab === 'riemann') ? 'none' : '';
         // Mode an Unity senden
         var mode = tab;
         send({ type: 'mode', mode: mode });
@@ -1528,6 +1638,62 @@ body {
             document.getElementById('sliderSwingCurrent').value = data.current;
             document.getElementById('swingCurrentVal').textContent = parseFloat(data.current).toFixed(1) + ' A';
         }
+    }
+
+    // ==================== RIEMANN SURFACE ====================
+    var riemannMaxVal = 5;
+
+    function rInput(text) {
+        var inp = document.getElementById('riemannInput');
+        inp.value += text;
+    }
+    function rBackspace() {
+        var inp = document.getElementById('riemannInput');
+        // Remove last token (handle multi-char tokens like "sqrt(")
+        var v = inp.value;
+        if (v.endsWith('sqrt(') || v.endsWith('cbrt(') || v.endsWith('log(') || v.endsWith('exp(') || v.endsWith('sin(') || v.endsWith('cos(') || v.endsWith('abs(')) {
+            // Remove function name + opening paren
+            var funcs = ['sqrt(','cbrt(','log(','exp(','sin(','cos(','abs('];
+            for (var f = 0; f < funcs.length; f++) {
+                if (v.endsWith(funcs[f])) {
+                    inp.value = v.slice(0, -funcs[f].length);
+                    return;
+                }
+            }
+        }
+        if (v.endsWith('pi')) {
+            inp.value = v.slice(0, -2);
+            return;
+        }
+        inp.value = v.slice(0, -1);
+    }
+    function rClear() {
+        document.getElementById('riemannInput').value = '';
+        document.getElementById('riemannFormulaDisplay').innerHTML = 'f(z) = &hellip;';
+    }
+    function rPlot() {
+        var func = document.getElementById('riemannInput').value.trim();
+        if (!func) { showToast('Bitte Funktion eingeben', 'warn'); return; }
+        document.getElementById('riemannFormulaDisplay').textContent = 'f(z) = ' + func;
+        send({ type: 'riemann', action: 'plot', func: func, maxVal: riemannMaxVal });
+        showToast('Plotte f(z) = ' + func, 'ok');
+    }
+    function rTemplate(func) {
+        document.getElementById('riemannInput').value = func;
+        document.getElementById('riemannFormulaDisplay').textContent = 'f(z) = ' + func;
+        send({ type: 'riemann', action: 'plot', func: func, maxVal: riemannMaxVal });
+        showToast('Vorlage: f(z) = ' + func, 'ok');
+    }
+    function rSetBounds(val) {
+        riemannMaxVal = parseFloat(val);
+        document.getElementById('riemannMaxValDisplay').textContent = '\u00b1' + val;
+        send({ type: 'riemann', action: 'set_bounds', maxVal: riemannMaxVal });
+    }
+    function rClearSurface() {
+        send({ type: 'riemann', action: 'clear' });
+        document.getElementById('riemannInput').value = '';
+        document.getElementById('riemannFormulaDisplay').innerHTML = 'f(z) = &hellip;';
+        showToast('Fl\u00e4che gel\u00f6scht', 'ok');
     }
 
     // ==================== INIT ====================
