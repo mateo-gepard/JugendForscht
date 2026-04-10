@@ -91,15 +91,18 @@ public class RiemannSurfaceManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Deactivate the Riemann surface mode.
+    /// Deactivate the Riemann surface mode and destroy all rendered objects.
     /// </summary>
     public void Deactivate()
     {
         if (display != null)
         {
             display.ClearSurface();
-            display.gameObject.SetActive(false);
+            Destroy(display.gameObject);
+            display = null;
         }
+        currentFunction = null;
+        currentFunctionText = null;
         isActive = false;
     }
 
