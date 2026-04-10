@@ -80,6 +80,7 @@ public class ConductorSwing : MonoBehaviour
     // Visuals
     private Transform barVisual;
     private Transform strandLeftCyl, strandRightCyl;
+    private TextMesh labelLeft, labelRight;
 
     // Pivot = Aufhängepunkt (lokal zum Parent)
     private Vector3 pivotLocal;
@@ -186,6 +187,11 @@ public class ConductorSwing : MonoBehaviour
         ApplyPendulumPose();
     }
 
+    void LateUpdate()
+    {
+        UpdatePoleLabels();
+    }
+
     // ════════════════════════════════════════════════════════════
     //  Pendel-Geometrie
     // ════════════════════════════════════════════════════════════
@@ -246,6 +252,30 @@ public class ConductorSwing : MonoBehaviour
         // Aufhängefäden
         strandLeftCyl = CreateStrandCylinder("Faden_Links");
         strandRightCyl = CreateStrandCylinder("Faden_Rechts");
+
+        // +/- Polmarkierungen oben an den Halterungen
+        float halfBar = conductorLength * 0.45f;
+        Transform parent = transform.parent != null ? transform.parent : transform;
+        labelLeft  = CreatePoleLabel("Pol_Links",  new Vector3(-halfBar, pendulumLength + 0.015f, 0f), parent);
+        labelRight = CreatePoleLabel("Pol_Rechts", new Vector3( halfBar, pendulumLength + 0.015f, 0f), parent);
+    }
+
+    private TextMesh CreatePoleLabel(string name, Vector3 localPos, Transform parent)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.transform.localPosition = localPos;
+
+        var tm = go.AddComponent<TextMesh>();
+        tm.fontSize   = 64;
+        tm.characterSize = 0.008f;
+        tm.anchor     = TextAnchor.MiddleCenter;
+        tm.alignment  = TextAlignment.Center;
+        tm.fontStyle  = FontStyle.Bold;
+        tm.color      = Color.white;
+        tm.text       = "";
+        go.SetActive(false);
+        return tm;
     }
 
     private Transform CreateStrandCylinder(string name)
@@ -312,6 +342,38 @@ public class ConductorSwing : MonoBehaviour
         else
         {
             conductorMaterial.color = new Color(0.85f, 0.55f, 0.25f, 1f);
+        }
+
+        UpdatePoleLabels();
+    }
+
+    private void UpdatePoleLabels()
+    {
+        if (labelLeft == null || labelRight == null) return;
+
+        bool show = currentOn;
+        labelLeft.gameObject.SetActive(show);
+        labelRight.gameObject.SetActive(show);
+
+        if (show)
+        {
+            // currentDirection +1: Strom fließt nach rechts (+X) → links = +, rechts = −
+            // currentDirection -1: umgekehrt
+            bool leftIsPlus = currentDirection > 0;
+            labelLeft.text  = leftIsPlus ? "+" : "\u2212";
+            labelRight.text = leftIsPlus ? "\u2212" : "+";
+            labelLeft.color  = leftIsPlus ? new Color(1f, 0.3f, 0.3f) : new Color(0.3f, 0.6f, 1f);
+            labelRight.color = leftIsPlus ? new Color(0.3f, 0.6f, 1f) : new Color(1f, 0.3f, 0.3f);
+
+            // Billboard zur Kamera
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                labelLeft.transform.rotation = Quaternion.LookRotation(
+                    labelLeft.transform.position - cam.transform.position);
+                labelRight.transform.rotation = Quaternion.LookRotation(
+                    labelRight.transform.position - cam.transform.position);
+            }
         }
     }
 }
