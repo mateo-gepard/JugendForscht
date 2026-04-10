@@ -81,6 +81,7 @@ public class PeriodicTableDisplay : MonoBehaviour
     // State
     private GameObject tableRoot;
     private bool isExpanded = false;
+    private bool hasPositioned = false;
 
     // Position tracking for BuilderManager distance checks
     public struct TrackedItem
@@ -95,11 +96,23 @@ public class PeriodicTableDisplay : MonoBehaviour
     // Tool materials for visual highlighting
     private Dictionary<string, Material> toolMats = new Dictionary<string, Material>();
 
-    public void Initialize() { RebuildTable(); }
+    // Table root access for move-tool
+    public Transform TableTransform => tableRoot != null ? tableRoot.transform : null;
+
+    public void Initialize()
+    {
+        hasPositioned = false;
+        RebuildTable();
+    }
 
     void LateUpdate()
     {
-        PositionTable();
+        // Position ONCE on first frame (so camera is ready)
+        if (!hasPositioned)
+        {
+            PositionTableInitial();
+            hasPositioned = true;
+        }
         UpdateWorldPositions();
         UpdateToolHighlights();
     }
@@ -152,14 +165,14 @@ public class PeriodicTableDisplay : MonoBehaviour
 
         // ── TOOL BUTTONS (row above table) ──
         float toolY = cell * 1.2f;
-        string[] toolIds =     { "bond",   "unbond", "trash", "compile", "charge+", "charge-", "expand" };
-        string[] toolIcons =   { "\u2014",  "/",      "X",     "\u2713",  "+",       "-",       isExpanded ? "\u25B2" : "\u25BC" };
-        string[] toolLabels =  { "Bond",   "Unbond", "Trash", "Check",   "+Q",      "-Q",      isExpanded ? "Ein" : "Aus" };
+        string[] toolIds =     { "bond",   "unbond", "trash", "compile", "charge+", "charge-", "expand", "move" };
+        string[] toolIcons =   { "\u2014",  "/",      "X",     "\u2713",  "+",       "-",       isExpanded ? "\u25B2" : "\u25BC", "\u2725" };
+        string[] toolLabels =  { "Bond",   "Unbond", "Trash", "Check",   "+Q",      "-Q",      isExpanded ? "Ein" : "Aus", "Move" };
         Color[] toolColors = {
             new Color(0.15f, 0.15f, 0.2f), new Color(0.3f, 0.15f, 0.1f),
             new Color(0.4f, 0.1f, 0.1f),   new Color(0.1f, 0.3f, 0.15f),
             new Color(0.1f, 0.15f, 0.35f), new Color(0.35f, 0.1f, 0.15f),
-            new Color(0.2f, 0.2f, 0.25f),
+            new Color(0.2f, 0.2f, 0.25f),  new Color(0.15f, 0.2f, 0.2f),
         };
 
         float toolStart = -tableWidth / 2f + cell / 2f;
@@ -341,9 +354,9 @@ public class PeriodicTableDisplay : MonoBehaviour
         }
     }
 
-    // ═══════════ POSITIONING ═══════════
+    // ═══════════ POSITIONING (once, on init) ═══════════
 
-    private void PositionTable()
+    private void PositionTableInitial()
     {
         Camera cam = Camera.main;
         if (cam == null || tableRoot == null) return;
@@ -352,6 +365,13 @@ public class PeriodicTableDisplay : MonoBehaviour
         Vector3 pos = cam.transform.position + fwd * distanceFromPlayer + Vector3.up * heightBelowEyes;
         tableRoot.transform.position = pos;
         tableRoot.transform.rotation = Quaternion.LookRotation(fwd) * Quaternion.Euler(tiltAngle, 0, 0);
+    }
+
+    /// <summary>Move the entire table to a new world position (called by BuilderManager move-tool)</summary>
+    public void MoveTableTo(Vector3 worldPos)
+    {
+        if (tableRoot == null) return;
+        tableRoot.transform.position = worldPos;
     }
 
     private void UpdateWorldPositions()

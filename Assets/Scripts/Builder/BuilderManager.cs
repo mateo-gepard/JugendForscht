@@ -41,8 +41,13 @@ public class BuilderManager : MonoBehaviour
     private bool wasPinchingR = false, wasPinchingL = false;
 
     // Modes
-    public enum BuilderMode { PlaceAtoms, BondTool, DeleteTool, UnbondTool, ChargePlus, ChargeMinus }
+    public enum BuilderMode { PlaceAtoms, BondTool, DeleteTool, UnbondTool, ChargePlus, ChargeMinus, MoveTool }
     private BuilderMode currentMode = BuilderMode.PlaceAtoms;
+
+    // Move tool
+    private bool isMovingTable = false;
+    private Hand movingHand = null;
+    private Vector3 moveOffset = Vector3.zero;
 
     // Bond tool
     private BuilderAtom bondPrimaryAtom = null;
@@ -137,6 +142,7 @@ public class BuilderManager : MonoBehaviour
     {
         if (currentMode == BuilderMode.BondTool) CancelBondTool();
         if (currentMode == BuilderMode.UnbondTool) CancelUnbondTool();
+        if (currentMode == BuilderMode.MoveTool) { isMovingTable = false; movingHand = null; }
         currentMode = mode;
     }
     public void ToggleBondTool()   { SetMode(currentMode == BuilderMode.BondTool   ? BuilderMode.PlaceAtoms : BuilderMode.BondTool); }
@@ -163,6 +169,7 @@ public class BuilderManager : MonoBehaviour
         if (leftHand != null) ProcessPinch(leftHand, ref wasPinchingL);
 
         if (isDragging && draggedAtom != null) UpdateDragPosition();
+        if (isMovingTable && movingHand != null) UpdateMoveTable();
         if (bondPrimaryAtom != null || unbondPrimaryAtom != null) UpdateBondPreviewLine();
         UpdateBondVisuals();
     }
@@ -197,6 +204,7 @@ public class BuilderManager : MonoBehaviour
             case "charge+": ToggleChargeTool(+1); break;
             case "charge-": ToggleChargeTool(-1); break;
             case "expand":  periodicTable.ToggleExpand(); break;
+            case "move":    SetMode(currentMode == BuilderMode.MoveTool ? BuilderMode.PlaceAtoms : BuilderMode.MoveTool); break;
         }
     }
 
@@ -209,10 +217,15 @@ public class BuilderManager : MonoBehaviour
         bool isPinching = pinch > pinchThreshold;
         bool justStarted = isPinching && !wasPinching;
 
-        // RELEASE drag
+        // RELEASE drag or move
         if (isDragging && draggingHand == hand && pinch < pinchReleaseThreshold)
         {
             ReleaseDraggedAtom();
+            wasPinching = isPinching; return;
+        }
+        if (isMovingTable && movingHand == hand && pinch < pinchReleaseThreshold)
+        {
+            isMovingTable = false; movingHand = null;
             wasPinching = isPinching; return;
         }
 
@@ -243,6 +256,9 @@ public class BuilderManager : MonoBehaviour
                     break;
                 case BuilderMode.ChargeMinus:
                     HandleChargePinch(fp, -1);
+                    break;
+                case BuilderMode.MoveTool:
+                    StartMovingTable(fp, hand);
                     break;
             }
         }
@@ -574,8 +590,40 @@ public class BuilderManager : MonoBehaviour
         Debug.Log("[Builder] Molekül ist valide! Konvertiere und rendere...");
         MoleculeData molData = ConvertToMoleculeData();
         StopBuilder();
-        var renderer = FindObjectOfType<MoleculeRenderer>();
-        if (renderer != null) { renderer.gameObject.SetActive(true); renderer.RenderMolecule(molData); }
+
+        // Use MoleculeLibrary pipeline for proper positioning, rotation, clear support
+        var lib = moleculeLibrary ?? FindObjectOfType<MoleculeLibrary>();
+        if (lib != null)
+        {
+            // Disable plane (white quad) for builder molecules
+            var renderer = lib.renderer ?? FindObjectOfType<MoleculeRenderer>();
+            if (renderer != null)
+            {
+                var planeAlign = renderer.GetComponent<MoleculePlaneAlignment>();
+                if (planeAlign != null)
+                {
+                    planeAlign.showPlaneInVR = false;
+                    planeAlign.SetPlaneVisibility(false);
+                }
+                renderer.enableStereoDisplay = false;
+            }
+            lib.DisplayBuilderMolecule(molData);
+        }
+        else
+        {
+            // Fallback if no library found
+            var renderer = FindObjectOfType<MoleculeRenderer>();
+            if (renderer != null)
+            {
+                renderer.gameObject.SetActive(true);
+                renderer.enableStereoDisplay = false;
+                renderer.RenderMolecule(molData);
+                // Position near camera
+                Camera cam = Camera.main;
+                if (cam != null)
+                    renderer.transform.position = cam.transform.position + cam.transform.forward * 0.5f;
+            }
+        }
     }
 
     private System.Collections.IEnumerator ResetHighlightsAfterDelay(List<BuilderAtom> atoms, float delay)
@@ -643,6 +691,29 @@ public class BuilderManager : MonoBehaviour
                 target = draggedAtom.BondedTo.transform.position + d * draggedAtom.BondRadius;
             }
             draggedAtom.transform.position = Vector3.Lerp(draggedAtom.transform.position, target, Time.deltaTime * 25f);
+        }
+    }
+
+    // ═══════════ MOVE TABLE ═══════════
+
+    private void StartMovingTable(Vector3 fingerPos, Hand hand)
+    {
+        if (periodicTable == null || periodicTable.TableTransform == null) return;
+        isMovingTable = true;
+        movingHand = hand;
+        moveOffset = periodicTable.TableTransform.position - fingerPos;
+    }
+
+    private void UpdateMoveTable()
+    {
+        if (movingHand == null || !movingHand.IsTrackedDataValid)
+        { isMovingTable = false; movingHand = null; return; }
+
+        if (movingHand.GetJointPose(HandJointId.HandIndexTip, out Pose tip))
+        {
+            Vector3 target = tip.position + moveOffset;
+            periodicTable.MoveTableTo(Vector3.Lerp(
+                periodicTable.TableTransform.position, target, Time.deltaTime * 15f));
         }
     }
 

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -252,6 +252,16 @@ public class MoleculeLibrary : MonoBehaviour
             renderer.ClearMolecule();
         }
         currentMolecule = null;
+    }
+
+    /// <summary>
+    /// Zeigt ein Builder-Molekül an (gleiche Pipeline wie PubChem-Moleküle).
+    /// Wird vom BuilderManager nach erfolgreicher Validierung aufgerufen.
+    /// </summary>
+    public void DisplayBuilderMolecule(MoleculeData molecule)
+    {
+        if (molecule == null) return;
+        DisplayMolecule(molecule);
     }
 
     /// <summary>
