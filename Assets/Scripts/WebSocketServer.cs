@@ -356,6 +356,21 @@ public class WebSocketServer : MonoBehaviour
     /// </summary>
     public new void BroadcastMessage(string message)
     {
+        // Forward errors to VR panel if command came from there
+        if (vrPanelCommandActive && (message.Contains("\"error\"") || message.Contains("\"status\"")))
+        {
+            if (chiralityPanel != null)
+            {
+                // Extract the message text from JSON
+                string displayMsg = ExtractJsonMessage(message);
+                if (!string.IsNullOrEmpty(displayMsg))
+                {
+                    bool isError = message.Contains("\"error\"");
+                    chiralityPanel.ShowVRMessage(displayMsg, isError);
+                }
+            }
+        }
+
         byte[] payload = Encoding.UTF8.GetBytes(message);
         byte[] frame = new byte[payload.Length + 2];
 
@@ -379,6 +394,20 @@ public class WebSocketServer : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Extrahiert den "message"-Wert aus einem einfachen JSON-String
+    /// </summary>
+    private string ExtractJsonMessage(string json)
+    {
+        string key = "\"message\":\"";
+        int start = json.IndexOf(key);
+        if (start < 0) return null;
+        start += key.Length;
+        int end = json.IndexOf("\"", start);
+        if (end < 0) return null;
+        return json.Substring(start, end - start);
     }
 
     /// <summary>
@@ -612,18 +641,28 @@ public class WebSocketServer : MonoBehaviour
     }
 
     /// <summary>
+    /// Flag: wenn true, werden BroadcastMessage-Fehler auch im VR-Panel angezeigt
+    /// </summary>
+    private bool vrPanelCommandActive = false;
+
+    /// <summary>
     /// Router for VR panel commands
     /// </summary>
     public void HandleVRControlPanelCommand(string command)
     {
         Debug.Log($"[WebSocket] VR Panel command: {command}");
+        vrPanelCommandActive = true;
+        
         switch (command)
         {
             case "chirality_detect":
                 HandleChiralityCommand("detect");
                 break;
             case "chirality_clear":
+                // Clear BOTH chirality markers AND isomer displays
                 HandleChiralityCommand("clear");
+                var animator = FindObjectOfType<IsomerAnimator>();
+                if (animator != null) animator.ClearEnantiomer();
                 break;
             case "generate_enantiomer":
                 HandleIsomerCommand("mirror", 0);
@@ -647,6 +686,8 @@ public class WebSocketServer : MonoBehaviour
                 HandleIsomerCommand("overlay", 0);
                 break;
         }
+        
+        vrPanelCommandActive = false;
     }
 
     /// <summary>
