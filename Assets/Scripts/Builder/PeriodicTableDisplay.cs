@@ -153,11 +153,28 @@ public class PeriodicTableDisplay : MonoBehaviour
 
     private void RebuildTable()
     {
-        if (tableRoot != null) Destroy(tableRoot);
+        Vector3 savedPos = Vector3.zero;
+        Quaternion savedRot = Quaternion.identity;
+        bool hasSavedTransform = false;
+
+        if (tableRoot != null)
+        {
+            savedPos = tableRoot.transform.position;
+            savedRot = tableRoot.transform.rotation;
+            hasSavedTransform = true;
+            Destroy(tableRoot);
+        }
+        
         elementItems.Clear(); toolItems.Clear(); toolMats.Clear();
 
         tableRoot = new GameObject("PeriodicTable");
         tableRoot.transform.SetParent(transform);
+
+        if (hasSavedTransform)
+        {
+            tableRoot.transform.position = savedPos;
+            tableRoot.transform.rotation = savedRot;
+        }
 
         float cell = tileSize + tileSpacing;
         int totalCols = isExpanded ? 18 : 8;
