@@ -168,6 +168,7 @@ public class InductionLoopManager : MonoBehaviour
             fieldVolume.fieldStrength     = defaultFieldStrength;
             fieldVolume.localFieldDirection = defaultFieldDirection;
             fieldVolume.volumeSize        = defaultVolumeSize;
+            fieldVolume.RebuildArrows();
         }
 
         // Leiterschleife (startet über dem Feld)

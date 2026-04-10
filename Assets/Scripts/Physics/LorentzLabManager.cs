@@ -207,10 +207,8 @@ public class LorentzLabManager : MonoBehaviour
 
     private void EnsureComponents()
     {
-        // B-Feld Box
-        if (fieldVolume == null)
-            fieldVolume = FindObjectOfType<MagneticFieldVolume>();
-
+        // B-Feld Box — immer eigenes erzeugen (nicht FindObjectOfType,
+        // da ein gerade-zerstörtes Experiment als Zombie gefunden werden könnte)
         if (fieldVolume == null)
         {
             GameObject boxObj = new GameObject("B-Feld Volumen");
@@ -219,12 +217,10 @@ public class LorentzLabManager : MonoBehaviour
             fieldVolume.fieldStrength = defaultFieldStrength;
             fieldVolume.localFieldDirection = defaultFieldDirection;
             fieldVolume.volumeSize = defaultVolumeSize;
+            fieldVolume.RebuildArrows();
         }
 
-        // Teilchen
-        if (particle == null)
-            particle = FindObjectOfType<ChargedParticle>();
-
+        // Teilchen — eigenes erzeugen
         if (particle == null)
         {
             GameObject partObj = new GameObject("Geladenes Teilchen");
@@ -240,10 +236,7 @@ public class LorentzLabManager : MonoBehaviour
             particle.chargeSign = defaultChargeSign;
         }
 
-        // Vektor-Pfeile
-        if (vectorDisplay == null)
-            vectorDisplay = FindObjectOfType<VectorArrowDisplay>();
-
+        // Vektor-Pfeile — eigenes erzeugen
         if (vectorDisplay == null)
         {
             GameObject vecObj = new GameObject("Vektor-Pfeile");

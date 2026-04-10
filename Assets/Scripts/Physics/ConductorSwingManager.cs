@@ -197,6 +197,7 @@ public class ConductorSwingManager : MonoBehaviour
             fieldVolume.fieldStrength = defaultFieldStrength;
             fieldVolume.localFieldDirection = defaultFieldDirection;
             fieldVolume.volumeSize = defaultVolumeSize;
+            fieldVolume.RebuildArrows();
         }
 
         // Stab: Startposition = Ruhelage unter dem Pivot (Pivot = Oberkante Box)

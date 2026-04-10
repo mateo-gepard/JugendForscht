@@ -134,8 +134,8 @@ public class ConductorSwing : MonoBehaviour
 
     void Awake()
     {
-        if (fieldVolume == null)
-            fieldVolume = FindObjectOfType<MagneticFieldVolume>();
+        // fieldVolume wird vom Manager gesetzt — kein FindObjectOfType
+        // (könnte ein Zombie-Feld eines gerade zerstörten Experiments finden)
 
         // Pivot ist pendulumLength über der Startposition
         pivotLocal = new Vector3(0f, pendulumLength, 0f);
@@ -295,7 +295,7 @@ public class ConductorSwing : MonoBehaviour
 
         strandT.localPosition = mid;
         if (len > 0.001f)
-            strandT.localRotation = Quaternion.LookRotation(Vector3.forward, diff);
+            strandT.localRotation = Quaternion.FromToRotation(Vector3.up, diff.normalized);
         strandT.localScale = new Vector3(0.002f, len * 0.5f, 0.002f);
     }
 
