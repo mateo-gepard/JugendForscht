@@ -1649,149 +1649,461 @@ function createDashBond(a1, a2, parent) {
 function r2d(rad) { return (rad * 180 / Math.PI).toFixed(2); }
 
 // ══════════════════════════════════════════════════════════════
-//  VR MENU SYSTEM
+//  VR NAVIGATION SYSTEM (state-machine + calibration)
 // ══════════════════════════════════════════════════════════════
 
-let menuVisible = false;
+let navState = 'pre';  // 'pre','calibrate','main','chemie','physik','mathe','viewing','quiz'
+let activeModule = 'chemie';
+let currentMolecule = null;
 
-function buildVRMenu() {
-    const menuEl = document.getElementById('vr-menu');
-    while (menuEl.firstChild) menuEl.removeChild(menuEl.firstChild);
+// ── Calibration ──
+function calibrateVR() {
+    const cam = document.getElementById('camera');
+    const anchor = document.getElementById('content-anchor');
+    const wp = new THREE.Vector3();
+    const wq = new THREE.Quaternion();
+    cam.object3D.getWorldPosition(wp);
+    cam.object3D.getWorldQuaternion(wq);
 
-    // Border (furthest back)
-    const border = document.createElement('a-plane');
-    border.setAttribute('width', 1.74);
-    border.setAttribute('height', 1.44);
-    border.setAttribute('material', 'color:#6c8aff; opacity:0.15; transparent:true; shader:flat; side:double');
-    border.setAttribute('position', '0 0 -0.02');
-    menuEl.appendChild(border);
+    // Extract yaw only (so content is level, not tilted)
+    const euler = new THREE.Euler().setFromQuaternion(wq, 'YXZ');
+    anchor.object3D.position.copy(wp);
+    anchor.object3D.rotation.set(0, euler.y, 0);
 
-    // Background panel (behind buttons)
+    navigateTo('main');
+}
+
+// ── State Navigation ──
+function navigateTo(state) {
+    navState = state;
+
+    // Hide all content containers
+    ['mol-container','physics-container','math-container','quiz-container'].forEach(id => {
+        document.getElementById(id).setAttribute('visible', false);
+    });
+
+    // Stop simulations
+    LorentzSim.running = false;
+    InductionSim.running = false;
+
+    // Show/hide back button
+    const backBtn = document.getElementById('vr-back-btn');
+    backBtn.setAttribute('visible', state !== 'calibrate' && state !== 'main');
+
+    // Build the nav panel for this state
+    const nav = document.getElementById('vr-nav');
+    while (nav.firstChild) nav.firstChild.remove();
+    nav.setAttribute('visible', state !== 'viewing');
+
+    switch(state) {
+        case 'calibrate': buildCalibrationPanel(nav); break;
+        case 'main': buildMainMenu(nav); break;
+        case 'chemie': buildChemieMenu(nav); break;
+        case 'physik': buildPhysikMenu(nav); break;
+        case 'mathe': buildMatheMenu(nav); break;
+        case 'quiz': /* quiz renders into quiz-container */ break;
+        case 'viewing': break;
+    }
+}
+
+function goBack() {
+    if (navState === 'viewing' || navState === 'quiz') {
+        // Go back to the sub-menu for the active module
+        navigateTo(activeModule);
+    } else if (navState === 'chemie' || navState === 'physik' || navState === 'mathe') {
+        navigateTo('main');
+    }
+}
+
+// ── Panel Builders ──
+
+function makePanel(parent, w, h, color, opacity) {
     const bg = document.createElement('a-plane');
-    bg.setAttribute('width', 1.7);
-    bg.setAttribute('height', 1.4);
-    bg.setAttribute('material', 'color:#0f1117; opacity:0.88; transparent:true; shader:flat; side:double');
+    bg.setAttribute('width', w);
+    bg.setAttribute('height', h);
+    bg.setAttribute('material', `color:${color||'#1a1e2e'}; opacity:${opacity||0.88}; transparent:true; shader:flat; side:double`);
     bg.setAttribute('position', '0 0 -0.01');
-    menuEl.appendChild(bg);
+    parent.appendChild(bg);
+    return bg;
+}
 
-    // Title (in front)
+function makeButton(parent, label, x, y, w, h, color, onClick) {
+    const plane = document.createElement('a-plane');
+    plane.setAttribute('position', `${x} ${y} 0.01`);
+    plane.setAttribute('width', w);
+    plane.setAttribute('height', h);
+    plane.setAttribute('class', 'interactive');
+    plane.setAttribute('material', `color:${color||'#2a2e40'}; opacity:0.9; transparent:true; shader:flat; side:double`);
+    plane.addEventListener('mouseenter', () => {
+        plane.setAttribute('material', 'opacity', 1);
+        plane.object3D.scale.set(1.05, 1.05, 1);
+    });
+    plane.addEventListener('mouseleave', () => {
+        plane.setAttribute('material', 'opacity', 0.9);
+        plane.object3D.scale.set(1, 1, 1);
+    });
+    plane.addEventListener('click', onClick);
+    parent.appendChild(plane);
+
+    const txt = document.createElement('a-text');
+    txt.setAttribute('value', label);
+    txt.setAttribute('position', `${x} ${y} 0.02`);
+    txt.setAttribute('align', 'center');
+    txt.setAttribute('color', '#ffffff');
+    txt.setAttribute('width', w * 0.85);
+    txt.setAttribute('wrapCount', Math.max(12, Math.floor(w * 30)));
+    parent.appendChild(txt);
+
+    return plane;
+}
+
+// ── Calibrate Screen ──
+function buildCalibrationPanel(nav) {
+    makePanel(nav, 1.2, 0.7, '#0f1228', 0.92);
+
     const title = document.createElement('a-text');
-    title.setAttribute('value', 'Molekuel-Auswahl');
-    title.setAttribute('position', '0 0.58 0.02');
+    title.setAttribute('value', 'BeGreifbar Lite');
+    title.setAttribute('position', '0 0.22 0.02');
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', '#6c8aff');
+    title.setAttribute('width', 1.0);
+    nav.appendChild(title);
+
+    const hint = document.createElement('a-text');
+    hint.setAttribute('value', 'Schau geradeaus und waehle:');
+    hint.setAttribute('position', '0 0.08 0.02');
+    hint.setAttribute('align', 'center');
+    hint.setAttribute('color', '#aab');
+    hint.setAttribute('width', 0.8);
+    nav.appendChild(hint);
+
+    makeButton(nav, 'Kalibrieren & Start', 0, -0.12, 0.6, 0.14, '#6c8aff', () => calibrateVR());
+}
+
+// ── Main Menu: Chemie / Physik / Mathe ──
+function buildMainMenu(nav) {
+    makePanel(nav, 1.4, 0.9, '#0f1228', 0.9);
+
+    const title = document.createElement('a-text');
+    title.setAttribute('value', 'Fach waehlen');
+    title.setAttribute('position', '0 0.32 0.02');
     title.setAttribute('align', 'center');
     title.setAttribute('color', '#ffffff');
-    title.setAttribute('width', 1.4);
-    menuEl.appendChild(title);
+    title.setAttribute('width', 0.9);
+    nav.appendChild(title);
 
-    // Molecule buttons grid (3 columns x 4 rows)
+    const subjects = [
+        { label: 'Chemie', icon: 'Molekuele', color: '#2a6fff', state: 'chemie' },
+        { label: 'Physik', icon: 'Simulationen', color: '#ff6644', state: 'physik' },
+        { label: 'Mathe', icon: '3D Funktionen', color: '#44cc88', state: 'mathe' },
+    ];
+
+    subjects.forEach((s, i) => {
+        const x = (i - 1) * 0.42;
+
+        // Card background
+        const card = document.createElement('a-plane');
+        card.setAttribute('position', `${x} 0 0.01`);
+        card.setAttribute('width', 0.36);
+        card.setAttribute('height', 0.4);
+        card.setAttribute('class', 'interactive');
+        card.setAttribute('material', `color:${s.color}; opacity:0.7; transparent:true; shader:flat; side:double`);
+        card.addEventListener('mouseenter', () => {
+            card.setAttribute('material', 'opacity', 1);
+            card.object3D.scale.set(1.08, 1.08, 1);
+        });
+        card.addEventListener('mouseleave', () => {
+            card.setAttribute('material', 'opacity', 0.7);
+            card.object3D.scale.set(1, 1, 1);
+        });
+        card.addEventListener('click', () => navigateTo(s.state));
+        nav.appendChild(card);
+
+        // Subject name
+        const nameEl = document.createElement('a-text');
+        nameEl.setAttribute('value', s.label);
+        nameEl.setAttribute('position', `${x} 0.06 0.025`);
+        nameEl.setAttribute('align', 'center');
+        nameEl.setAttribute('color', '#ffffff');
+        nameEl.setAttribute('width', 0.5);
+        nav.appendChild(nameEl);
+
+        // Sub-label
+        const sub = document.createElement('a-text');
+        sub.setAttribute('value', s.icon);
+        sub.setAttribute('position', `${x} -0.08 0.025`);
+        sub.setAttribute('align', 'center');
+        sub.setAttribute('color', '#ddd');
+        sub.setAttribute('width', 0.3);
+        nav.appendChild(sub);
+    });
+
+    // Recalibrate button (small, bottom)
+    makeButton(nav, 'Neu kalibrieren', 0, -0.38, 0.4, 0.08, '#444', () => {
+        // Reset anchor and recalibrate
+        navigateTo('calibrate');
+    });
+}
+
+// ── Chemie Sub-Menu ──
+function buildChemieMenu(nav) {
+    activeModule = 'chemie';
+    makePanel(nav, 1.5, 1.2, '#0f1228', 0.9);
+
+    const title = document.createElement('a-text');
+    title.setAttribute('value', 'Chemie - Molekuel waehlen');
+    title.setAttribute('position', '0 0.48 0.02');
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', '#6c8aff');
+    title.setAttribute('width', 1.0);
+    nav.appendChild(title);
+
+    // Molecule buttons (3 cols x 4 rows)
     const cols = 3, rows = 4;
-    const btnW = 0.48, btnH = 0.18, gapX = 0.05, gapY = 0.04;
+    const btnW = 0.42, btnH = 0.14, gapX = 0.04, gapY = 0.03;
     const startX = -((cols - 1) * (btnW + gapX)) / 2;
-    const startY = 0.40;
+    const startY = 0.30;
 
-    PRESETS.forEach((preset, i) => {
+    PRESETS.forEach((p, i) => {
         if (i >= cols * rows) return;
         const col = i % cols;
         const row = Math.floor(i / cols);
         const x = startX + col * (btnW + gapX);
         const y = startY - row * (btnH + gapY);
 
-        // The PLANE is the interactive element (has geometry for raycaster)
         const plane = document.createElement('a-plane');
         plane.setAttribute('position', `${x} ${y} 0.01`);
         plane.setAttribute('width', btnW);
         plane.setAttribute('height', btnH);
         plane.setAttribute('class', 'interactive');
-        plane.setAttribute('material', 'color:#1a1d27; opacity:0.9; transparent:true; shader:flat; side:double');
-
-        // Hover + click on the plane itself
+        plane.setAttribute('material', 'color:#1c2035; opacity:0.9; transparent:true; shader:flat; side:double');
         plane.addEventListener('mouseenter', () => {
-            plane.setAttribute('material', 'color', '#252937');
+            plane.setAttribute('material', 'color', '#2a3050');
             plane.setAttribute('material', 'opacity', 1);
         });
         plane.addEventListener('mouseleave', () => {
-            plane.setAttribute('material', 'color', '#1a1d27');
+            plane.setAttribute('material', 'color', '#1c2035');
             plane.setAttribute('material', 'opacity', 0.9);
         });
-        plane.addEventListener('click', () => {
-            toggleVRMenu();
-            loadAndDisplay(preset.name, preset.label, preset.formula);
-        });
-        menuEl.appendChild(plane);
+        plane.addEventListener('click', () => loadMoleculeVR(p.name, p.label, p.formula));
+        nav.appendChild(plane);
 
-        // Label text (in front of plane) — single line, small width
-        const label = document.createElement('a-text');
-        label.setAttribute('value', preset.label);
-        label.setAttribute('position', `${x} ${y + 0.02} 0.03`);
-        label.setAttribute('align', 'center');
-        label.setAttribute('color', '#e8eaed');
-        label.setAttribute('width', btnW * 0.85);
-        label.setAttribute('wrapCount', 20);
-        menuEl.appendChild(label);
+        // Name
+        const lbl = document.createElement('a-text');
+        lbl.setAttribute('value', p.label);
+        lbl.setAttribute('position', `${x} ${y + 0.02} 0.025`);
+        lbl.setAttribute('align', 'center');
+        lbl.setAttribute('color', '#e8eaed');
+        lbl.setAttribute('width', btnW * 0.8);
+        lbl.setAttribute('wrapCount', 16);
+        nav.appendChild(lbl);
 
-        // Formula text (in front of plane) — smaller
-        const formula = document.createElement('a-text');
-        formula.setAttribute('value', preset.formula);
-        formula.setAttribute('position', `${x} ${y - 0.04} 0.03`);
-        formula.setAttribute('align', 'center');
-        formula.setAttribute('color', '#6c8aff');
-        formula.setAttribute('width', btnW * 0.7);
-        formula.setAttribute('wrapCount', 18);
-        menuEl.appendChild(formula);
+        // Formula
+        const fml = document.createElement('a-text');
+        fml.setAttribute('value', p.formula);
+        fml.setAttribute('position', `${x} ${y - 0.03} 0.025`);
+        fml.setAttribute('align', 'center');
+        fml.setAttribute('color', '#6c8aff');
+        fml.setAttribute('width', btnW * 0.65);
+        fml.setAttribute('wrapCount', 14);
+        nav.appendChild(fml);
     });
 
-    // Close button — plane is the interactive element
-    const closePlane = document.createElement('a-plane');
-    closePlane.setAttribute('position', '0 -0.55 0.01');
-    closePlane.setAttribute('width', 0.45);
-    closePlane.setAttribute('height', 0.14);
-    closePlane.setAttribute('class', 'interactive');
-    closePlane.setAttribute('material', 'color:#ff4444; opacity:0.7; transparent:true; shader:flat; side:double');
-    closePlane.addEventListener('mouseenter', () => closePlane.setAttribute('material','opacity',1));
-    closePlane.addEventListener('mouseleave', () => closePlane.setAttribute('material','opacity',0.7));
-    closePlane.addEventListener('click', () => toggleVRMenu());
-    menuEl.appendChild(closePlane);
-
-    const closeText = document.createElement('a-text');
-    closeText.setAttribute('value', 'Schliessen');
-    closeText.setAttribute('position', '0 -0.55 0.03');
-    closeText.setAttribute('align', 'center');
-    closeText.setAttribute('color', '#ffffff');
-    closeText.setAttribute('width', 0.55);
-    menuEl.appendChild(closeText);
-
-    // Quiz button — plane is the interactive element
-    const quizPlane = document.createElement('a-plane');
-    quizPlane.setAttribute('position', '0 -0.8 0.01');
-    quizPlane.setAttribute('width', 0.5);
-    quizPlane.setAttribute('height', 0.18);
-    quizPlane.setAttribute('class', 'interactive');
-    quizPlane.setAttribute('material', 'color:#6c8aff; opacity:0.7; transparent:true; shader:flat; side:double');
-    quizPlane.addEventListener('mouseenter', () => quizPlane.setAttribute('material','opacity',1));
-    quizPlane.addEventListener('mouseleave', () => quizPlane.setAttribute('material','opacity',0.7));
-    quizPlane.addEventListener('click', () => { toggleVRMenu(); startQuizMode(); });
-    menuEl.appendChild(quizPlane);
-
-    const quizText = document.createElement('a-text');
-    quizText.setAttribute('value', 'Quiz starten');
-    quizText.setAttribute('position', '0 -0.8 0.03');
-    quizText.setAttribute('align', 'center');
-    quizText.setAttribute('color', '#ffffff');
-    quizText.setAttribute('width', 0.55);
-    menuEl.appendChild(quizText);
+    // Quiz button
+    makeButton(nav, 'Quiz starten', 0, -0.48, 0.4, 0.1, '#6c8aff', () => startQuizVR());
 }
 
-function toggleVRMenu() {
-    menuVisible = !menuVisible;
-    document.getElementById('vr-menu').setAttribute('visible', menuVisible);
-    // Hide/show molecule when menu is toggled
-    document.getElementById('mol-container').setAttribute('visible', !menuVisible);
-    // Pause/resume rotation
-    const wrapper = document.getElementById('mol-wrapper');
-    if (wrapper) wrapper.setAttribute('auto-rotate', 'paused', menuVisible);
+// ── Physik Sub-Menu ──
+function buildPhysikMenu(nav) {
+    activeModule = 'physik';
+    makePanel(nav, 1.2, 0.8, '#0f1228', 0.9);
+
+    const title = document.createElement('a-text');
+    title.setAttribute('value', 'Physik - Experiment waehlen');
+    title.setAttribute('position', '0 0.28 0.02');
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', '#ff6644');
+    title.setAttribute('width', 0.9);
+    nav.appendChild(title);
+
+    // Lorentz card
+    const lCard = document.createElement('a-plane');
+    lCard.setAttribute('position', '-0.22 -0.02 0.01');
+    lCard.setAttribute('width', 0.38);
+    lCard.setAttribute('height', 0.3);
+    lCard.setAttribute('class', 'interactive');
+    lCard.setAttribute('material', 'color:#2244aa; opacity:0.8; transparent:true; shader:flat; side:double');
+    lCard.addEventListener('mouseenter', () => { lCard.setAttribute('material','opacity',1); lCard.object3D.scale.set(1.05,1.05,1); });
+    lCard.addEventListener('mouseleave', () => { lCard.setAttribute('material','opacity',0.8); lCard.object3D.scale.set(1,1,1); });
+    lCard.addEventListener('click', () => loadPhysicsVR('lorentz'));
+    nav.appendChild(lCard);
+
+    let txt = document.createElement('a-text');
+    txt.setAttribute('value', 'Lorentzkraft');
+    txt.setAttribute('position', '-0.22 0.04 0.025');
+    txt.setAttribute('align', 'center');
+    txt.setAttribute('color', '#fff');
+    txt.setAttribute('width', 0.4);
+    nav.appendChild(txt);
+
+    txt = document.createElement('a-text');
+    txt.setAttribute('value', 'F = q(v x B)');
+    txt.setAttribute('position', '-0.22 -0.06 0.025');
+    txt.setAttribute('align', 'center');
+    txt.setAttribute('color', '#aaccff');
+    txt.setAttribute('width', 0.3);
+    nav.appendChild(txt);
+
+    // Induction card
+    const iCard = document.createElement('a-plane');
+    iCard.setAttribute('position', '0.22 -0.02 0.01');
+    iCard.setAttribute('width', 0.38);
+    iCard.setAttribute('height', 0.3);
+    iCard.setAttribute('class', 'interactive');
+    iCard.setAttribute('material', 'color:#cc5522; opacity:0.8; transparent:true; shader:flat; side:double');
+    iCard.addEventListener('mouseenter', () => { iCard.setAttribute('material','opacity',1); iCard.object3D.scale.set(1.05,1.05,1); });
+    iCard.addEventListener('mouseleave', () => { iCard.setAttribute('material','opacity',0.8); iCard.object3D.scale.set(1,1,1); });
+    iCard.addEventListener('click', () => loadPhysicsVR('induction'));
+    nav.appendChild(iCard);
+
+    txt = document.createElement('a-text');
+    txt.setAttribute('value', 'Induktion');
+    txt.setAttribute('position', '0.22 0.04 0.025');
+    txt.setAttribute('align', 'center');
+    txt.setAttribute('color', '#fff');
+    txt.setAttribute('width', 0.4);
+    nav.appendChild(txt);
+
+    txt = document.createElement('a-text');
+    txt.setAttribute('value', 'EMF = -dPhi/dt');
+    txt.setAttribute('position', '0.22 -0.06 0.025');
+    txt.setAttribute('align', 'center');
+    txt.setAttribute('color', '#ffccaa');
+    txt.setAttribute('width', 0.3);
+    nav.appendChild(txt);
 }
 
-function showVRMenu() { if (!menuVisible) toggleVRMenu(); }
+// ── Mathe Sub-Menu ──
+function buildMatheMenu(nav) {
+    activeModule = 'mathe';
+    makePanel(nav, 1.4, 1.1, '#0f1228', 0.9);
+
+    const title = document.createElement('a-text');
+    title.setAttribute('value', 'Mathe - Funktion waehlen');
+    title.setAttribute('position', '0 0.42 0.02');
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', '#44cc88');
+    title.setAttribute('width', 0.9);
+    nav.appendChild(title);
+
+    // Function grid (3 cols x 3 rows)
+    const cols = 3, rows = 3;
+    const btnW = 0.38, btnH = 0.14, gapX = 0.04, gapY = 0.03;
+    const startX = -((cols - 1) * (btnW + gapX)) / 2;
+    const startY = 0.22;
+
+    MATH_PRESETS.forEach((p, i) => {
+        if (i >= cols * rows) return;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = startX + col * (btnW + gapX);
+        const y = startY - row * (btnH + gapY);
+
+        const plane = document.createElement('a-plane');
+        plane.setAttribute('position', `${x} ${y} 0.01`);
+        plane.setAttribute('width', btnW);
+        plane.setAttribute('height', btnH);
+        plane.setAttribute('class', 'interactive');
+        plane.setAttribute('material', 'color:#1c3028; opacity:0.9; transparent:true; shader:flat; side:double');
+        plane.addEventListener('mouseenter', () => {
+            plane.setAttribute('material', 'color', '#2a4838');
+            plane.setAttribute('material', 'opacity', 1);
+        });
+        plane.addEventListener('mouseleave', () => {
+            plane.setAttribute('material', 'color', '#1c3028');
+            plane.setAttribute('material', 'opacity', 0.9);
+        });
+        plane.addEventListener('click', () => loadMathVR(p.expr, p.label));
+        nav.appendChild(plane);
+
+        const lbl = document.createElement('a-text');
+        lbl.setAttribute('value', p.expr);
+        lbl.setAttribute('position', `${x} ${y + 0.02} 0.025`);
+        lbl.setAttribute('align', 'center');
+        lbl.setAttribute('color', '#44cc88');
+        lbl.setAttribute('width', btnW * 0.8);
+        lbl.setAttribute('wrapCount', 14);
+        nav.appendChild(lbl);
+
+        const sub = document.createElement('a-text');
+        sub.setAttribute('value', p.label);
+        sub.setAttribute('position', `${x} ${y - 0.03} 0.025`);
+        sub.setAttribute('align', 'center');
+        sub.setAttribute('color', '#aaa');
+        sub.setAttribute('width', btnW * 0.65);
+        sub.setAttribute('wrapCount', 16);
+        nav.appendChild(sub);
+    });
+}
+
+// ── Content Loaders (transition to 'viewing' state) ──
+
+async function loadMoleculeVR(name, label, formula) {
+    showToast(`Lade ${label}...`);
+    try {
+        const sdf = await fetchMolecule(name);
+        const mol = parseSDF(sdf);
+        if (!mol || mol.atoms.length === 0) throw new Error('Nicht gefunden');
+        currentMolecule = { mol, name, label, formula };
+
+        const container = document.getElementById('mol-container');
+        renderMolecule(mol, container);
+        container.setAttribute('visible', true);
+        updateHUD(label, formula || `${mol.atoms.length} Atome`);
+
+        navState = 'viewing';
+        document.getElementById('vr-nav').setAttribute('visible', false);
+        document.getElementById('vr-back-btn').setAttribute('visible', true);
+
+        showToast(`${label} — ${mol.atoms.length} Atome`);
+    } catch(e) {
+        showToast('Fehler: ' + e.message);
+    }
+}
+
+function loadPhysicsVR(type) {
+    const container = document.getElementById('physics-container');
+    while (container.firstChild) container.firstChild.remove();
+    container.setAttribute('visible', true);
+
+    if (type === 'lorentz') {
+        LorentzSim.init(container);
+        updateHUD('Lorentzkraft', 'F = q(v x B)');
+    } else {
+        InductionSim.init(container);
+        updateHUD('Induktion', 'EMF = -dPhi/dt');
+    }
+
+    navState = 'viewing';
+    document.getElementById('vr-nav').setAttribute('visible', false);
+    document.getElementById('vr-back-btn').setAttribute('visible', true);
+    showToast(type === 'lorentz' ? 'Lorentzkraft' : 'Induktion');
+}
+
+function loadMathVR(expr, label) {
+    try {
+        const fn = parseComplexExpr(expr);
+        renderMathSurface(fn, expr);
+        updateHUD(`f(z) = ${expr}`, label || 'Komplexe Funktion');
+
+        navState = 'viewing';
+        document.getElementById('vr-nav').setAttribute('visible', false);
+        document.getElementById('vr-back-btn').setAttribute('visible', true);
+        showToast(`f(z) = ${expr}`);
+    } catch(e) {
+        showToast('Fehler: ' + e.message);
+    }
+}
 
 // ══════════════════════════════════════════════════════════════
 //  QUIZ SYSTEM
@@ -1799,12 +2111,13 @@ function showVRMenu() { if (!menuVisible) toggleVRMenu(); }
 
 let quizActive = false, quizIdx = 0, quizScore = 0, quizAnswered = false;
 
-function startQuizMode() {
+function startQuizVR() {
     quizActive = true;
     quizIdx = 0;
     quizScore = 0;
-    // Hide molecule while quiz is active
-    document.getElementById('mol-container').setAttribute('visible', false);
+    navState = 'quiz';
+    document.getElementById('vr-nav').setAttribute('visible', false);
+    document.getElementById('vr-back-btn').setAttribute('visible', true);
     showQuizQuestion();
 }
 
@@ -1818,73 +2131,68 @@ function showQuizQuestion() {
     const q = QUIZ_QUESTIONS[quizIdx];
     const container = document.getElementById('quiz-container');
     container.setAttribute('visible', true);
-    // Keep molecule hidden during quiz
-    document.getElementById('mol-container').setAttribute('visible', false);
     while (container.firstChild) container.removeChild(container.firstChild);
 
-    // Background (behind everything)
+    // Background
     const bg = document.createElement('a-plane');
-    bg.setAttribute('width', 1.6);
-    bg.setAttribute('height', 1.5);
-    bg.setAttribute('material', 'color:#0f1117; opacity:0.9; transparent:true; shader:flat; side:double');
+    bg.setAttribute('width', 1.4);
+    bg.setAttribute('height', 1.2);
+    bg.setAttribute('material', 'color:#0f1228; opacity:0.92; transparent:true; shader:flat; side:double');
     bg.setAttribute('position', '0 0 -0.02');
     container.appendChild(bg);
 
     // Progress
     const progress = document.createElement('a-text');
     progress.setAttribute('value', `Frage ${quizIdx+1}/${QUIZ_QUESTIONS.length}  |  ${quizScore} Pkt`);
-    progress.setAttribute('position', '0 0.62 0.03');
+    progress.setAttribute('position', '0 0.48 0.02');
     progress.setAttribute('align', 'center');
     progress.setAttribute('color', '#6c8aff');
-    progress.setAttribute('width', 1.2);
+    progress.setAttribute('width', 1.0);
     progress.setAttribute('wrapCount', 40);
     container.appendChild(progress);
 
-    // Question text
-    const qText = wrapText(q.q, 40);
+    // Question
     const qEl = document.createElement('a-text');
-    qEl.setAttribute('value', qText);
-    qEl.setAttribute('position', '0 0.48 0.03');
+    qEl.setAttribute('value', wrapText(q.q, 38));
+    qEl.setAttribute('position', '0 0.35 0.02');
     qEl.setAttribute('align', 'center');
     qEl.setAttribute('color', '#ffffff');
-    qEl.setAttribute('width', 1.3);
+    qEl.setAttribute('width', 1.1);
     qEl.setAttribute('baseline', 'top');
-    qEl.setAttribute('wrapCount', 42);
+    qEl.setAttribute('wrapCount', 40);
     container.appendChild(qEl);
 
-    // Answer buttons — plane IS the interactive element
-    const btnH = 0.14, btnGap = 0.03;
-    const startY = 0.12;
+    // Answer buttons
+    const btnH = 0.12, btnGap = 0.025;
+    const startY = 0.06;
 
     q.a.forEach((answer, i) => {
         const y = startY - i * (btnH + btnGap);
 
-        // Plane = interactive target with geometry
         const plane = document.createElement('a-plane');
         plane.setAttribute('position', `0 ${y} 0.01`);
-        plane.setAttribute('width', 1.4);
+        plane.setAttribute('width', 1.2);
         plane.setAttribute('height', btnH - 0.01);
         plane.setAttribute('class', 'interactive');
-        plane.setAttribute('material', 'color:#1a1d27; opacity:0.9; transparent:true; shader:flat; side:double');
+        plane.setAttribute('material', 'color:#1c2035; opacity:0.9; transparent:true; shader:flat; side:double');
         plane.id = `quiz-plane-${i}`;
 
         plane.addEventListener('mouseenter', () => {
-            if (!quizAnswered) plane.setAttribute('material', 'color', '#252937');
+            if (!quizAnswered) plane.setAttribute('material', 'color', '#2a3050');
         });
         plane.addEventListener('mouseleave', () => {
-            if (!quizAnswered) plane.setAttribute('material', 'color', '#1a1d27');
+            if (!quizAnswered) plane.setAttribute('material', 'color', '#1c2035');
         });
         plane.addEventListener('click', () => submitQuizAnswer(i));
         container.appendChild(plane);
 
-        // Answer text (in front of plane) — constrained to button bounds
         const label = document.createElement('a-text');
-        label.setAttribute('value', wrapText(answer, 45));
-        label.setAttribute('position', `0 ${y} 0.03`);
+        label.setAttribute('value', wrapText(answer, 42));
+        label.setAttribute('position', `0 ${y} 0.025`);
         label.setAttribute('align', 'center');
         label.setAttribute('color', '#e8eaed');
-        label.setAttribute('width', 1.2);
-        label.setAttribute('wrapCount', 48);
+        label.setAttribute('width', 1.0);
+        label.setAttribute('wrapCount', 44);
         container.appendChild(label);
     });
 }
@@ -1896,7 +2204,6 @@ function submitQuizAnswer(idx) {
     const correct = idx === q.correct;
     if (correct) quizScore++;
 
-    // Color feedback
     for (let i = 0; i < q.a.length; i++) {
         const plane = document.getElementById(`quiz-plane-${i}`);
         if (!plane) continue;
@@ -1909,39 +2216,20 @@ function submitQuizAnswer(idx) {
         }
     }
 
-    // Show explanation + next button after delay
     setTimeout(() => {
         const container = document.getElementById('quiz-container');
 
-        // Explanation
         const explEl = document.createElement('a-text');
-        explEl.setAttribute('value', wrapText(q.explain, 42));
-        explEl.setAttribute('position', '0 -0.50 0.03');
+        explEl.setAttribute('value', wrapText(q.explain, 40));
+        explEl.setAttribute('position', '0 -0.42 0.02');
         explEl.setAttribute('align', 'center');
         explEl.setAttribute('color', '#34d399');
-        explEl.setAttribute('width', 1.2);
-        explEl.setAttribute('wrapCount', 46);
+        explEl.setAttribute('width', 1.0);
+        explEl.setAttribute('wrapCount', 44);
         container.appendChild(explEl);
 
-        // Next button — plane is int. element
-        const nextPlane = document.createElement('a-plane');
-        nextPlane.setAttribute('position', '0 -0.65 0.01');
-        nextPlane.setAttribute('width', 0.5);
-        nextPlane.setAttribute('height', 0.13);
-        nextPlane.setAttribute('class', 'interactive');
-        nextPlane.setAttribute('material', 'color:#6c8aff; opacity:0.8; transparent:true; shader:flat; side:double');
-        nextPlane.addEventListener('mouseenter', () => nextPlane.setAttribute('material','opacity',1));
-        nextPlane.addEventListener('mouseleave', () => nextPlane.setAttribute('material','opacity',0.8));
-        nextPlane.addEventListener('click', () => { quizIdx++; showQuizQuestion(); });
-        container.appendChild(nextPlane);
-
-        const nextText = document.createElement('a-text');
-        nextText.setAttribute('value', quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter');
-        nextText.setAttribute('position', '0 -0.65 0.03');
-        nextText.setAttribute('align', 'center');
-        nextText.setAttribute('color', '#fff');
-        nextText.setAttribute('width', 0.45);
-        container.appendChild(nextText);
+        makeButton(container, quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter',
+            0, -0.52, 0.4, 0.1, '#6c8aff', () => { quizIdx++; showQuizQuestion(); });
     }, 800);
 }
 
@@ -1952,59 +2240,37 @@ function showQuizFinished() {
     const pct = Math.round(quizScore / QUIZ_QUESTIONS.length * 100);
     let rating = pct >= 80 ? 'Ausgezeichnet!' : pct >= 60 ? 'Gut gemacht!' : pct >= 40 ? 'Nicht schlecht.' : 'Weiter ueben!';
 
-    const bg = document.createElement('a-plane');
-    bg.setAttribute('width', 1.2);
-    bg.setAttribute('height', 0.85);
-    bg.setAttribute('material', 'color:#0f1117; opacity:0.9; transparent:true; shader:flat; side:double');
-    bg.setAttribute('position', '0 0 -0.02');
-    container.appendChild(bg);
+    makePanel(container, 1.0, 0.7, '#0f1228', 0.92);
 
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Quiz beendet!');
-    title.setAttribute('position', '0 0.28 0.03');
+    title.setAttribute('position', '0 0.22 0.02');
     title.setAttribute('align', 'center');
     title.setAttribute('color', '#6c8aff');
-    title.setAttribute('width', 1.2);
+    title.setAttribute('width', 1.0);
     container.appendChild(title);
 
     const score = document.createElement('a-text');
     score.setAttribute('value', `${quizScore} / ${QUIZ_QUESTIONS.length} richtig (${pct}%)`);
-    score.setAttribute('position', '0 0.12 0.03');
+    score.setAttribute('position', '0 0.06 0.02');
     score.setAttribute('align', 'center');
     score.setAttribute('color', '#ffffff');
-    score.setAttribute('width', 1.1);
+    score.setAttribute('width', 0.9);
     container.appendChild(score);
 
     const ratingEl = document.createElement('a-text');
     ratingEl.setAttribute('value', rating);
-    ratingEl.setAttribute('position', '0 -0.02 0.03');
+    ratingEl.setAttribute('position', '0 -0.06 0.02');
     ratingEl.setAttribute('align', 'center');
     ratingEl.setAttribute('color', '#34d399');
-    ratingEl.setAttribute('width', 1.0);
+    ratingEl.setAttribute('width', 0.8);
     container.appendChild(ratingEl);
 
-    // Close button — plane is interactive
-    const closePlane = document.createElement('a-plane');
-    closePlane.setAttribute('position', '0 -0.22 0.01');
-    closePlane.setAttribute('width', 0.5);
-    closePlane.setAttribute('height', 0.14);
-    closePlane.setAttribute('class', 'interactive');
-    closePlane.setAttribute('material', 'color:#444; opacity:0.8; transparent:true; shader:flat; side:double');
-    closePlane.addEventListener('click', () => {
+    makeButton(container, 'Zurueck', 0, -0.24, 0.4, 0.1, '#444', () => {
         quizActive = false;
-        container.setAttribute('visible', false);
-        // Re-show molecule
-        document.getElementById('mol-container').setAttribute('visible', true);
+        document.getElementById('quiz-container').setAttribute('visible', false);
+        navigateTo('chemie');
     });
-    container.appendChild(closePlane);
-
-    const closeText = document.createElement('a-text');
-    closeText.setAttribute('value', 'Schliessen');
-    closeText.setAttribute('position', '0 -0.22 0.03');
-    closeText.setAttribute('align', 'center');
-    closeText.setAttribute('color', '#fff');
-    closeText.setAttribute('width', 0.45);
-    container.appendChild(closeText);
 }
 
 function wrapText(text, maxChars) {
@@ -2024,16 +2290,14 @@ function wrapText(text, maxChars) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  APP CONTROLLER
+//  APP CONTROLLER (2D landing → VR entry)
 // ══════════════════════════════════════════════════════════════
 
-let currentMolecule = null;
 let selectedPreset = null;
 let selectedPhysics = 'lorentz';
 let selectedFunction = null;
-let activeModule = 'chemie'; // 'chemie', 'physik', 'mathe'
 
-// ── Tab Switching ──
+// 2D tab switching (kept for desktop use)
 function switchTab(tab) {
     ['chemie','physik','mathe'].forEach(t => {
         document.getElementById('tab-'+t).classList.toggle('active', t===tab);
@@ -2050,91 +2314,25 @@ function selectPhysics(type) {
 function selectFunction(expr) {
     selectedFunction = expr;
     document.querySelectorAll('.fn-card').forEach(c => c.classList.remove('selected'));
-    const cards = document.querySelectorAll('.fn-card');
-    cards.forEach(c => { if(c.dataset.expr === expr) c.classList.add('selected'); });
-}
-
-// ── Module Entry Points ──
-async function loadAndDisplay(name, label, formula) {
-    showLoading(true, `Lade ${label || name}...`);
-    try {
-        const sdf = await fetchMolecule(name);
-        const mol = parseSDF(sdf);
-        if (!mol || mol.atoms.length === 0) throw new Error('Molekül konnte nicht geparst werden');
-        currentMolecule = { mol, name, label: label || name, formula: formula || '' };
-        document.getElementById('mol-container').setAttribute('visible', true);
-        document.getElementById('physics-container').setAttribute('visible', false);
-        document.getElementById('math-container').setAttribute('visible', false);
-        renderMolecule(mol, document.getElementById('mol-container'));
-        updateHUD(label || name, formula || `${mol.atoms.length} Atome`);
-        updateInfoBar(label || name, formula || '', mol.atoms.length);
-        showToast(`${label || name} geladen — ${mol.atoms.length} Atome`);
-        activeModule = 'chemie';
-    } catch (e) {
-        showToast('Fehler: ' + e.message);
-        console.error(e);
-    }
-    showLoading(false);
-}
-
-function enterWithMolecule() {
-    const name = selectedPreset || 'ethanol';
-    const preset = PRESETS.find(p => p.name === name) || { name, label: name, formula: '' };
-    loadAndDisplay(preset.name, preset.label, preset.formula).then(() => {
-        document.getElementById('overlay').classList.add('hidden');
-        document.getElementById('info-bar').style.display = 'flex';
-        enterStereoVR();
+    document.querySelectorAll('.fn-card').forEach(c => {
+        if(c.dataset.expr === expr) c.classList.add('selected');
     });
 }
 
-function enterPhysics() {
+// Start VR → go straight to calibration
+function startVR() {
     document.getElementById('overlay').classList.add('hidden');
     document.getElementById('info-bar').style.display = 'flex';
-    activeModule = 'physik';
-
-    document.getElementById('mol-container').setAttribute('visible', false);
-    document.getElementById('math-container').setAttribute('visible', false);
-
-    const container = document.getElementById('physics-container');
-    if (selectedPhysics === 'lorentz') {
-        LorentzSim.init(container);
-        updateInfoBar('Lorentzkraft', 'F = q(v × B)', 0);
-        updateHUD('Lorentzkraft', 'F = q(v × B)');
-    } else {
-        InductionSim.init(container);
-        updateInfoBar('Induktion', 'EMF = -dΦ/dt', 0);
-        updateHUD('Induktion', 'EMF = -dΦ/dt');
-    }
-    showToast(`${selectedPhysics === 'lorentz' ? 'Lorentzkraft' : 'Induktion'} geladen`);
     enterStereoVR();
+    // After a brief delay for stereo to activate, show calibration
+    setTimeout(() => navigateTo('calibrate'), 300);
 }
 
-function enterMath() {
-    const expr = selectedFunction || 'z^2';
-    document.getElementById('overlay').classList.add('hidden');
-    document.getElementById('info-bar').style.display = 'flex';
-    activeModule = 'mathe';
+// Legacy entry points (from 2D landing) - redirect to VR
+function enterWithMolecule() { startVR(); }
+function enterPhysics() { startVR(); }
+function enterMath() { startVR(); }
 
-    try {
-        const fn = parseComplexExpr(expr);
-        renderMathSurface(fn, expr);
-        updateInfoBar(`f(z) = ${expr}`, 'Komplexe Funktion', 0);
-        showToast(`f(z) = ${expr} geplottet`);
-    } catch(e) {
-        showToast('Fehler: ' + e.message);
-    }
-    enterStereoVR();
-}
-
-function plotCustomFunction() {
-    const input = document.getElementById('fn-input');
-    const expr = input.value.trim();
-    if (!expr) return;
-    selectedFunction = expr;
-    enterMath();
-}
-
-// ── Navigation ──
 function updateHUD(name, formula) {
     const hudName = document.getElementById('hud-name');
     const hudFormula = document.getElementById('hud-formula');
@@ -2166,38 +2364,41 @@ function exitStereoVR() {
     document.getElementById('info-bar').style.display = 'flex';
 }
 
-function searchMolecule() {
-    const input = document.getElementById('search-input');
-    const name = input.value.trim();
-    if (!name) return;
-    selectedPreset = name;
-    loadAndDisplay(name, name, '').then(() => {
-        document.getElementById('overlay').classList.add('hidden');
-        document.getElementById('info-bar').style.display = 'flex';
-    });
-}
-
 function backToLanding() {
     document.getElementById('overlay').classList.remove('hidden');
     document.getElementById('info-bar').style.display = 'none';
     quizActive = false;
-    document.getElementById('quiz-container').setAttribute('visible', false);
-    document.getElementById('mol-container').setAttribute('visible', true);
-    document.getElementById('physics-container').setAttribute('visible', false);
-    document.getElementById('math-container').setAttribute('visible', false);
-    if (menuVisible) toggleVRMenu();
-    // Stop physics
     LorentzSim.running = false;
     InductionSim.running = false;
-    // Stop math rotation
-    const mc = document.getElementById('math-container');
-    if (mc) mc.object3D.userData.autoRotate = false;
+    ['mol-container','physics-container','math-container','quiz-container'].forEach(id => {
+        document.getElementById(id).setAttribute('visible', false);
+    });
+    document.getElementById('vr-nav').setAttribute('visible', false);
+    document.getElementById('vr-back-btn').setAttribute('visible', false);
+    navState = 'pre';
 }
 
-function startQuizFromMenu() {
-    document.getElementById('overlay').classList.add('hidden');
-    document.getElementById('info-bar').style.display = 'flex';
-    startQuizMode();
+function searchMolecule() {
+    const input = document.getElementById('search-input');
+    const name = input.value.trim();
+    if (!name) return;
+    startVR();
+    // After stereo + calibration completes, load the molecule
+    setTimeout(() => {
+        calibrateVR();
+        loadMoleculeVR(name, name, '');
+    }, 500);
+}
+
+function plotCustomFunction() {
+    const input = document.getElementById('fn-input');
+    const expr = input.value.trim();
+    if (!expr) return;
+    startVR();
+    setTimeout(() => {
+        calibrateVR();
+        loadMathVR(expr, expr);
+    }, 500);
 }
 
 // ── UI Helpers ──
@@ -2223,51 +2424,60 @@ function showToast(msg) {
 // ══════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Build molecule grid (neomorphic cards)
+    // Build molecule grid (2D landing page)
     const grid = document.getElementById('mol-grid');
-    PRESETS.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'mol-card';
-        card.innerHTML = `<div class="formula-badge">${p.formula}</div><div class="name">${p.label}</div>`;
-        card.addEventListener('click', () => {
-            selectedPreset = p.name;
-            grid.querySelectorAll('.mol-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            showToast(`${p.label} ausgewählt`);
+    if (grid) {
+        PRESETS.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'mol-card';
+            card.innerHTML = `<div class="formula-badge">${p.formula}</div><div class="name">${p.label}</div>`;
+            card.addEventListener('click', () => {
+                selectedPreset = p.name;
+                grid.querySelectorAll('.mol-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                showToast(`${p.label} ausgewählt`);
+            });
+            grid.appendChild(card);
         });
-        grid.appendChild(card);
-    });
+    }
 
-    // Build math function grid
+    // Build math grid (2D landing page)
     const fnGrid = document.getElementById('fn-grid');
-    MATH_PRESETS.forEach(p => {
-        const card = document.createElement('div');
-        card.className = 'fn-card';
-        card.dataset.expr = p.expr;
-        card.innerHTML = `<div class="fn-expr">${p.expr}</div><div class="fn-name">${p.label}</div>`;
-        card.addEventListener('click', () => {
-            selectedFunction = p.expr;
-            fnGrid.querySelectorAll('.fn-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            showToast(`${p.label} ausgewählt`);
+    if (fnGrid) {
+        MATH_PRESETS.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'fn-card';
+            card.dataset.expr = p.expr;
+            card.innerHTML = `<div class="fn-expr">${p.expr}</div><div class="fn-name">${p.label}</div>`;
+            card.addEventListener('click', () => {
+                selectedFunction = p.expr;
+                fnGrid.querySelectorAll('.fn-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                showToast(`${p.label} ausgewählt`);
+            });
+            fnGrid.appendChild(card);
         });
-        fnGrid.appendChild(card);
-    });
+    }
 
     // Search on Enter key
-    document.getElementById('search-input').addEventListener('keypress', e => {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') searchMolecule();
     });
-    document.getElementById('fn-input').addEventListener('keypress', e => {
+    const fnInput = document.getElementById('fn-input');
+    if (fnInput) fnInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') plotCustomFunction();
     });
 
-    // Build VR menu
-    buildVRMenu();
-
-    // Setup cursor feedback
+    // Back button click handler
     const scene = document.getElementById('scene');
     scene.addEventListener('loaded', () => {
+        const backPlane = document.getElementById('back-btn-plane');
+        if (backPlane) {
+            backPlane.addEventListener('click', () => goBack());
+        }
+
+        // Cursor feedback
         const cursorEl = document.getElementById('cursor-ring');
         if (cursorEl) {
             const fill = document.getElementById('cursor-fill');
