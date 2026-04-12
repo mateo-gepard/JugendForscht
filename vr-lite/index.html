@@ -2103,7 +2103,7 @@ function startVR() {
     function doStart() {
         console.log('[BeGreifbar] Scene ready, activating VR...');
         enterStereoVR();
-        setTimeout(() => navigateTo('calibrate'), 300);
+        setTimeout(() => calibrateVR(), 300);
     }
     if (sceneEl && sceneEl.hasLoaded) {
         doStart();
