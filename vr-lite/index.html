@@ -257,9 +257,9 @@ const ELEMENT_COLORS = {
 };
 
 const ELEMENT_RADII = {
-    H:0.06,He:0.06,C:0.09,N:0.085,O:0.08,F:0.075,P:0.11,S:0.11,
-    Cl:0.10,Br:0.12,I:0.14,B:0.09,Si:0.12,Na:0.14,K:0.16,Ca:0.13,
-    Fe:0.10,Cu:0.10,Zn:0.10,Ag:0.12,Au:0.12
+    H:0.025,He:0.025,C:0.04,N:0.038,O:0.035,F:0.032,P:0.045,S:0.045,
+    Cl:0.042,Br:0.05,I:0.055,B:0.04,Si:0.05,Na:0.055,K:0.06,Ca:0.05,
+    Fe:0.042,Cu:0.042,Zn:0.042,Ag:0.05,Au:0.05
 };
 
 const ELEMENT_NAMES = {
@@ -686,7 +686,7 @@ function renderMolecule(mol, containerEl) {
     while (containerEl.firstChild) containerEl.removeChild(containerEl.firstChild);
 
     if (!mol) return;
-    centerAndScale(mol, 0.7);
+    centerAndScale(mol, 1.2);
 
     // Wrapper for rotation
     const wrapper = document.createElement('a-entity');
