@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>MolekülVR Lite — Molekulare Geometrie in VR</title>
+<meta name="description" content="Interaktive 3D-Molekülvisualisierung in Virtual Reality — direkt im Browser. Jugend Forscht.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚗️</text></svg>">
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#08080f;--card:rgba(18,20,32,0.85);--accent:#6c8aff;--accent2:#a78bfa;--accent3:#34d399;--text:#e8eaed;--text2:#9aa0b0;--text3:#5c6378;--border:rgba(255,255,255,0.07);--glow:rgba(108,138,255,0.25);--r:16px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+
+/* ═══ OVERLAY / LANDING PAGE ═══ */
+#overlay{position:fixed;inset:0;z-index:1000;overflow-y:auto;overflow-x:hidden;transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.4,0,.2,1)}
+#overlay.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
+.bg-mesh{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 20% 50%,rgba(108,138,255,.12),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(167,139,250,.1),transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(52,211,153,.06),transparent 50%),linear-gradient(180deg,#08080f 0%,#0c0c1a 50%,#08080f 100%)}
+.stars{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.stars span{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s infinite alternate}
+@keyframes twinkle{0%{opacity:.2;transform:scale(1)}100%{opacity:1;transform:scale(1.3)}}
+.container{max-width:520px;margin:0 auto;padding:16px;position:relative;z-index:1}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 20px var(--glow)}
+.logo h1{font-size:18px;font-weight:800;letter-spacing:-.5px}
+.logo span{display:block;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(52,211,153,.12);color:var(--accent3);border:1px solid rgba(52,211,153,.2)}
+
+/* Hero */
+.hero{text-align:center;padding:32px 0 24px}
+.hero h2{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.2;background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--text2);font-size:14px;margin-top:10px;line-height:1.6;max-width:360px;margin-left:auto;margin-right:auto}
+.hero-glow{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 70%);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;animation:pulse 3s ease-in-out infinite}
+.hero-glow .emoji{font-size:52px;filter:drop-shadow(0 0 20px var(--glow))}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+
+/* Search */
+.search-wrap{position:relative;margin:0 0 20px}
+.search-wrap input{width:100%;padding:14px 48px 14px 18px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(12px)}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.search-wrap button:active{transform:translateY(-50%) scale(.9)}
+
+/* Molecule Grid */
+.section-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin:0 0 12px;padding:0 4px}
+.mol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.mol-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);user-select:none;-webkit-user-select:none}
+.mol-card:active{transform:scale(.94);background:rgba(108,138,255,.12);border-color:rgba(108,138,255,.3)}
+.mol-card .icon{font-size:28px;margin-bottom:6px;display:block}
+.mol-card .name{font-size:12px;font-weight:600;margin-bottom:2px}
+.mol-card .formula{font-size:11px;color:var(--text3);font-weight:500}
+
+/* CTA Buttons */
+.cta-row{display:flex;gap:10px;margin:20px 0}
+.btn{flex:1;padding:16px;border-radius:14px;border:none;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;user-select:none}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px var(--glow)}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+
+/* Info Cards */
+.info-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.info-card .ic-icon{font-size:20px;margin-bottom:4px}
+.info-card .ic-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+/* Footer */
+.footer{text-align:center;padding:20px 0 32px;color:var(--text3);font-size:12px}
+.footer a{color:var(--accent);text-decoration:none}
+
+/* Toast */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);z-index:9999;padding:12px 24px;border-radius:12px;background:rgba(18,20,32,.95);color:var(--text);font-size:13px;font-weight:500;border:1px solid var(--border);backdrop-filter:blur(12px);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Loading */
+.loading-overlay{position:fixed;inset:0;z-index:2000;background:rgba(8,8,15,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay.show{opacity:1;pointer-events:all}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text2);font-size:14px;font-weight:500}
+
+/* ═══ VR INFO BAR (2D mode) ═══ */
+#info-bar{position:fixed;bottom:0;left:0;right:0;z-index:500;padding:12px 16px;background:rgba(8,8,15,.9);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+#info-bar .mol-info{font-size:13px;font-weight:600}
+#info-bar .mol-info small{color:var(--text3);font-weight:400;margin-left:6px}
+#info-bar .bar-actions{display:flex;gap:8px}
+#info-bar .bar-btn{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+#info-bar .bar-btn:active{background:rgba(108,138,255,.15)}
+
+/* A-Frame overrides */
+.a-enter-vr-button{background:linear-gradient(135deg,var(--accent),var(--accent2))!important;border-radius:12px!important;font-family:'Inter',sans-serif!important;font-weight:700!important;bottom:80px!important}
+a-scene{position:fixed!important;inset:0!important}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOADING OVERLAY ═══════════════ -->
+<div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Molekül wird geladen...</div>
+</div>
+
+<!-- ═══════════════ LANDING PAGE ═══════════════ -->
+<div id="overlay">
+    <div class="bg-mesh"></div>
+    <div class="stars" id="stars"></div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⚗️</div>
+                <div><h1>MolekülVR</h1><span>Lite Edition</span></div>
+            </div>
+            <div class="badge">📱 Mobile VR</div>
+        </header>
+
+        <section class="hero">
+            <div class="hero-glow"><div class="emoji">🧬</div></div>
+            <h2>Moleküle in Virtual Reality erleben</h2>
+            <p>Lade 3D-Moleküle direkt im Browser und betrachte sie in VR mit deiner Cardboard-Brille.</p>
+        </section>
+
+        <div class="search-wrap">
+            <input type="text" id="search-input" placeholder="Molekül suchen... (z.B. caffeine)" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button onclick="searchMolecule()" aria-label="Suchen">🔍</button>
+        </div>
+
+        <div class="section-title">Beliebte Moleküle</div>
+        <div class="mol-grid" id="mol-grid"></div>
+
+        <div class="cta-row">
+            <button class="btn btn-primary" onclick="enterWithMolecule()">🥽 VR Starten</button>
+            <button class="btn btn-secondary" onclick="startQuizFromMenu()">❓ Quiz</button>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card"><div class="ic-icon">👀</div><div class="ic-label">Gaze-Steuerung</div></div>
+            <div class="info-card"><div class="ic-icon">📱</div><div class="ic-label">Gyroscope 3DoF</div></div>
+            <div class="info-card"><div class="ic-icon">🧪</div><div class="ic-label">PubChem API</div></div>
+        </div>
+
+        <div class="footer">Jugend Forscht · Molekulare Geometrie · 2026<br><span style="font-size:11px;color:var(--text3)">Für Google Cardboard & kompatible VR-Brillen</span></div>
+    </div>
+</div>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════ INFO BAR (2D mode) ═══════════════ -->
+<div id="info-bar" style="display:none">
+    <div class="mol-info" id="mol-info-text">—</div>
+    <div class="bar-actions">
+        <button class="bar-btn" onclick="showVRMenu()">📋 Menü</button>
+        <button class="bar-btn" onclick="startQuizMode()">❓ Quiz</button>
+        <button class="bar-btn" onclick="backToLanding()">✕</button>
+    </div>
+</div>
+
+<!-- ═══════════════ A-FRAME VR SCENE ═══════════════ -->
+<a-scene id="scene" embedded
+    vr-mode-ui="enabled: true"
+    device-orientation-permission-ui="enabled: true"
+    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
+    loading-screen="enabled: false">
+
+    <!-- Sky -->
+    <a-sky color="#070710"></a-sky>
+
+    <!-- Starfield (generated via component) -->
+    <a-entity starfield></a-entity>
+
+    <!-- Nebula glow planes -->
+    <a-plane position="-8 5 -20" rotation="0 30 0" width="25" height="25" material="shader:flat; color:#1a0a2e; opacity:0.08; transparent:true; side:double"></a-plane>
+    <a-plane position="10 -3 -15" rotation="10 -20 5" width="20" height="20" material="shader:flat; color:#0a1a2e; opacity:0.06; transparent:true; side:double"></a-plane>
+
+    <!-- Lighting -->
+    <a-light type="ambient" color="#223" intensity="0.6"></a-light>
+    <a-light type="directional" color="#eef" intensity="0.9" position="3 5 2"></a-light>
+    <a-light type="point" color="#6c8aff" intensity="0.3" position="0 2 -1.5" distance="6"></a-light>
+
+    <!-- Subtle floor -->
+    <a-ring position="0 0.01 -2" rotation="-90 0 0" radius-inner="0" radius-outer="3"
+        material="shader:flat; color:#6c8aff; opacity:0.03; transparent:true"></a-ring>
+
+    <!-- Camera Rig -->
+    <a-entity id="rig" position="0 1.6 0">
+        <a-camera id="camera" look-controls="pointerLockEnabled:false" wasd-controls="enabled:false">
+            <!-- Gaze Cursor -->
+            <a-entity id="cursor-wrap" position="0 0 -0.8">
+                <a-ring id="cursor-ring" radius-inner="0.006" radius-outer="0.009"
+                    material="shader:flat; color:#ffffff; opacity:0.7; transparent:true"
+                    cursor="fuse:true; fuseTimeout:1500"
+                    raycaster="objects:.interactive; far:20">
+                </a-ring>
+                <a-ring id="cursor-fill" radius-inner="0.001" radius-outer="0.009"
+                    material="shader:flat; color:#6c8aff; opacity:0; transparent:true"
+                    geometry="thetaLength:0">
+                </a-ring>
+            </a-entity>
+
+            <!-- HUD: molecule name -->
+            <a-text id="hud-name" value="" position="0 -0.22 -0.8" align="center"
+                color="#ffffff" width="0.8" opacity="0.8" font="roboto"></a-text>
+            <a-text id="hud-formula" value="" position="0 -0.25 -0.8" align="center"
+                color="#9aa0b0" width="0.6" opacity="0.6" font="roboto"></a-text>
+
+            <!-- Atom hover label -->
+            <a-text id="atom-label" value="" position="0 0.08 -0.8" align="center"
+                color="#34d399" width="0.7" opacity="0" font="roboto"></a-text>
+        </a-camera>
+    </a-entity>
+
+    <!-- Molecule Container -->
+    <a-entity id="mol-container" position="0 1.5 -1.8">
+    </a-entity>
+
+    <!-- VR Menu Container -->
+    <a-entity id="vr-menu" position="0 1.8 -2.5" visible="false">
+    </a-entity>
+
+    <!-- Quiz Container -->
+    <a-entity id="quiz-container" position="0 1.6 -2" visible="false">
+    </a-entity>
+
+</a-scene>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONSTANTS & DATA
+// ══════════════════════════════════════════════════════════════
+
+const ELEMENT_COLORS = {
+    H:'#FFFFFF',He:'#D9FFFF',Li:'#CC80FF',Be:'#C2FF00',B:'#FFB5B5',C:'#555555',
+    N:'#3050F8',O:'#FF0D0D',F:'#90E050',Ne:'#B3E3F5',Na:'#AB5CF2',Mg:'#8AFF00',
+    Al:'#BFA6A6',Si:'#F0C8A0',P:'#FF8000',S:'#FFFF30',Cl:'#1FF01F',Ar:'#80D1E3',
+    K:'#8F40D4',Ca:'#3DFF00',Fe:'#E06633',Co:'#F090A0',Ni:'#50D050',Cu:'#C88033',
+    Zn:'#7D80B0',Br:'#A62929',I:'#940094',Ag:'#C0C0C0',Au:'#FFD123',Pt:'#D0D0E0'
+};
+
+const ELEMENT_RADII = {
+    H:0.06,He:0.06,C:0.09,N:0.085,O:0.08,F:0.075,P:0.11,S:0.11,
+    Cl:0.10,Br:0.12,I:0.14,B:0.09,Si:0.12,Na:0.14,K:0.16,Ca:0.13,
+    Fe:0.10,Cu:0.10,Zn:0.10,Ag:0.12,Au:0.12
+};
+
+const ELEMENT_NAMES = {
+    H:'Wasserstoff',He:'Helium',Li:'Lithium',Be:'Beryllium',B:'Bor',C:'Kohlenstoff',
+    N:'Stickstoff',O:'Sauerstoff',F:'Fluor',Ne:'Neon',Na:'Natrium',Mg:'Magnesium',
+    Al:'Aluminium',Si:'Silicium',P:'Phosphor',S:'Schwefel',Cl:'Chlor',Ar:'Argon',
+    K:'Kalium',Ca:'Calcium',Fe:'Eisen',Co:'Cobalt',Ni:'Nickel',Cu:'Kupfer',
+    Zn:'Zink',Br:'Brom',I:'Iod',Ag:'Silber',Au:'Gold',Pt:'Platin'
+};
+
+const PRESETS = [
+    {name:'water',label:'Wasser',formula:'H₂O',icon:'💧'},
+    {name:'methane',label:'Methan',formula:'CH₄',icon:'🔥'},
+    {name:'ethanol',label:'Ethanol',formula:'C₂H₅OH',icon:'🍷'},
+    {name:'ammonia',label:'Ammoniak',formula:'NH₃',icon:'💨'},
+    {name:'benzene',label:'Benzol',formula:'C₆H₆',icon:'⬡'},
+    {name:'caffeine',label:'Koffein',formula:'C₈H₁₀N₄O₂',icon:'☕'},
+    {name:'aspirin',label:'Aspirin',formula:'C₉H₈O₄',icon:'💊'},
+    {name:'glucose',label:'Glucose',formula:'C₆H₁₂O₆',icon:'🍬'},
+    {name:'cyclohexane',label:'Cyclohexan',formula:'C₆H₁₂',icon:'🔄'},
+    {name:'acetic acid',label:'Essigsäure',formula:'CH₃COOH',icon:'🧪'},
+    {name:'ethene',label:'Ethen',formula:'C₂H₄',icon:'🌿'},
+    {name:'carbon dioxide',label:'CO₂',formula:'CO₂',icon:'🏭'},
+];
+
+const QUIZ_QUESTIONS = [
+    {
+        q:'Was bedeutet ein massiv ausgefüllter Keil in einer Keilstrichformel?',
+        mol:'methane',
+        a:['Atom liegt in der Zeichenebene','Atom ragt nach vorne, auf den Betrachter zu','Atom ragt in den Hintergrund','Es ist eine Doppelbindung'],
+        correct:1,
+        explain:'Ein ausgefüllter Keil zeigt, dass das Atom aus der Zeichenebene heraus auf den Betrachter zukommt.'
+    },
+    {
+        q:'Warum wird Methan als Tetraeder dargestellt?',
+        mol:'methane',
+        a:['Kohlenstoff bildet immer Ringe','Elektronenpaare stoßen sich ab (max. Abstand)','Wasserstoff ist magnetisch','Bindungen sind verschieden lang'],
+        correct:1,
+        explain:'Die vier Bindungselektronenpaare nehmen den größtmöglichen Abstand ein — Tetraederform mit 109,5°.'
+    },
+    {
+        q:'Welche Form hat Ammoniak (NH₃)?',
+        mol:'ammonia',
+        a:['Flach','Trigonale Pyramide','Perfekter Tetraeder','Linear'],
+        correct:1,
+        explain:'Das freie Elektronenpaar drückt die drei N-H-Bindungen nach unten — trigonale Pyramide.'
+    },
+    {
+        q:'Warum ist Wasser gewinkelt und nicht linear?',
+        mol:'water',
+        a:['Zwei freie Elektronenpaare am Sauerstoff','Wasserstoff ist zu leicht','O-H ist eine Doppelbindung','Sauerstoff hat nur eine Bindung'],
+        correct:0,
+        explain:'Sauerstoff hat zwei freie Elektronenpaare — zusammen mit den zwei Bindungen ergibt sich ein Winkel von ca. 104,5°.'
+    },
+    {
+        q:'Was ist eine besondere Eigenschaft der C-C-Einfachbindung?',
+        mol:'ethane',
+        a:['Starr und nicht drehbar','Kürzer als Doppelbindung','Existiert nur gasförmig','Frei drehbar'],
+        correct:3,
+        explain:'Eine C-C-Einfachbindung (Sigma-Bindung) erlaubt freie Rotation.'
+    },
+    {
+        q:'Welche Voraussetzung braucht ein Chiralitätszentrum?',
+        mol:'',
+        a:['An einen Ring gebunden','Vier verschiedene Substituenten','Eine Doppelbindung','An Sauerstoff gebunden'],
+        correct:1,
+        explain:'Ein Chiralitätszentrum liegt vor, wenn ein C-Atom vier unterschiedliche Substituenten trägt.'
+    },
+    {
+        q:'Was sind Enantiomere?',
+        mol:'',
+        a:['Bild und Spiegelbild, nicht deckungsgleich','Konstitutionsisomere','Konformere','Mesomere'],
+        correct:0,
+        explain:'Enantiomere sind Stereoisomere, die sich wie Bild und Spiegelbild verhalten — wie linke und rechte Hand.'
+    },
+    {
+        q:'Wie unterscheidet man Enantiomere im Labor?',
+        mol:'',
+        a:['Polarimeter (Drehung von pol. Licht)','Schmelzpunkt','Farbe','Molmasse'],
+        correct:0,
+        explain:'Enantiomere drehen die Ebene von linear polarisiertem Licht in entgegengesetzte Richtungen.'
+    },
+    {
+        q:'Was ist ein Racemat?',
+        mol:'',
+        a:['Besonders reine Substanz','50:50-Mischung beider Enantiomere — optisch inaktiv','Diastereomerengemisch','Meso-Verbindung'],
+        correct:1,
+        explain:'Im Racemat heben sich die Drehwerte beider Enantiomere exakt auf — netto keine optische Aktivität.'
+    },
+    {
+        q:'Warum ist Cyclohexan nicht flach?',
+        mol:'cyclohexane',
+        a:['Kohlenstoff hat nicht genug Bindungen','Tetraederwinkel 109,5° erlauben keinen flachen Ring — Sesselform','Cyclohexan ist ein Fünfring','Wasserstoffatome drücken den Ring hoch'],
+        correct:1,
+        explain:'Ein flacher Sechsring hätte 120°, aber sp3-C braucht 109,5°. Die Sesselkonformation löst das Problem.'
+    }
+];
+
+// ══════════════════════════════════════════════════════════════
+//  SDF PARSER
+// ══════════════════════════════════════════════════════════════
+
+function parseSDF(sdfText) {
+    const lines = sdfText.split('\n');
+    if (lines.length < 5) return null;
+
+    const countsLine = lines[3].trim();
+    // V2000: first 3 chars = atom count, next 3 = bond count
+    let atomCount, bondCount;
+    if (countsLine.includes('V2000') || countsLine.includes('V3000')) {
+        const parts = countsLine.trim().split(/\s+/);
+        atomCount = parseInt(parts[0]);
+        bondCount = parseInt(parts[1]);
+    } else {
+        const parts = countsLine.trim().split(/\s+/);
+        atomCount = parseInt(parts[0]);
+        bondCount = parseInt(parts[1]);
+    }
+
+    if (isNaN(atomCount) || isNaN(bondCount)) return null;
+
+    const atoms = [];
+    const bonds = [];
+
+    for (let i = 0; i < atomCount; i++) {
+        const line = lines[4 + i];
+        if (!line) continue;
+        const p = line.trim().split(/\s+/);
+        if (p.length < 4) continue;
+        atoms.push({
+            id: i,
+            x: parseFloat(p[0]),
+            y: parseFloat(p[1]),
+            z: parseFloat(p[2]),
+            element: p[3].replace(/[^A-Za-z]/g, '')
+        });
+    }
+
+    for (let i = 0; i < bondCount; i++) {
+        const line = lines[4 + atomCount + i];
+        if (!line) continue;
+        const p = line.trim().split(/\s+/);
+        if (p.length < 3) continue;
+        bonds.push({
+            a1: parseInt(p[0]) - 1,
+            a2: parseInt(p[1]) - 1,
+            type: parseInt(p[2]),
+            stereo: p.length >= 4 ? parseInt(p[3]) : 0
+        });
+    }
+
+    return { atoms, bonds };
+}
+
+function centerAndScale(mol, targetSize) {
+    targetSize = targetSize || 0.7;
+    if (!mol || !mol.atoms.length) return 1;
+    let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
+    mol.atoms.forEach(a => {
+        if(a.x<minX)minX=a.x;if(a.x>maxX)maxX=a.x;
+        if(a.y<minY)minY=a.y;if(a.y>maxY)maxY=a.y;
+        if(a.z<minZ)minZ=a.z;if(a.z>maxZ)maxZ=a.z;
+    });
+    const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+    const maxDim = Math.max(maxX-minX, maxY-minY, maxZ-minZ, 0.1);
+    const scale = targetSize / maxDim;
+    mol.atoms.forEach(a => { a.x=(a.x-cx)*scale; a.y=(a.y-cy)*scale; a.z=(a.z-cz)*scale; });
+    return scale;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PUBCHEM API
+// ══════════════════════════════════════════════════════════════
+
+const PUBCHEM_BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
+
+async function fetchMolecule(name) {
+    // Search CID
+    const searchUrl = `${PUBCHEM_BASE}/compound/name/${encodeURIComponent(name)}/cids/JSON`;
+    const searchResp = await fetch(searchUrl);
+    if (!searchResp.ok) throw new Error(`Molekül "${name}" nicht gefunden`);
+    const searchData = await searchResp.json();
+    const cid = searchData.IdentifierList?.CID?.[0];
+    if (!cid) throw new Error(`Keine CID für "${name}"`);
+
+    // Try 3D first
+    let sdfUrl = `${PUBCHEM_BASE}/compound/cid/${cid}/SDF?record_type=3d`;
+    let sdfResp = await fetch(sdfUrl);
+    if (!sdfResp.ok) {
+        // Fallback to 2D
+        sdfUrl = `${PUBCHEM_BASE}/compound/cid/${cid}/SDF`;
+        sdfResp = await fetch(sdfUrl);
+        if (!sdfResp.ok) throw new Error('SDF nicht verfügbar');
+    }
+    return await sdfResp.text();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  A-FRAME COMPONENTS
+// ══════════════════════════════════════════════════════════════
+
+AFRAME.registerComponent('starfield', {
+    init() {
+        const count = 2000;
+        const geom = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        const sizes = new Float32Array(count);
+        for (let i = 0; i < count; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const r = 30 + Math.random() * 70;
+            pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            pos[i*3+2] = r * Math.cos(phi);
+            sizes[i] = 0.08 + Math.random() * 0.15;
+        }
+        geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const mat = new THREE.PointsMaterial({
+            color: 0xffffff, size: 0.12, sizeAttenuation: true,
+            transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
+        });
+        this.el.object3D.add(new THREE.Points(geom, mat));
+    }
+});
+
+AFRAME.registerComponent('auto-rotate', {
+    schema: { speed: { type: 'number', default: 0.15 }, paused: { type: 'boolean', default: false } },
+    tick(t, dt) {
+        if (this.data.paused) return;
+        this.el.object3D.rotation.y += this.data.speed * (dt / 1000);
+    }
+});
+
+AFRAME.registerComponent('atom-interact', {
+    schema: { element: { type: 'string' }, idx: { type: 'int' } },
+    init() {
+        this.el.addEventListener('mouseenter', () => {
+            const el = this.data.element;
+            const name = ELEMENT_NAMES[el] || el;
+            const lbl = document.getElementById('atom-label');
+            if (lbl) {
+                lbl.setAttribute('text', 'value', `${el} — ${name}`);
+                lbl.setAttribute('text', 'opacity', 1);
+            }
+            // Highlight atom
+            this.el.setAttribute('material', 'emissiveIntensity', 0.5);
+            this.origScale = this.el.getAttribute('scale') || {x:1,y:1,z:1};
+            this.el.setAttribute('scale', {x:1.25, y:1.25, z:1.25});
+        });
+        this.el.addEventListener('mouseleave', () => {
+            const lbl = document.getElementById('atom-label');
+            if (lbl) lbl.setAttribute('text', 'opacity', 0);
+            this.el.setAttribute('material', 'emissiveIntensity', 0.15);
+            if (this.origScale) this.el.setAttribute('scale', this.origScale);
+        });
+    }
+});
+
+// Cursor visual feedback
+AFRAME.registerComponent('cursor-feedback', {
+    init() {
+        const fill = document.getElementById('cursor-fill');
+        const ring = document.getElementById('cursor-ring');
+        if (!fill || !ring) return;
+
+        ring.addEventListener('fusing', () => {
+            fill.setAttribute('material', 'opacity', 0.6);
+            fill.setAttribute('animation', {
+                property: 'geometry.thetaLength', from: 0, to: 360,
+                dur: 1500, easing: 'linear'
+            });
+        });
+        ring.addEventListener('click', () => {
+            fill.removeAttribute('animation');
+            fill.setAttribute('geometry', 'thetaLength', 0);
+            fill.setAttribute('material', 'opacity', 0);
+            // Pulse effect
+            ring.setAttribute('animation__pulse', {
+                property: 'scale', from: '1 1 1', to: '1.5 1.5 1.5',
+                dur: 200, dir: 'alternate', loop: 1
+            });
+        });
+        ring.addEventListener('mouseleave', () => {
+            fill.removeAttribute('animation');
+            fill.setAttribute('geometry', 'thetaLength', 0);
+            fill.setAttribute('material', 'opacity', 0);
+        });
+    }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  MOLECULE RENDERER
+// ══════════════════════════════════════════════════════════════
+
+function getColor(el) { return ELEMENT_COLORS[el] || '#CCCCCC'; }
+function getRadius(el) { return ELEMENT_RADII[el] || 0.08; }
+
+function renderMolecule(mol, containerEl) {
+    // Clear existing
+    while (containerEl.firstChild) containerEl.removeChild(containerEl.firstChild);
+
+    if (!mol) return;
+    centerAndScale(mol, 0.7);
+
+    // Wrapper for rotation
+    const wrapper = document.createElement('a-entity');
+    wrapper.setAttribute('auto-rotate', 'speed: 0.15');
+    wrapper.id = 'mol-wrapper';
+
+    // Render atoms
+    mol.atoms.forEach((atom, i) => {
+        const sphere = document.createElement('a-sphere');
+        sphere.setAttribute('position', `${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)}`);
+        sphere.setAttribute('radius', getRadius(atom.element));
+        const color = getColor(atom.element);
+        sphere.setAttribute('material', `color:${color}; metalness:0.2; roughness:0.4; emissive:${color}; emissiveIntensity:0.15`);
+        sphere.setAttribute('class', 'interactive');
+        sphere.setAttribute('atom-interact', `element:${atom.element}; idx:${i}`);
+        sphere.setAttribute('segments-width', 24);
+        sphere.setAttribute('segments-height', 16);
+        wrapper.appendChild(sphere);
+    });
+
+    // Render bonds
+    mol.bonds.forEach(bond => {
+        const a1 = mol.atoms[bond.a1];
+        const a2 = mol.atoms[bond.a2];
+        if (!a1 || !a2) return;
+
+        if (bond.type === 1 && bond.stereo === 0) {
+            createBondCylinder(a1, a2, 0.025, '#888888', wrapper);
+        } else if (bond.type === 2) {
+            createDoubleBond(a1, a2, wrapper);
+        } else if (bond.type === 3) {
+            createTripleBond(a1, a2, wrapper);
+        } else if (bond.stereo === 1) {
+            // Wedge bond (solid)
+            createWedgeBond(a1, a2, wrapper);
+        } else if (bond.stereo === 6) {
+            // Dash bond
+            createDashBond(a1, a2, wrapper);
+        } else {
+            createBondCylinder(a1, a2, 0.025, '#888888', wrapper);
+        }
+    });
+
+    containerEl.appendChild(wrapper);
+}
+
+function createBondCylinder(a1, a2, radius, color, parent, offset) {
+    offset = offset || {x:0, y:0, z:0};
+    const p1 = new THREE.Vector3(a1.x + offset.x, a1.y + offset.y, a1.z + offset.z);
+    const p2 = new THREE.Vector3(a2.x + offset.x, a2.y + offset.y, a2.z + offset.z);
+    const mid = p1.clone().add(p2).multiplyScalar(0.5);
+    const dir = p2.clone().sub(p1);
+    const len = dir.length();
+    dir.normalize();
+
+    const Y = new THREE.Vector3(0, 1, 0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(Y, dir);
+    const euler = new THREE.Euler().setFromQuaternion(quat, 'YXZ');
+
+    const cyl = document.createElement('a-cylinder');
+    cyl.setAttribute('position', `${mid.x.toFixed(4)} ${mid.y.toFixed(4)} ${mid.z.toFixed(4)}`);
+    cyl.setAttribute('rotation', `${r2d(euler.x)} ${r2d(euler.y)} ${r2d(euler.z)}`);
+    cyl.setAttribute('height', len.toFixed(4));
+    cyl.setAttribute('radius', radius);
+    cyl.setAttribute('material', `color:${color}; metalness:0.3; roughness:0.5; emissive:${color}; emissiveIntensity:0.05`);
+    cyl.setAttribute('segments-radial', 8);
+    parent.appendChild(cyl);
+    return cyl;
+}
+
+function createDoubleBond(a1, a2, parent) {
+    const dir = new THREE.Vector3(a2.x-a1.x, a2.y-a1.y, a2.z-a1.z).normalize();
+    let up = new THREE.Vector3(0, 1, 0);
+    let perp = new THREE.Vector3().crossVectors(dir, up).normalize();
+    if (perp.lengthSq() < 0.01) {
+        up.set(1, 0, 0);
+        perp.crossVectors(dir, up).normalize();
+    }
+    const off = 0.03;
+    createBondCylinder(a1, a2, 0.018, '#888888', parent, {x:perp.x*off, y:perp.y*off, z:perp.z*off});
+    createBondCylinder(a1, a2, 0.018, '#888888', parent, {x:-perp.x*off, y:-perp.y*off, z:-perp.z*off});
+}
+
+function createTripleBond(a1, a2, parent) {
+    const dir = new THREE.Vector3(a2.x-a1.x, a2.y-a1.y, a2.z-a1.z).normalize();
+    let up = new THREE.Vector3(0, 1, 0);
+    let perp = new THREE.Vector3().crossVectors(dir, up).normalize();
+    if (perp.lengthSq() < 0.01) { up.set(1,0,0); perp.crossVectors(dir,up).normalize(); }
+    const off = 0.035;
+    createBondCylinder(a1, a2, 0.015, '#888888', parent);
+    createBondCylinder(a1, a2, 0.015, '#888888', parent, {x:perp.x*off, y:perp.y*off, z:perp.z*off});
+    createBondCylinder(a1, a2, 0.015, '#888888', parent, {x:-perp.x*off, y:-perp.y*off, z:-perp.z*off});
+}
+
+function createWedgeBond(a1, a2, parent) {
+    const p1 = new THREE.Vector3(a1.x, a1.y, a1.z);
+    const p2 = new THREE.Vector3(a2.x, a2.y, a2.z);
+    const mid = p1.clone().add(p2).multiplyScalar(0.5);
+    const dir = p2.clone().sub(p1);
+    const len = dir.length(); dir.normalize();
+    const Y = new THREE.Vector3(0,1,0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(Y, dir);
+    const euler = new THREE.Euler().setFromQuaternion(quat, 'YXZ');
+
+    const cone = document.createElement('a-cone');
+    cone.setAttribute('position', `${mid.x.toFixed(4)} ${mid.y.toFixed(4)} ${mid.z.toFixed(4)}`);
+    cone.setAttribute('rotation', `${r2d(euler.x)} ${r2d(euler.y)} ${r2d(euler.z)}`);
+    cone.setAttribute('height', len.toFixed(4));
+    cone.setAttribute('radius-bottom', '0.04');
+    cone.setAttribute('radius-top', '0.008');
+    cone.setAttribute('material', 'color:#666; metalness:0.3; roughness:0.5');
+    cone.setAttribute('segments-radial', 8);
+    parent.appendChild(cone);
+}
+
+function createDashBond(a1, a2, parent) {
+    const segments = 6;
+    const gap = 0.4;
+    for (let i = 0; i < segments; i++) {
+        const t1 = (i / segments) + gap / (2 * segments);
+        const t2 = ((i + 1) / segments) - gap / (2 * segments);
+        const tm = (t1 + t2) / 2;
+        const sA = {
+            x: a1.x + (a2.x-a1.x)*t1, y: a1.y + (a2.y-a1.y)*t1, z: a1.z + (a2.z-a1.z)*t1
+        };
+        const sB = {
+            x: a1.x + (a2.x-a1.x)*t2, y: a1.y + (a2.y-a1.y)*t2, z: a1.z + (a2.z-a1.z)*t2
+        };
+        createBondCylinder(sA, sB, 0.02, '#999', parent);
+    }
+}
+
+function r2d(rad) { return (rad * 180 / Math.PI).toFixed(2); }
+
+// ══════════════════════════════════════════════════════════════
+//  VR MENU SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+let menuVisible = false;
+
+function buildVRMenu() {
+    const menuEl = document.getElementById('vr-menu');
+    while (menuEl.firstChild) menuEl.removeChild(menuEl.firstChild);
+
+    // Background panel
+    const bg = document.createElement('a-plane');
+    bg.setAttribute('width', 2.2);
+    bg.setAttribute('height', 1.6);
+    bg.setAttribute('material', 'color:#0f1117; opacity:0.88; transparent:true; shader:flat');
+    bg.setAttribute('position', '0 0 0.01');
+    menuEl.appendChild(bg);
+
+    // Border
+    const border = document.createElement('a-plane');
+    border.setAttribute('width', 2.24);
+    border.setAttribute('height', 1.64);
+    border.setAttribute('material', 'color:#6c8aff; opacity:0.15; transparent:true; shader:flat');
+    border.setAttribute('position', '0 0 0.02');
+    menuEl.appendChild(border);
+
+    // Title
+    const title = document.createElement('a-text');
+    title.setAttribute('value', 'Molekuel-Auswahl');
+    title.setAttribute('position', '0 0.65 0');
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', '#ffffff');
+    title.setAttribute('width', 1.8);
+    title.setAttribute('font', 'roboto');
+    menuEl.appendChild(title);
+
+    // Molecule buttons grid (4 columns x 3 rows)
+    const cols = 4, rows = 3;
+    const btnW = 0.45, btnH = 0.3, gapX = 0.06, gapY = 0.06;
+    const startX = -((cols - 1) * (btnW + gapX)) / 2;
+    const startY = 0.35;
+
+    PRESETS.forEach((preset, i) => {
+        if (i >= cols * rows) return;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = startX + col * (btnW + gapX);
+        const y = startY - row * (btnH + gapY);
+
+        const btn = document.createElement('a-entity');
+        btn.setAttribute('position', `${x} ${y} 0`);
+        btn.setAttribute('class', 'interactive');
+
+        const plane = document.createElement('a-plane');
+        plane.setAttribute('width', btnW);
+        plane.setAttribute('height', btnH);
+        plane.setAttribute('material', 'color:#1a1d27; opacity:0.9; transparent:true; shader:flat');
+        btn.appendChild(plane);
+
+        const label = document.createElement('a-text');
+        label.setAttribute('value', preset.label);
+        label.setAttribute('position', `0 0.03 0.01`);
+        label.setAttribute('align', 'center');
+        label.setAttribute('color', '#e8eaed');
+        label.setAttribute('width', btnW * 0.85);
+        label.setAttribute('font', 'roboto');
+        btn.appendChild(label);
+
+        const formula = document.createElement('a-text');
+        formula.setAttribute('value', preset.formula);
+        formula.setAttribute('position', `0 -0.06 0.01`);
+        formula.setAttribute('align', 'center');
+        formula.setAttribute('color', '#6c8aff');
+        formula.setAttribute('width', btnW * 0.7);
+        formula.setAttribute('font', 'roboto');
+        btn.appendChild(formula);
+
+        // Hover effects
+        btn.addEventListener('mouseenter', () => {
+            plane.setAttribute('material', 'color', '#252937');
+            plane.setAttribute('material', 'opacity', 1);
+        });
+        btn.addEventListener('mouseleave', () => {
+            plane.setAttribute('material', 'color', '#1a1d27');
+            plane.setAttribute('material', 'opacity', 0.9);
+        });
+        btn.addEventListener('click', () => {
+            toggleVRMenu();
+            loadAndDisplay(preset.name, preset.label, preset.formula);
+        });
+
+        menuEl.appendChild(btn);
+    });
+
+    // Close button
+    const closeBtn = document.createElement('a-entity');
+    closeBtn.setAttribute('position', '0 -0.55 0');
+    closeBtn.setAttribute('class', 'interactive');
+    const closePlane = document.createElement('a-plane');
+    closePlane.setAttribute('width', 0.5);
+    closePlane.setAttribute('height', 0.18);
+    closePlane.setAttribute('material', 'color:#ff4444; opacity:0.7; transparent:true; shader:flat');
+    closeBtn.appendChild(closePlane);
+    const closeText = document.createElement('a-text');
+    closeText.setAttribute('value', 'Schliessen');
+    closeText.setAttribute('position', '0 0 0.01');
+    closeText.setAttribute('align', 'center');
+    closeText.setAttribute('color', '#ffffff');
+    closeText.setAttribute('width', 0.5);
+    closeBtn.appendChild(closeText);
+    closeBtn.addEventListener('mouseenter', () => closePlane.setAttribute('material','opacity',1));
+    closeBtn.addEventListener('mouseleave', () => closePlane.setAttribute('material','opacity',0.7));
+    closeBtn.addEventListener('click', () => toggleVRMenu());
+    menuEl.appendChild(closeBtn);
+
+    // Quiz button
+    const quizBtn = document.createElement('a-entity');
+    quizBtn.setAttribute('position', '0 -0.8 0');
+    quizBtn.setAttribute('class', 'interactive');
+    const quizPlane = document.createElement('a-plane');
+    quizPlane.setAttribute('width', 0.5);
+    quizPlane.setAttribute('height', 0.18);
+    quizPlane.setAttribute('material', 'color:#6c8aff; opacity:0.7; transparent:true; shader:flat');
+    quizBtn.appendChild(quizPlane);
+    const quizText = document.createElement('a-text');
+    quizText.setAttribute('value', 'Quiz starten');
+    quizText.setAttribute('position', '0 0 0.01');
+    quizText.setAttribute('align', 'center');
+    quizText.setAttribute('color', '#ffffff');
+    quizText.setAttribute('width', 0.5);
+    quizBtn.appendChild(quizText);
+    quizBtn.addEventListener('mouseenter', () => quizPlane.setAttribute('material','opacity',1));
+    quizBtn.addEventListener('mouseleave', () => quizPlane.setAttribute('material','opacity',0.7));
+    quizBtn.addEventListener('click', () => { toggleVRMenu(); startQuizMode(); });
+    menuEl.appendChild(quizBtn);
+}
+
+function toggleVRMenu() {
+    menuVisible = !menuVisible;
+    document.getElementById('vr-menu').setAttribute('visible', menuVisible);
+    // Pause/resume rotation
+    const wrapper = document.getElementById('mol-wrapper');
+    if (wrapper) wrapper.setAttribute('auto-rotate', 'paused', menuVisible);
+}
+
+function showVRMenu() { if (!menuVisible) toggleVRMenu(); }
+
+// ══════════════════════════════════════════════════════════════
+//  QUIZ SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+let quizActive = false, quizIdx = 0, quizScore = 0, quizAnswered = false;
+
+function startQuizMode() {
+    quizActive = true;
+    quizIdx = 0;
+    quizScore = 0;
+    showQuizQuestion();
+}
+
+function showQuizQuestion() {
+    if (quizIdx >= QUIZ_QUESTIONS.length) {
+        showQuizFinished();
+        return;
+    }
+
+    quizAnswered = false;
+    const q = QUIZ_QUESTIONS[quizIdx];
+    const container = document.getElementById('quiz-container');
+    container.setAttribute('visible', true);
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    // Hide molecule menu if visible
+    if (menuVisible) toggleVRMenu();
+
+    // Load molecule for this question
+    if (q.mol) loadAndDisplay(q.mol, q.mol, '');
+
+    // Background
+    const bg = document.createElement('a-plane');
+    bg.setAttribute('width', 2);
+    bg.setAttribute('height', 2.2);
+    bg.setAttribute('material', 'color:#0f1117; opacity:0.88; transparent:true; shader:flat');
+    bg.setAttribute('position', '0 0 0.02');
+    container.appendChild(bg);
+
+    // Progress
+    const progress = document.createElement('a-text');
+    progress.setAttribute('value', `Frage ${quizIdx+1}/${QUIZ_QUESTIONS.length}  |  Punkte: ${quizScore}`);
+    progress.setAttribute('position', '0 0.9 0');
+    progress.setAttribute('align', 'center');
+    progress.setAttribute('color', '#6c8aff');
+    progress.setAttribute('width', 1.5);
+    container.appendChild(progress);
+
+    // Question text (wrap manually)
+    const qText = wrapText(q.q, 45);
+    const qEl = document.createElement('a-text');
+    qEl.setAttribute('value', qText);
+    qEl.setAttribute('position', '0 0.7 0');
+    qEl.setAttribute('align', 'center');
+    qEl.setAttribute('color', '#ffffff');
+    qEl.setAttribute('width', 1.6);
+    qEl.setAttribute('baseline', 'top');
+    container.appendChild(qEl);
+
+    // Answer buttons (stacked vertically)
+    const btnH = 0.2, btnGap = 0.05;
+    const totalH = q.a.length * btnH + (q.a.length - 1) * btnGap;
+    const startY = 0.15;
+
+    q.a.forEach((answer, i) => {
+        const y = startY - i * (btnH + btnGap);
+        const btn = document.createElement('a-entity');
+        btn.setAttribute('position', `0 ${y} 0`);
+        btn.setAttribute('class', 'interactive');
+        btn.id = `quiz-btn-${i}`;
+
+        const plane = document.createElement('a-plane');
+        plane.setAttribute('width', 1.7);
+        plane.setAttribute('height', btnH - 0.02);
+        plane.setAttribute('material', 'color:#1a1d27; opacity:0.9; transparent:true; shader:flat');
+        plane.id = `quiz-plane-${i}`;
+        btn.appendChild(plane);
+
+        const label = document.createElement('a-text');
+        label.setAttribute('value', wrapText(answer, 50));
+        label.setAttribute('position', '0 0 0.01');
+        label.setAttribute('align', 'center');
+        label.setAttribute('color', '#e8eaed');
+        label.setAttribute('width', 1.5);
+        btn.appendChild(label);
+
+        btn.addEventListener('mouseenter', () => {
+            if (!quizAnswered) plane.setAttribute('material', 'color', '#252937');
+        });
+        btn.addEventListener('mouseleave', () => {
+            if (!quizAnswered) plane.setAttribute('material', 'color', '#1a1d27');
+        });
+        btn.addEventListener('click', () => submitQuizAnswer(i));
+
+        container.appendChild(btn);
+    });
+}
+
+function submitQuizAnswer(idx) {
+    if (quizAnswered) return;
+    quizAnswered = true;
+    const q = QUIZ_QUESTIONS[quizIdx];
+    const correct = idx === q.correct;
+    if (correct) quizScore++;
+
+    // Color feedback
+    for (let i = 0; i < q.a.length; i++) {
+        const plane = document.getElementById(`quiz-plane-${i}`);
+        if (!plane) continue;
+        if (i === q.correct) {
+            plane.setAttribute('material', 'color', '#1a5c38');
+            plane.setAttribute('material', 'opacity', 1);
+        } else if (i === idx && !correct) {
+            plane.setAttribute('material', 'color', '#5c1a1a');
+            plane.setAttribute('material', 'opacity', 1);
+        }
+    }
+
+    // Show explanation + next button after delay
+    setTimeout(() => {
+        const container = document.getElementById('quiz-container');
+
+        // Explanation
+        const explEl = document.createElement('a-text');
+        explEl.setAttribute('value', wrapText(q.explain, 50));
+        explEl.setAttribute('position', '0 -0.75 0');
+        explEl.setAttribute('align', 'center');
+        explEl.setAttribute('color', '#34d399');
+        explEl.setAttribute('width', 1.4);
+        container.appendChild(explEl);
+
+        // Next button
+        const nextBtn = document.createElement('a-entity');
+        nextBtn.setAttribute('position', '0 -1 0');
+        nextBtn.setAttribute('class', 'interactive');
+        const nextPlane = document.createElement('a-plane');
+        nextPlane.setAttribute('width', 0.6);
+        nextPlane.setAttribute('height', 0.18);
+        nextPlane.setAttribute('material', 'color:#6c8aff; opacity:0.8; transparent:true; shader:flat');
+        nextBtn.appendChild(nextPlane);
+        const nextText = document.createElement('a-text');
+        nextText.setAttribute('value', quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter');
+        nextText.setAttribute('position', '0 0 0.01');
+        nextText.setAttribute('align', 'center');
+        nextText.setAttribute('color', '#fff');
+        nextText.setAttribute('width', 0.5);
+        nextBtn.appendChild(nextText);
+        nextBtn.addEventListener('mouseenter', () => nextPlane.setAttribute('material','opacity',1));
+        nextBtn.addEventListener('mouseleave', () => nextPlane.setAttribute('material','opacity',0.8));
+        nextBtn.addEventListener('click', () => { quizIdx++; showQuizQuestion(); });
+        container.appendChild(nextBtn);
+    }, 800);
+}
+
+function showQuizFinished() {
+    const container = document.getElementById('quiz-container');
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    const pct = Math.round(quizScore / QUIZ_QUESTIONS.length * 100);
+    let rating = pct >= 80 ? 'Ausgezeichnet!' : pct >= 60 ? 'Gut gemacht!' : pct >= 40 ? 'Nicht schlecht.' : 'Weiter ueben!';
+
+    const bg = document.createElement('a-plane');
+    bg.setAttribute('width', 1.6);
+    bg.setAttribute('height', 1.2);
+    bg.setAttribute('material', 'color:#0f1117; opacity:0.9; transparent:true; shader:flat');
+    bg.setAttribute('position', '0 0 0.02');
+    container.appendChild(bg);
+
+    const title = document.createElement('a-text');
+    title.setAttribute('value', 'Quiz beendet!');
+    title.setAttribute('position', '0 0.35 0');
+    title.setAttribute('align', 'center');
+    title.setAttribute('color', '#6c8aff');
+    title.setAttribute('width', 1.4);
+    container.appendChild(title);
+
+    const score = document.createElement('a-text');
+    score.setAttribute('value', `${quizScore} / ${QUIZ_QUESTIONS.length} richtig (${pct}%)`);
+    score.setAttribute('position', '0 0.15 0');
+    score.setAttribute('align', 'center');
+    score.setAttribute('color', '#ffffff');
+    score.setAttribute('width', 1.3);
+    container.appendChild(score);
+
+    const ratingEl = document.createElement('a-text');
+    ratingEl.setAttribute('value', rating);
+    ratingEl.setAttribute('position', '0 -0.05 0');
+    ratingEl.setAttribute('align', 'center');
+    ratingEl.setAttribute('color', '#34d399');
+    ratingEl.setAttribute('width', 1.2);
+    container.appendChild(ratingEl);
+
+    // Close button
+    const closeBtn = document.createElement('a-entity');
+    closeBtn.setAttribute('position', '0 -0.35 0');
+    closeBtn.setAttribute('class', 'interactive');
+    const closePlane = document.createElement('a-plane');
+    closePlane.setAttribute('width', 0.6);
+    closePlane.setAttribute('height', 0.18);
+    closePlane.setAttribute('material', 'color:#444; opacity:0.8; transparent:true; shader:flat');
+    closeBtn.appendChild(closePlane);
+    const closeText = document.createElement('a-text');
+    closeText.setAttribute('value', 'Schliessen');
+    closeText.setAttribute('position', '0 0 0.01');
+    closeText.setAttribute('align', 'center');
+    closeText.setAttribute('color', '#fff');
+    closeText.setAttribute('width', 0.5);
+    closeBtn.appendChild(closeText);
+    closeBtn.addEventListener('click', () => {
+        quizActive = false;
+        container.setAttribute('visible', false);
+    });
+    container.appendChild(closeBtn);
+}
+
+function wrapText(text, maxChars) {
+    if (!text || text.length <= maxChars) return text || '';
+    const words = text.split(' ');
+    let lines = [], line = '';
+    words.forEach(w => {
+        if ((line + ' ' + w).trim().length > maxChars) {
+            lines.push(line.trim());
+            line = w;
+        } else {
+            line += (line ? ' ' : '') + w;
+        }
+    });
+    if (line) lines.push(line.trim());
+    return lines.join('\n');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  APP CONTROLLER
+// ══════════════════════════════════════════════════════════════
+
+let currentMolecule = null;
+let selectedPreset = null;
+
+async function loadAndDisplay(name, label, formula) {
+    showLoading(true, `Lade ${label || name}...`);
+    try {
+        const sdf = await fetchMolecule(name);
+        const mol = parseSDF(sdf);
+        if (!mol || mol.atoms.length === 0) throw new Error('Molekül konnte nicht geparst werden');
+        currentMolecule = { mol, name, label: label || name, formula: formula || '' };
+        renderMolecule(mol, document.getElementById('mol-container'));
+        updateHUD(label || name, formula || `${mol.atoms.length} Atome`);
+        updateInfoBar(label || name, formula || '', mol.atoms.length);
+        showToast(`${label || name} geladen — ${mol.atoms.length} Atome`);
+    } catch (e) {
+        showToast('Fehler: ' + e.message);
+        console.error(e);
+    }
+    showLoading(false);
+}
+
+function updateHUD(name, formula) {
+    const hudName = document.getElementById('hud-name');
+    const hudFormula = document.getElementById('hud-formula');
+    if (hudName) hudName.setAttribute('text', 'value', name);
+    if (hudFormula) hudFormula.setAttribute('text', 'value', formula);
+}
+
+function updateInfoBar(name, formula, atomCount) {
+    const text = document.getElementById('mol-info-text');
+    if (text) text.innerHTML = `${name} <small>${formula} · ${atomCount} Atome</small>`;
+}
+
+function enterWithMolecule() {
+    const name = selectedPreset || 'ethanol';
+    const preset = PRESETS.find(p => p.name === name) || { name, label: name, formula: '' };
+    loadAndDisplay(preset.name, preset.label, preset.formula).then(() => {
+        document.getElementById('overlay').classList.add('hidden');
+        document.getElementById('info-bar').style.display = 'flex';
+    });
+}
+
+function searchMolecule() {
+    const input = document.getElementById('search-input');
+    const name = input.value.trim();
+    if (!name) return;
+    selectedPreset = name;
+    loadAndDisplay(name, name, '').then(() => {
+        document.getElementById('overlay').classList.add('hidden');
+        document.getElementById('info-bar').style.display = 'flex';
+    });
+}
+
+function backToLanding() {
+    document.getElementById('overlay').classList.remove('hidden');
+    document.getElementById('info-bar').style.display = 'none';
+    // Clear quiz
+    quizActive = false;
+    document.getElementById('quiz-container').setAttribute('visible', false);
+    if (menuVisible) toggleVRMenu();
+}
+
+function startQuizFromMenu() {
+    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('info-bar').style.display = 'flex';
+    startQuizMode();
+}
+
+// ── UI Helpers ──
+
+function showLoading(show, text) {
+    const el = document.getElementById('loading');
+    const txt = document.getElementById('loading-text');
+    if (txt && text) txt.textContent = text;
+    el.classList.toggle('show', !!show);
+}
+
+let toastTimeout;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INITIALIZATION
+// ══════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Generate stars on landing page
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+        const s = document.createElement('span');
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        const size = 1 + Math.random() * 2;
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.animationDelay = Math.random() * 3 + 's';
+        s.style.animationDuration = (2 + Math.random() * 3) + 's';
+        starsEl.appendChild(s);
+    }
+
+    // Build molecule grid
+    const grid = document.getElementById('mol-grid');
+    PRESETS.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'mol-card';
+        card.innerHTML = `<span class="icon">${p.icon}</span><div class="name">${p.label}</div><div class="formula">${p.formula}</div>`;
+        card.addEventListener('click', () => {
+            selectedPreset = p.name;
+            // Highlight selected
+            grid.querySelectorAll('.mol-card').forEach(c => c.style.borderColor = '');
+            card.style.borderColor = 'rgba(108,138,255,0.5)';
+            showToast(`${p.label} ausgewählt`);
+        });
+        grid.appendChild(card);
+    });
+
+    // Search on Enter key
+    document.getElementById('search-input').addEventListener('keypress', e => {
+        if (e.key === 'Enter') searchMolecule();
+    });
+
+    // Build VR menu
+    buildVRMenu();
+
+    // Setup cursor feedback
+    const scene = document.getElementById('scene');
+    scene.addEventListener('loaded', () => {
+        const cursorEl = document.getElementById('cursor-ring');
+        if (cursorEl) {
+            const fill = document.getElementById('cursor-fill');
+            cursorEl.addEventListener('fusing', () => {
+                if (fill) {
+                    fill.setAttribute('material', 'opacity', 0.6);
+                    fill.setAttribute('animation', {
+                        property: 'geometry.thetaLength', from: 0, to: 360,
+                        dur: 1500, easing: 'linear'
+                    });
+                }
+            });
+            cursorEl.addEventListener('click', () => {
+                if (fill) {
+                    fill.removeAttribute('animation');
+                    fill.setAttribute('geometry', 'thetaLength', 0);
+                    fill.setAttribute('material', 'opacity', 0);
+                }
+            });
+            cursorEl.addEventListener('mouseleave', () => {
+                if (fill) {
+                    fill.removeAttribute('animation');
+                    fill.setAttribute('geometry', 'thetaLength', 0);
+                    fill.setAttribute('material', 'opacity', 0);
+                }
+            });
+        }
+    });
+
+    // Menu toggle (look up in VR — using touch on screen for 2D)
+    // In 2D mode, menu is accessible via the info bar buttons
+});
+</script>
+</body>
+</html>
