@@ -94,8 +94,15 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 #info-bar .bar-btn:active{background:rgba(108,138,255,.15)}
 
 /* A-Frame overrides */
-.a-enter-vr-button{background:linear-gradient(135deg,var(--accent),var(--accent2))!important;border-radius:12px!important;font-family:'Inter',sans-serif!important;font-weight:700!important;bottom:80px!important}
+.a-enter-vr-button{display:none!important}
 a-scene{position:fixed!important;inset:0!important}
+
+/* ═══ STEREO VR OVERLAY ═══ */
+#stereo-divider{position:fixed;top:0;left:50%;width:3px;height:100%;background:#000;z-index:3000;display:none;transform:translateX(-50%)}
+#stereo-exit{position:fixed;top:12px;right:12px;z-index:3001;width:44px;height:44px;border-radius:50%;background:rgba(255,68,68,.8);color:#fff;border:none;font-size:20px;font-weight:bold;display:none;cursor:pointer;line-height:44px;text-align:center}
+#stereo-exit:active{transform:scale(.9)}
+#stereo-label{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:3001;color:rgba(255,255,255,.5);font-size:11px;font-family:'Inter',sans-serif;display:none;pointer-events:none;text-align:center}
+body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toast{display:none!important}
 </style>
 </head>
 <body>
@@ -155,18 +162,25 @@ a-scene{position:fixed!important;inset:0!important}
 <div id="info-bar" style="display:none">
     <div class="mol-info" id="mol-info-text">—</div>
     <div class="bar-actions">
+        <button class="bar-btn" onclick="enterStereoVR()">🥽 VR</button>
         <button class="bar-btn" onclick="showVRMenu()">📋 Menü</button>
         <button class="bar-btn" onclick="startQuizMode()">❓ Quiz</button>
         <button class="bar-btn" onclick="backToLanding()">✕</button>
     </div>
 </div>
 
+<!-- ═══════════════ STEREO VR OVERLAY ═══════════════ -->
+<div id="stereo-divider"></div>
+<button id="stereo-exit" onclick="exitStereoVR()">✕</button>
+<div id="stereo-label">Cardboard VR · Tippe 2x zum Beenden</div>
+
 <!-- ═══════════════ A-FRAME VR SCENE ═══════════════ -->
 <a-scene id="scene" embedded
-    vr-mode-ui="enabled: true"
+    vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: true"
     renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
-    loading-screen="enabled: false">
+    loading-screen="enabled: false"
+    stereo-renderer>
 
     <!-- Sky -->
     <a-sky color="#070710"></a-sky>
@@ -533,6 +547,130 @@ AFRAME.registerComponent('cursor-feedback', {
             fill.setAttribute('geometry', 'thetaLength', 0);
             fill.setAttribute('material', 'opacity', 0);
         });
+    }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  STEREO VR RENDERER (manual split-screen for Cardboard)
+// ══════════════════════════════════════════════════════════════
+
+AFRAME.registerComponent('stereo-renderer', {
+    init() {
+        this.stereoCamera = new THREE.StereoCamera();
+        this.stereoCamera.eyeSep = 0.064; // 64mm interpupillary distance
+        this.active = false;
+        this._origRender = null;
+        this._size = new THREE.Vector2();
+        this._doubleTapTimer = 0;
+        this._boundDoubleTap = this._onDoubleTap.bind(this);
+    },
+
+    activate() {
+        if (this.active) return;
+        this.active = true;
+
+        const sceneEl = this.el;
+        const renderer = sceneEl.renderer;
+        const stereoCamera = this.stereoCamera;
+        const sceneObj = sceneEl.object3D;
+        const size = this._size;
+
+        // Store original render
+        this._origRender = renderer.render.bind(renderer);
+        const origRender = this._origRender;
+
+        // Override renderer.render for stereo
+        renderer.render = function(scene, camera) {
+            // Only apply stereo to the main scene render
+            if (scene !== sceneObj) {
+                return origRender(scene, camera);
+            }
+
+            renderer.getSize(size);
+            const w = size.x, h = size.y;
+
+            stereoCamera.update(camera);
+
+            // Save state
+            const autoClear = renderer.autoClear;
+            renderer.autoClear = false;
+            renderer.clear();
+            renderer.setScissorTest(true);
+
+            // Left eye
+            renderer.setViewport(0, 0, w / 2, h);
+            renderer.setScissor(0, 0, w / 2, h);
+            origRender(scene, stereoCamera.cameraL);
+
+            // Right eye
+            renderer.setViewport(w / 2, 0, w / 2, h);
+            renderer.setScissor(w / 2, 0, w / 2, h);
+            origRender(scene, stereoCamera.cameraR);
+
+            // Restore
+            renderer.setScissorTest(false);
+            renderer.setViewport(0, 0, w, h);
+            renderer.autoClear = autoClear;
+        };
+
+        // UI: show divider, exit button
+        document.body.classList.add('stereo-active');
+        document.getElementById('stereo-divider').style.display = 'block';
+        document.getElementById('stereo-exit').style.display = 'block';
+        document.getElementById('stereo-label').style.display = 'block';
+
+        // Fullscreen
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+
+        // Lock landscape
+        try { screen.orientation.lock('landscape-primary').catch(() => {}); } catch(e) {}
+
+        // Double-tap to exit
+        document.addEventListener('touchend', this._boundDoubleTap);
+
+        console.log('[StereoVR] Activated — split-screen rendering');
+    },
+
+    deactivate() {
+        if (!this.active) return;
+        this.active = false;
+
+        const renderer = this.el.renderer;
+        if (this._origRender) {
+            renderer.render = this._origRender;
+            this._origRender = null;
+        }
+        renderer.setScissorTest(false);
+        renderer.getSize(this._size);
+        renderer.setViewport(0, 0, this._size.x, this._size.y);
+
+        // UI: hide divider, exit button
+        document.body.classList.remove('stereo-active');
+        document.getElementById('stereo-divider').style.display = 'none';
+        document.getElementById('stereo-exit').style.display = 'none';
+        document.getElementById('stereo-label').style.display = 'none';
+
+        // Exit fullscreen
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+
+        // Unlock orientation
+        try { screen.orientation.unlock(); } catch(e) {}
+
+        document.removeEventListener('touchend', this._boundDoubleTap);
+
+        console.log('[StereoVR] Deactivated — normal rendering');
+    },
+
+    _onDoubleTap(e) {
+        const now = Date.now();
+        if (now - this._doubleTapTimer < 400) {
+            this.deactivate();
+            document.getElementById('info-bar').style.display = 'flex';
+        }
+        this._doubleTapTimer = now;
     }
 });
 
@@ -1103,8 +1241,22 @@ function enterWithMolecule() {
     const preset = PRESETS.find(p => p.name === name) || { name, label: name, formula: '' };
     loadAndDisplay(preset.name, preset.label, preset.formula).then(() => {
         document.getElementById('overlay').classList.add('hidden');
-        document.getElementById('info-bar').style.display = 'flex';
+        // Activate stereo VR split-screen
+        enterStereoVR();
     });
+}
+
+function enterStereoVR() {
+    const sceneEl = document.getElementById('scene');
+    const comp = sceneEl.components['stereo-renderer'];
+    if (comp) comp.activate();
+}
+
+function exitStereoVR() {
+    const sceneEl = document.getElementById('scene');
+    const comp = sceneEl.components['stereo-renderer'];
+    if (comp) comp.deactivate();
+    document.getElementById('info-bar').style.display = 'flex';
 }
 
 function searchMolecule() {
