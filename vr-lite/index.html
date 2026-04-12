@@ -1739,9 +1739,9 @@ function buildMainMenu(nav) {
     subtitle.setAttribute('width', 0.9);
     nav.appendChild(subtitle);
     const subjects = [
-        { label: 'Chemie', icon: 'Molekuele', color: NEO.accent, iconEmoji: '\u269B', state: 'chemie' },
-        { label: 'Physik', icon: 'Simulationen', color: '#e8725c', iconEmoji: '\u26A1', state: 'physik' },
-        { label: 'Mathe', icon: '3D Funktionen', color: '#3bb87a', iconEmoji: '\u03C0', state: 'mathe' },
+        { label: 'Chemie', icon: 'Molekuele', color: NEO.accent, iconLetter: 'CH', state: 'chemie' },
+        { label: 'Physik', icon: 'Simulationen', color: '#e8725c', iconLetter: 'PH', state: 'physik' },
+        { label: 'Mathe', icon: '3D Funktionen', color: '#3bb87a', iconLetter: 'f(x)', state: 'mathe' },
     ];
     subjects.forEach((s, i) => {
         const x = (i - 1) * 0.46;
@@ -1753,13 +1753,20 @@ function buildMainMenu(nav) {
         accentBar.setAttribute('position', `${x} ${0.02 + 0.23 - 0.02} 0.015`);
         accentBar.setAttribute('material', `color:${s.color}; opacity:0.8; transparent:true; shader:flat; side:double`);
         nav.appendChild(accentBar);
-        // Icon circle
+        // Icon letter
         const iconCircle = document.createElement('a-plane');
-        iconCircle.setAttribute('width', 0.08);
-        iconCircle.setAttribute('height', 0.08);
+        iconCircle.setAttribute('width', 0.10);
+        iconCircle.setAttribute('height', 0.10);
         iconCircle.setAttribute('position', `${x} ${0.02 + 0.10} 0.02`);
         iconCircle.setAttribute('material', `color:${s.color}; opacity:0.12; transparent:true; shader:flat; side:double`);
         nav.appendChild(iconCircle);
+        const iconTxt = document.createElement('a-text');
+        iconTxt.setAttribute('value', s.iconLetter);
+        iconTxt.setAttribute('position', `${x} ${0.02 + 0.10} 0.025`);
+        iconTxt.setAttribute('align', 'center');
+        iconTxt.setAttribute('color', s.color);
+        iconTxt.setAttribute('width', 0.55);
+        nav.appendChild(iconTxt);
         const nameEl = document.createElement('a-text');
         nameEl.setAttribute('value', s.label);
         nameEl.setAttribute('position', `${x} ${0.02 - 0.02} 0.025`);
@@ -1806,12 +1813,12 @@ function buildChemieMenu(nav) {
         const lbl = document.createElement('a-text');
         lbl.setAttribute('value', p.label); lbl.setAttribute('position', `${x} ${y+0.022} 0.025`);
         lbl.setAttribute('align', 'center'); lbl.setAttribute('color', NEO.text);
-        lbl.setAttribute('width', btnW * 1.0); lbl.setAttribute('wrapCount', 14);
+        lbl.setAttribute('width', btnW * 1.6); lbl.setAttribute('wrapCount', 10);
         nav.appendChild(lbl);
         const fml = document.createElement('a-text');
         fml.setAttribute('value', p.formula); fml.setAttribute('position', `${x} ${y-0.032} 0.025`);
         fml.setAttribute('align', 'center'); fml.setAttribute('color', NEO.accent);
-        fml.setAttribute('width', btnW * 0.85); fml.setAttribute('wrapCount', 14);
+        fml.setAttribute('width', btnW * 1.3); fml.setAttribute('wrapCount', 12);
         nav.appendChild(fml);
     });
     makeButton(nav, 'Quiz starten', 0, -0.56, 0.45, 0.11, NEO.accent, () => startQuizVR());
@@ -1830,8 +1837,8 @@ function buildPhysikMenu(nav) {
     subtitle.setAttribute('position', '0 0.28 0.02'); subtitle.setAttribute('align', 'center');
     subtitle.setAttribute('color', NEO.textSoft); subtitle.setAttribute('width', 0.9);
     nav.appendChild(subtitle);
-    [{id:'lorentz',label:'Lorentzkraft',formula:'F = q(v x B)',x:-0.28,color:'#5b7fff',fc:NEO.accent},
-     {id:'induction',label:'Induktion',formula:'EMF = -dPhi/dt',x:0.28,color:'#e8725c',fc:'#e8725c'}].forEach(item => {
+    [{id:'lorentz',label:'Lorentzkraft',formula:'F = q(v x B)',x:-0.28,color:'#5b7fff',fc:NEO.accent,icon:'F'},
+     {id:'induction',label:'Induktion',formula:'EMF = -dPhi/dt',x:0.28,color:'#e8725c',fc:'#e8725c',icon:'E'}].forEach(item => {
         const card = makeNeoCard(nav, item.x, -0.04, 0.48, 0.40, () => loadPhysicsVR(item.id));
         // Accent bar
         const bar = document.createElement('a-plane');
@@ -1840,13 +1847,20 @@ function buildPhysikMenu(nav) {
         bar.setAttribute('position', `${item.x} ${-0.04 + 0.18} 0.015`);
         bar.setAttribute('material', `color:${item.color}; opacity:0.7; transparent:true; shader:flat; side:double`);
         nav.appendChild(bar);
-        // Icon badge
+        // Icon badge with letter
         const badge = document.createElement('a-plane');
-        badge.setAttribute('width', 0.07);
-        badge.setAttribute('height', 0.07);
+        badge.setAttribute('width', 0.09);
+        badge.setAttribute('height', 0.09);
         badge.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.02`);
         badge.setAttribute('material', `color:${item.color}; opacity:0.1; transparent:true; shader:flat; side:double`);
         nav.appendChild(badge);
+        const badgeTxt = document.createElement('a-text');
+        badgeTxt.setAttribute('value', item.icon);
+        badgeTxt.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.025`);
+        badgeTxt.setAttribute('align', 'center');
+        badgeTxt.setAttribute('color', item.color);
+        badgeTxt.setAttribute('width', 0.5);
+        nav.appendChild(badgeTxt);
         let txt = document.createElement('a-text');
         txt.setAttribute('value', item.label); txt.setAttribute('position', `${item.x} ${-0.04 - 0.02} 0.025`);
         txt.setAttribute('align', 'center'); txt.setAttribute('color', NEO.text); txt.setAttribute('width', 0.65);
