@@ -11,102 +11,69 @@
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#e4e8ee;--card:#e4e8ee;--accent:#5b7fff;--accent-soft:rgba(91,127,255,0.1);--text:#1a1d23;--text2:#5a6270;--text3:#8e95a0;--white:#fff;--shadow-d:rgba(163,177,198,0.6);--shadow-l:rgba(255,255,255,0.85);--neo:6px 6px 14px var(--shadow-d),-6px -6px 14px var(--shadow-l);--neo-sm:3px 3px 8px var(--shadow-d),-3px -3px 8px var(--shadow-l);--neo-in:inset 3px 3px 6px var(--shadow-d),inset -3px -3px 6px var(--shadow-l);--r:20px;--r-sm:14px}
+:root{--bg:#e8ecf4;--accent:#5b7fff;--accent2:#7c5cff;--accent-soft:rgba(91,127,255,0.08);--text:#1a1d23;--text2:#5a6270;--text3:#8e95a0;--shadow-d:rgba(163,177,198,0.55);--shadow-l:rgba(255,255,255,0.85);--neo:6px 6px 16px var(--shadow-d),-6px -6px 16px var(--shadow-l);--neo-sm:4px 4px 10px var(--shadow-d),-4px -4px 10px var(--shadow-l);--neo-in:inset 3px 3px 7px var(--shadow-d),inset -3px -3px 7px var(--shadow-l);--r:22px;--r-sm:14px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 
-/* ═══ OVERLAY / LANDING PAGE ═══ */
-#overlay{position:fixed;inset:0;z-index:1000;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:opacity .5s ease,transform .5s ease}
-#overlay.hidden{opacity:0;transform:scale(1.03);pointer-events:none}
-.container{max-width:480px;margin:0 auto;padding:20px 20px 32px}
+/* ═══ ONBOARDING LANDING ═══ */
+#overlay{position:fixed;inset:0;z-index:1000;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:opacity .6s ease,transform .5s ease}
+#overlay.hidden{opacity:0;transform:scale(1.02);pointer-events:none}
+.landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 20px}
+.landing::before{content:'';position:fixed;top:-40%;left:-20%;width:140%;height:80%;background:radial-gradient(ellipse at 40% 50%,rgba(91,127,255,.12) 0%,rgba(124,92,255,.06) 40%,transparent 70%);pointer-events:none;animation:drift 12s ease-in-out infinite alternate}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(5%,8%) scale(1.1)}}
 
-/* Header */
-.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 24px}
-.logo{display:flex;align-items:center;gap:14px}
-.logo-icon{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-sm);background:var(--bg)}
-.logo-icon svg{width:24px;height:24px;color:var(--accent)}
-.logo h1{font-size:19px;font-weight:700;letter-spacing:-.3px;color:var(--text)}
-.logo .sub{display:block;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
-.badge{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;color:var(--accent);box-shadow:var(--neo-sm);background:var(--bg)}
+/* Brand */
+.brand{display:flex;flex-direction:column;align-items:center;padding:56px 0 12px;position:relative}
+.brand-logo{width:72px;height:72px;border-radius:22px;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo);background:var(--bg);margin-bottom:20px;position:relative;overflow:hidden}
+.brand-logo::after{content:'';position:absolute;inset:0;border-radius:22px;background:linear-gradient(135deg,rgba(91,127,255,.15),rgba(124,92,255,.1));pointer-events:none}
+.brand-logo svg{width:32px;height:32px;color:var(--accent);position:relative;z-index:1}
+.brand h1{font-size:32px;font-weight:800;letter-spacing:-.8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand .edition{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
 
 /* Hero */
-.hero{text-align:center;padding:20px 0 28px}
-.hero-icon{width:80px;height:80px;border-radius:28px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo);background:var(--bg)}
-.hero-icon svg{width:36px;height:36px;color:var(--accent)}
-.hero h2{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.25;color:var(--text)}
-.hero p{color:var(--text2);font-size:14px;margin-top:10px;line-height:1.65;max-width:340px;margin-left:auto;margin-right:auto;font-weight:400}
+.hero-section{text-align:center;padding:28px 0 36px;max-width:380px}
+.hero-section h2{font-size:22px;font-weight:700;line-height:1.35;letter-spacing:-.3px;color:var(--text)}
+.hero-section p{color:var(--text2);font-size:14px;margin-top:12px;line-height:1.7;font-weight:400}
 
-/* Search */
-.search-wrap{position:relative;margin:0 0 24px}
-.search-wrap input{width:100%;padding:15px 52px 15px 20px;border-radius:var(--r);border:none;background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;font-weight:400;outline:none;box-shadow:var(--neo-in);transition:box-shadow .2s}
-.search-wrap input:focus{box-shadow:var(--neo-in),0 0 0 2px var(--accent)}
-.search-wrap input::placeholder{color:var(--text3)}
-.search-wrap button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 6px rgba(91,127,255,.35);transition:transform .15s}
-.search-wrap button:active{transform:translateY(-50%) scale(.92)}
-.search-wrap button svg{width:18px;height:18px}
+/* Steps */
+.steps{width:100%;max-width:400px;display:flex;flex-direction:column;gap:14px;margin-bottom:32px}
+.step{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:var(--r);background:var(--bg);box-shadow:var(--neo-sm);animation:fadeUp .5s ease both}
+.step:nth-child(1){animation-delay:.1s}.step:nth-child(2){animation-delay:.2s}.step:nth-child(3){animation-delay:.3s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.step-num{width:40px;height:40px;min-width:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 4px 12px rgba(91,127,255,.3)}
+.step-body h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.step-body p{font-size:12px;color:var(--text3);font-weight:400;line-height:1.5}
 
-/* Molecule Grid */
-.section-label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin:0 0 14px;padding:0 4px}
-.mol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.mol-card{background:var(--bg);border-radius:var(--r);padding:16px 8px 14px;text-align:center;cursor:pointer;box-shadow:var(--neo-sm);transition:all .15s;user-select:none;-webkit-user-select:none;border:2px solid transparent}
-.mol-card:active,.mol-card.selected{box-shadow:var(--neo-in);border-color:var(--accent)}
-.mol-card .formula-badge{display:inline-block;font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:10px;margin-bottom:8px;letter-spacing:.3px}
-.mol-card .name{font-size:12px;font-weight:600;color:var(--text)}
+/* VR Start Button */
+.start-vr-wrap{width:100%;max-width:400px;margin-bottom:24px;animation:fadeUp .5s ease .4s both}
+.btn-start{width:100%;padding:20px 24px;border-radius:var(--r);border:none;font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);box-shadow:0 8px 28px rgba(91,127,255,.35),0 2px 8px rgba(124,92,255,.2);display:flex;align-items:center;justify-content:center;gap:12px;transition:all .2s;position:relative;overflow:hidden}
+.btn-start::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .5s ease}
+.btn-start:hover::before{left:100%}
+.btn-start:active{transform:scale(.97);box-shadow:0 4px 16px rgba(91,127,255,.3)}
+.btn-start svg{width:24px;height:24px}
 
-/* CTA Buttons */
-.cta-row{display:flex;gap:12px;margin:24px 0}
-.btn{flex:1;padding:16px;border-radius:var(--r);border:none;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px;user-select:none}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:4px 4px 12px rgba(91,127,255,.35),-2px -2px 8px var(--shadow-l)}
-.btn-primary:active{box-shadow:inset 2px 2px 6px rgba(0,0,0,.15)}
-.btn-secondary{background:var(--bg);color:var(--text);box-shadow:var(--neo-sm)}
-.btn-secondary:active{box-shadow:var(--neo-in)}
-.btn svg{width:20px;height:20px}
-
-/* Info Cards */
-.info-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
-.info-card{background:var(--bg);border-radius:var(--r-sm);padding:16px 10px;text-align:center;box-shadow:var(--neo-sm)}
-.info-card svg{width:22px;height:22px;color:var(--accent);margin-bottom:6px}
-.info-card .ic-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+/* Feature Pills */
+.features{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:400px;margin-bottom:40px;animation:fadeUp .5s ease .5s both}
+.pill{padding:8px 16px;border-radius:24px;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg);box-shadow:var(--neo-sm);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.pill svg{width:14px;height:14px;color:var(--accent)}
 
 /* Footer */
-.footer{text-align:center;padding:16px 0 8px;color:var(--text3);font-size:12px;font-weight:500}
-
-/* ═══ MODULE TABS ═══ */
-.tabs{display:flex;gap:6px;margin:0 0 20px;background:var(--bg);border-radius:var(--r);padding:4px;box-shadow:var(--neo-in)}
-.tab{flex:1;padding:10px 0;border-radius:16px;border:none;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;color:var(--text3);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
-.tab.active{background:var(--bg);color:var(--accent);box-shadow:var(--neo-sm)}
-.tab svg{width:16px;height:16px}
-.tab-content{display:none}
-.tab-content.active{display:block}
-
-/* Physics cards */
-.phys-card{background:var(--bg);border-radius:var(--r);padding:18px 16px;margin-bottom:12px;box-shadow:var(--neo-sm);cursor:pointer;transition:all .15s;border:2px solid transparent}
-.phys-card:active,.phys-card.selected{box-shadow:var(--neo-in);border-color:var(--accent)}
-.phys-card h3{font-size:15px;font-weight:700;margin-bottom:4px}
-.phys-card p{font-size:12px;color:var(--text2);line-height:1.5}
-.phys-card .phys-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:8px;margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
-
-/* Math function grid */
-.fn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-.fn-card{background:var(--bg);border-radius:var(--r-sm);padding:14px 10px;text-align:center;cursor:pointer;box-shadow:var(--neo-sm);transition:all .15s;border:2px solid transparent}
-.fn-card:active,.fn-card.selected{box-shadow:var(--neo-in);border-color:var(--accent)}
-.fn-card .fn-expr{font-size:15px;font-weight:700;color:var(--accent);font-family:'Courier New',monospace;margin-bottom:4px}
-.fn-card .fn-name{font-size:11px;font-weight:500;color:var(--text2)}
+.footer{text-align:center;padding:0 0 32px;color:var(--text3);font-size:12px;font-weight:500;animation:fadeUp .5s ease .6s both}
+.footer a{color:var(--accent);text-decoration:none;font-weight:600}
 
 /* Toast */
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);z-index:9999;padding:12px 24px;border-radius:var(--r-sm);background:var(--text);color:#fff;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* Loading */
-.loading-overlay{position:fixed;inset:0;z-index:2000;background:rgba(228,232,238,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(8px)}
+.loading-overlay{position:fixed;inset:0;z-index:2000;background:rgba(232,236,244,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(8px)}
 .loading-overlay.show{opacity:1;pointer-events:all}
 .spinner{width:40px;height:40px;border:3px solid var(--shadow-d);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:var(--text2);font-size:14px;font-weight:500}
 
-/* ═══ INFO BAR (2D mode) ═══ */
-#info-bar{position:fixed;bottom:0;left:0;right:0;z-index:500;padding:12px 16px;background:rgba(228,232,238,.92);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between}
+/* ═══ INFO BAR ═══ */
+#info-bar{position:fixed;bottom:0;left:0;right:0;z-index:500;padding:10px 16px;background:rgba(232,236,244,.9);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between}
 #info-bar .mol-info{font-size:13px;font-weight:600;color:var(--text)}
 #info-bar .mol-info small{color:var(--text3);font-weight:400;margin-left:6px}
 #info-bar .bar-actions{display:flex;gap:8px}
@@ -127,139 +94,94 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 </head>
 <body>
 
-<!-- ═══════════════ LOADING OVERLAY ═══════════════ -->
+<!-- ═══════════════ LOADING ═══════════════ -->
 <div class="loading-overlay" id="loading">
     <div class="spinner"></div>
-    <div class="loading-text" id="loading-text">Molekül wird geladen...</div>
+    <div class="loading-text" id="loading-text">Wird geladen...</div>
 </div>
 
-<!-- ═══════════════ LANDING PAGE ═══════════════ -->
+<!-- ═══════════════ ONBOARDING LANDING ═══════════════ -->
 <div id="overlay">
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                </div>
-                <div><h1>BeGreifbar</h1><span class="sub">Lite Edition</span></div>
-            </div>
-            <div class="badge">Mobile VR</div>
-        </header>
+    <div class="landing">
 
-        <section class="hero">
-            <div class="hero-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
+        <div class="brand">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
             </div>
-            <h2>MINT in Virtual Reality</h2>
-            <p>Chemie, Physik und Mathe interaktiv im Browser erleben — stereoskopisch mit deiner Cardboard-Brille.</p>
+            <h1>BeGreifbar</h1>
+            <span class="edition">Lite Edition</span>
+        </div>
+
+        <section class="hero-section">
+            <h2>MINT erleben in<br>Virtual Reality</h2>
+            <p>Moleküle drehen, Magnetfelder beobachten und Funktionen im 3D-Raum erkunden — direkt im Browser mit deiner Cardboard-Brille.</p>
         </section>
 
-        <!-- ═══ MODULE TABS ═══ -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('chemie')" id="tab-chemie">
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-body">
+                    <h3>Handy in die VR-Brille stecken</h3>
+                    <p>Google Cardboard oder kompatible Halterung</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-body">
+                    <h3>Geradeaus schauen & kalibrieren</h3>
+                    <p>Die App passt sich deiner Blickrichtung an</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-body">
+                    <h3>Fach wählen & loslegen</h3>
+                    <p>Chemie, Physik oder Mathe — alles per Blick</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="start-vr-wrap">
+            <button class="btn-start" onclick="startVR()" id="btn-start-vr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
+                VR Starten
+            </button>
+        </div>
+
+        <div class="features">
+            <div class="pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 5v-.5"/><path d="M12 19.5V19"/></svg>
+                Gaze-Cursor
+            </div>
+            <div class="pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><polyline points="22 2 22 8 16 8"/></svg>
+                Gyroscope
+            </div>
+            <div class="pill">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/></svg>
-                Chemie
-            </button>
-            <button class="tab" onclick="switchTab('physik')" id="tab-physik">
+                12+ Moleküle
+            </div>
+            <div class="pill">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                Physik
-            </button>
-            <button class="tab" onclick="switchTab('mathe')" id="tab-mathe">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V4"/><path d="m5 11 7-7 7 7"/><path d="M3 20h18"/></svg>
-                Mathe
-            </button>
-        </div>
-
-        <!-- ═══ CHEMIE TAB ═══ -->
-        <div class="tab-content active" id="content-chemie">
-            <div class="search-wrap">
-                <input type="text" id="search-input" placeholder="Molekül suchen..." autocomplete="off" autocapitalize="off" spellcheck="false">
-                <button onclick="searchMolecule()" aria-label="Suchen">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                </button>
+                Physik-Sims
             </div>
-            <div class="section-label">Moleküle</div>
-            <div class="mol-grid" id="mol-grid"></div>
-            <div class="cta-row">
-                <button class="btn btn-primary" onclick="enterWithMolecule()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
-                    VR Starten
-                </button>
-                <button class="btn btn-secondary" onclick="startQuizFromMenu()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                    Quiz
-                </button>
+            <div class="pill">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 16 4-8 4 4 4-12"/></svg>
+                3D Plots
             </div>
         </div>
 
-        <!-- ═══ PHYSIK TAB ═══ -->
-        <div class="tab-content" id="content-physik">
-            <div class="section-label">Experimente</div>
-            <div class="phys-card selected" id="phys-lorentz" onclick="selectPhysics('lorentz')">
-                <h3>Lorentzkraft</h3>
-                <p>Geladenes Teilchen im Magnetfeld — beobachte die Kreisbahn und die Kraft F = q(v × B).</p>
-                <span class="phys-tag">E-Dynamik</span>
-            </div>
-            <div class="phys-card" id="phys-induction" onclick="selectPhysics('induction')">
-                <h3>Induktion</h3>
-                <p>Leiterschleife fällt durch ein Magnetfeld — Lenzsche Regel und Induktionsstrom.</p>
-                <span class="phys-tag">E-Magnetismus</span>
-            </div>
-            <div class="cta-row">
-                <button class="btn btn-primary" onclick="enterPhysics()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
-                    Experiment starten
-                </button>
-            </div>
-        </div>
-
-        <!-- ═══ MATHE TAB ═══ -->
-        <div class="tab-content" id="content-mathe">
-            <div class="search-wrap">
-                <input type="text" id="fn-input" placeholder="f(z) = z^2, sqrt(z), sin(z)..." autocomplete="off" spellcheck="false">
-                <button onclick="plotCustomFunction()" aria-label="Plotten">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m7 16 4-8 4 4 4-12"/></svg>
-                </button>
-            </div>
-            <div class="section-label">Funktionen</div>
-            <div class="fn-grid" id="fn-grid"></div>
-            <div class="cta-row">
-                <button class="btn btn-primary" onclick="enterMath()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
-                    3D ansehen
-                </button>
-            </div>
-        </div>
-
-        <div class="info-cards">
-            <div class="info-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 5v-.5"/><path d="M12 19.5V19"/><path d="m5.06 5.06-.35-.36"/><path d="m18.95 18.95-.35-.36"/><path d="M5 12h-.5"/><path d="M19.5 12H19"/></svg>
-                <div class="ic-label">Gaze-Cursor</div>
-            </div>
-            <div class="info-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><polyline points="22 2 22 8 16 8"/></svg>
-                <div class="ic-label">Gyroscope</div>
-            </div>
-            <div class="info-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/></svg>
-                <div class="ic-label">PubChem</div>
-            </div>
-        </div>
-
-        <div class="footer">Jugend Forscht · BeGreifbar · 2026</div>
+        <div class="footer">Jugend Forscht 2026 · <a href="#">BeGreifbar</a></div>
     </div>
 </div>
 
 <!-- ═══════════════ TOAST ═══════════════ -->
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════ INFO BAR (2D mode) ═══════════════ -->
+<!-- ═══════════════ INFO BAR ═══════════════ -->
 <div id="info-bar" style="display:none">
     <div class="mol-info" id="mol-info-text">—</div>
     <div class="bar-actions">
-        <button class="bar-btn" onclick="enterStereoVR()">VR</button>
-        <button class="bar-btn" onclick="showVRMenu()">Menü</button>
-        <button class="bar-btn" onclick="startQuizMode()">Quiz</button>
         <button class="bar-btn" onclick="backToLanding()">Zurück</button>
     </div>
 </div>
