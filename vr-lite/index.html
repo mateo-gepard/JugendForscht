@@ -140,77 +140,6 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 <button id="stereo-exit" onclick="exitStereoVR()">✕</button>
 <div id="stereo-label">Cardboard VR · Tippe 2x zum Beenden</div>
 
-<!-- ═══════════════ A-FRAME VR SCENE ═══════════════ -->
-<a-scene id="scene" embedded
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
-    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
-    loading-screen="enabled: false"
-    stereo-renderer physics-tick math-rotate>
-
-    <!-- Sky -->
-    <a-sky color="#d8dce6"></a-sky>
-
-    <!-- Lighting (light mode) -->
-    <a-light type="ambient" color="#f0f0ff" intensity="0.85"></a-light>
-    <a-light type="directional" color="#ffffff" intensity="0.9" position="3 5 2"></a-light>
-    <a-light type="directional" color="#dde4ff" intensity="0.4" position="-3 3 -2"></a-light>
-    <a-light type="point" color="#6c8aff" intensity="0.25" position="0 2 -1.5" distance="6"></a-light>
-
-    <!-- Camera Rig -->
-    <a-entity id="rig" position="0 1.6 0">
-        <a-camera id="camera" look-controls="pointerLockEnabled:false" wasd-controls="enabled:false">
-            <!-- Gaze Cursor -->
-            <a-entity id="cursor-wrap" position="0 0 -0.8">
-                <a-ring id="cursor-ring" radius-inner="0.006" radius-outer="0.009"
-                    material="shader:flat; color:#333355; opacity:0.8; transparent:true"
-                    cursor="fuse:true; fuseTimeout:1500"
-                    raycaster="objects:.interactive; far:20">
-                </a-ring>
-                <a-ring id="cursor-fill" radius-inner="0.001" radius-outer="0.009"
-                    material="shader:flat; color:#6c8aff; opacity:0; transparent:true"
-                    geometry="thetaLength:0">
-                </a-ring>
-            </a-entity>
-
-            <!-- HUD (camera-attached) -->
-            <a-text id="hud-name" value="" position="0 -0.22 -0.8" align="center"
-                color="#333355" width="0.8" opacity="0.9" font="roboto"></a-text>
-            <a-text id="hud-formula" value="" position="0 -0.25 -0.8" align="center"
-                color="#5566aa" width="0.6" opacity="0.7" font="roboto"></a-text>
-
-            <!-- Atom hover label -->
-            <a-text id="atom-label" value="" position="0 0.08 -0.8" align="center"
-                color="#2288aa" width="0.7" opacity="0" font="roboto"></a-text>
-        </a-camera>
-    </a-entity>
-
-    <!-- ═══ CONTENT ANCHOR ═══ -->
-    <!-- Positioned/rotated during calibration so everything appears in front of the user -->
-    <a-entity id="content-anchor" position="0 1.6 0">
-
-        <!-- VR Navigation Panel (dynamic, state-driven) -->
-        <a-entity id="vr-nav" position="0 0 -1.2"></a-entity>
-
-        <!-- Back Button (persistent, top-right of view) -->
-        <a-entity id="vr-back-btn" position="0.48 0.32 -1.18" visible="false">
-            <a-plane width="0.18" height="0.07" color="#556" opacity="0.85"
-                class="interactive" id="back-btn-plane"
-                material="shader:flat; side:double"></a-plane>
-            <a-text value="< Zurueck" position="0 0 0.01" align="center"
-                color="#ffffff" width="0.4"></a-text>
-        </a-entity>
-
-        <!-- Content Containers (all hidden until loaded) -->
-        <a-entity id="mol-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="physics-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="math-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="quiz-container" position="0 0 -1.3" visible="false"></a-entity>
-
-    </a-entity>
-
-</a-scene>
-
 <script>
 // ══════════════════════════════════════════════════════════════
 //  CONSTANTS & DATA
@@ -2020,5 +1949,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+<!-- ═══════════════ A-FRAME VR SCENE ═══════════════ -->
+<a-scene id="scene" embedded
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
+    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
+    loading-screen="enabled: false"
+    stereo-renderer physics-tick math-rotate>
+
+    <!-- Sky -->
+    <a-sky color="#d8dce6"></a-sky>
+
+    <!-- Lighting (light mode) -->
+    <a-light type="ambient" color="#f0f0ff" intensity="0.85"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="0.9" position="3 5 2"></a-light>
+    <a-light type="directional" color="#dde4ff" intensity="0.4" position="-3 3 -2"></a-light>
+    <a-light type="point" color="#6c8aff" intensity="0.25" position="0 2 -1.5" distance="6"></a-light>
+
+    <!-- Camera Rig -->
+    <a-entity id="rig" position="0 1.6 0">
+        <a-camera id="camera" look-controls="pointerLockEnabled:false" wasd-controls="enabled:false">
+            <!-- Gaze Cursor -->
+            <a-entity id="cursor-wrap" position="0 0 -0.8">
+                <a-ring id="cursor-ring" radius-inner="0.006" radius-outer="0.009"
+                    material="shader:flat; color:#333355; opacity:0.8; transparent:true"
+                    cursor="fuse:true; fuseTimeout:1500"
+                    raycaster="objects:.interactive; far:20">
+                </a-ring>
+                <a-ring id="cursor-fill" radius-inner="0.001" radius-outer="0.009"
+                    material="shader:flat; color:#6c8aff; opacity:0; transparent:true"
+                    geometry="thetaLength:0">
+                </a-ring>
+            </a-entity>
+
+            <!-- HUD (camera-attached) -->
+            <a-text id="hud-name" value="" position="0 -0.22 -0.8" align="center"
+                color="#333355" width="0.8" opacity="0.9" font="roboto"></a-text>
+            <a-text id="hud-formula" value="" position="0 -0.25 -0.8" align="center"
+                color="#5566aa" width="0.6" opacity="0.7" font="roboto"></a-text>
+
+            <!-- Atom hover label -->
+            <a-text id="atom-label" value="" position="0 0.08 -0.8" align="center"
+                color="#2288aa" width="0.7" opacity="0" font="roboto"></a-text>
+        </a-camera>
+    </a-entity>
+
+    <!-- ═══ CONTENT ANCHOR ═══ -->
+    <!-- Positioned/rotated during calibration so everything appears in front of the user -->
+    <a-entity id="content-anchor" position="0 1.6 0">
+
+        <!-- VR Navigation Panel (dynamic, state-driven) -->
+        <a-entity id="vr-nav" position="0 0 -1.2"></a-entity>
+
+        <!-- Back Button (persistent, top-right of view) -->
+        <a-entity id="vr-back-btn" position="0.48 0.32 -1.18" visible="false">
+            <a-plane width="0.18" height="0.07" color="#556" opacity="0.85"
+                class="interactive" id="back-btn-plane"
+                material="shader:flat; side:double"></a-plane>
+            <a-text value="< Zurueck" position="0 0 0.01" align="center"
+                color="#ffffff" width="0.4"></a-text>
+        </a-entity>
+
+        <!-- Content Containers (all hidden until loaded) -->
+        <a-entity id="mol-container" position="0 0 -1.2" visible="false"></a-entity>
+        <a-entity id="physics-container" position="0 0 -1.2" visible="false"></a-entity>
+        <a-entity id="math-container" position="0 0 -1.2" visible="false"></a-entity>
+        <a-entity id="quiz-container" position="0 0 -1.3" visible="false"></a-entity>
+
+    </a-entity>
+
+</a-scene>
 </body>
 </html>
