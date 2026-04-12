@@ -82,11 +82,8 @@ public class VRPanelManager : MonoBehaviour
             EnsureGrab(chiralPanel.gameObject,
                 () => chiralPanel.gameObject.SetActive(false));
 
-        // Tutorial Video Panel
-        var tutorial = TutorialManager.Instance;
-        if (tutorial != null && tutorial.videoDisplayPanel != null &&
-            tutorial.videoDisplayPanel.activeInHierarchy)
-            EnsureGrab(tutorial.videoDisplayPanel, () => tutorial.CloseTutorial());
+        // Tutorial Video Panel — intentionally NOT grabbable.
+        // It spawns at a fixed position relative to the camera and should stay there.
 
         // Molecule Renderer (the actual molecule display)
         var molRenderer = FindObjectOfType<MoleculeRenderer>();
