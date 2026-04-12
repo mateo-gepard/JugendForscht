@@ -1181,6 +1181,11 @@ public class WebSocketServer : MonoBehaviour
             builder.StopBuilder();
             BroadcastMessage("{\"type\":\"status\",\"message\":\"Molekülbaukasten beendet\"}");
         }
+        else if (action == "clear")
+        {
+            builder.ClearAllAtoms();
+            BroadcastMessage("{\"type\":\"status\",\"message\":\"Baukasten geleert\"}");
+        }
     }
 
     /// <summary>

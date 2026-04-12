@@ -1007,6 +1007,7 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
 <!-- ========== FLOATING DOCK ========== -->
 <div class="dock" id="dockBar">
   <button class="dock-btn dock-primary" id="btnBuilder" onclick="toggleBuilder()"><svg class="ic"><use href="#i-blocks"/></svg> Baukasten</button>
+  <button class="dock-btn" id="btnBuilderClear" style="display:none;background:var(--warn);color:#000" onclick="clearBuilder()"><svg class="ic"><use href="#i-trash"/></svg> Löschen</button>
   <button class="dock-btn dock-danger" onclick="clearAll()"><svg class="ic"><use href="#i-trash"/></svg> Leeren</button>
 </div>
 
@@ -1407,19 +1408,26 @@ var builderActive = false;
 function toggleBuilder() {
     builderActive = !builderActive;
     var btn = document.getElementById('btnBuilder');
+    var clearBtn = document.getElementById('btnBuilderClear');
     if (builderActive) {
         send({type:'builder',action:'start'});
         btn.className = 'dock-btn'; btn.style.background = 'var(--err)'; btn.style.color = '#fff';
         btn.style.boxShadow = '0 2px 10px rgba(232,107,95,.3)';
         btn.innerHTML = '<svg class="ic"><use href="#i-x"/></svg> Beenden';
+        if (clearBtn) clearBtn.style.display = '';
         showToast('Baukasten gestartet');
     } else {
         send({type:'builder',action:'stop'});
         btn.className = 'dock-btn dock-primary'; btn.style.background = ''; btn.style.color = '';
         btn.style.boxShadow = '';
         btn.innerHTML = '<svg class="ic"><use href="#i-blocks"/></svg> Baukasten';
+        if (clearBtn) clearBtn.style.display = 'none';
         showToast('Baukasten beendet');
     }
+}
+function clearBuilder() {
+    send({type:'builder',action:'clear'});
+    showToast('Baukasten geleert');
 }
 
 // ==================== TOAST ====================

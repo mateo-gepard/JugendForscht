@@ -157,6 +157,24 @@ public class BuilderManager : MonoBehaviour
             webSocket.BroadcastMessage("{\"type\":\"builder_state\",\"active\":false}");
     }
 
+    /// <summary>
+    /// Clear all placed atoms and bonds without stopping the builder.
+    /// The periodic table and builder mode stay active.
+    /// </summary>
+    public void ClearAllAtoms()
+    {
+        if (!isActive) return;
+        CancelBondTool(); CancelUnbondTool(); ReleaseDraggedAtom();
+
+        foreach (var b in bonds) { if (b.lineObject != null) Destroy(b.lineObject); }
+        bonds.Clear();
+        foreach (var a in placedAtoms) { if (a != null) Destroy(a.gameObject); }
+        placedAtoms.Clear();
+
+        currentMode = BuilderMode.PlaceAtoms;
+        Debug.Log("[Builder] All atoms and bonds cleared");
+    }
+
     // ═══════════ MODES ═══════════
 
     public void SetMode(BuilderMode mode)
