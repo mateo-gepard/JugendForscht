@@ -1,0 +1,895 @@
+﻿// Animation tick for math surface rotation
+AFRAME.registerComponent('math-rotate', {
+    tick: function(t, dt) {
+        const mc = document.getElementById('math-container');
+        if (!mc || !mc.object3D.userData.autoRotate) return;
+        const g = mc.object3D.userData.mathGroup;
+        if (g) g.rotation.y += 0.0003 * dt;
+    }
+});
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  PHYSICS ENGINE - LORENTZ FORCE
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+const LorentzSim = {
+    running: false,
+    particle: null,
+    trail: [],
+    chargeSign: 1,
+    B: {x:0, y:0.6, z:0},  // field pointing UP so particle spirals in xz-plane (visible face-on)
+    boxSize: 0.4,
+    entities: {particle:null, chargeLabel:null},
+    dt: 1/60,
+    maxTrail: 400,
+
+    init: function(container) {
+        this.container = container;
+        while (container.firstChild) container.firstChild.remove();
+        container.setAttribute('visible', true);
+
+        // Magnetic field box
+        const boxEl = document.createElement('a-box');
+        boxEl.setAttribute('width', this.boxSize);
+        boxEl.setAttribute('height', this.boxSize);
+        boxEl.setAttribute('depth', this.boxSize);
+        boxEl.setAttribute('material', 'color:#4466cc;opacity:0.06;transparent:true;side:double');
+        container.appendChild(boxEl);
+
+        // Wireframe
+        const wireEl = document.createElement('a-box');
+        wireEl.setAttribute('width', this.boxSize);
+        wireEl.setAttribute('height', this.boxSize);
+        wireEl.setAttribute('depth', this.boxSize);
+        wireEl.setAttribute('material', 'color:#6688ff;opacity:0.2;transparent:true;wireframe:true');
+        container.appendChild(wireEl);
+
+        // B-field arrows (vertical, showing field direction up)
+        const spacing = this.boxSize / 4;
+        for (let ix = -1; ix <= 1; ix++) {
+            for (let iz = -1; iz <= 1; iz++) {
+                const shaft = document.createElement('a-cylinder');
+                shaft.setAttribute('radius', 0.003);
+                shaft.setAttribute('height', 0.08);
+                shaft.setAttribute('color', '#6688ff');
+                shaft.setAttribute('opacity', 0.3);
+                shaft.setAttribute('position', `${ix*spacing} 0 ${iz*spacing}`);
+                container.appendChild(shaft);
+                // Arrow tip
+                const tip = document.createElement('a-cone');
+                tip.setAttribute('radius-bottom', 0.007);
+                tip.setAttribute('radius-top', 0);
+                tip.setAttribute('height', 0.02);
+                tip.setAttribute('color', '#6688ff');
+                tip.setAttribute('opacity', 0.5);
+                tip.setAttribute('position', `${ix*spacing} 0.05 ${iz*spacing}`);
+                container.appendChild(tip);
+            }
+        }
+
+        // B label
+        const bLabel = document.createElement('a-text');
+        bLabel.setAttribute('value', 'B Ôåæ');
+        bLabel.setAttribute('position', `${this.boxSize*0.3} ${this.boxSize*0.3} 0`);
+        bLabel.setAttribute('align', 'center');
+        bLabel.setAttribute('color', '#6688ff');
+        bLabel.setAttribute('width', '0.5');
+        container.appendChild(bLabel);
+
+        // Particle sphere (BIGGER)
+        this.entities.particle = document.createElement('a-sphere');
+        this.entities.particle.setAttribute('radius', 0.025);
+        this.entities.particle.setAttribute('color', this.chargeSign > 0 ? '#ff4444' : '#4488ff');
+        this.entities.particle.setAttribute('material', 'emissive:' + (this.chargeSign > 0 ? '#ff2222' : '#2266ff') + ';emissiveIntensity:0.4');
+        container.appendChild(this.entities.particle);
+
+        // Charge label
+        this.entities.chargeLabel = document.createElement('a-text');
+        this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p+' : 'e-');
+        this.entities.chargeLabel.setAttribute('position', '0 0.04 0');
+        this.entities.chargeLabel.setAttribute('align', 'center');
+        this.entities.chargeLabel.setAttribute('color', '#ffffff');
+        this.entities.chargeLabel.setAttribute('width', '0.35');
+        this.entities.particle.appendChild(this.entities.chargeLabel);
+
+        // Formula
+        const formulaEl = document.createElement('a-text');
+        formulaEl.setAttribute('value', 'F = q(v x B)');
+        formulaEl.setAttribute('position', `0 ${-this.boxSize*0.35} 0`);
+        formulaEl.setAttribute('align', 'center');
+        formulaEl.setAttribute('color', '#ff8866');
+        formulaEl.setAttribute('width', '0.8');
+        container.appendChild(formulaEl);
+
+        // VR buttons
+        this.buildVRControls(container);
+
+        // Auto-start
+        this.reset();
+        this.play();
+    },
+
+    buildVRControls: function(container) {
+        const btnData = [
+            {label:'Reset', x:-0.18, fn:'lorentzReset'},
+            {label:'+ / -', x:0, fn:'lorentzToggleCharge'},
+            {label:'Start', x:0.18, fn:'lorentzPlay'},
+        ];
+        btnData.forEach(b => {
+            const bg = document.createElement('a-plane');
+            bg.setAttribute('width', 0.14);
+            bg.setAttribute('height', 0.06);
+            bg.setAttribute('position', `${b.x} ${-this.boxSize*0.45} 0.01`);
+            bg.setAttribute('color', '#334');
+            bg.setAttribute('opacity', 0.85);
+            bg.setAttribute('class', 'interactive');
+            bg.addEventListener('click', () => window[b.fn]());
+            container.appendChild(bg);
+
+            const txt = document.createElement('a-text');
+            txt.setAttribute('value', b.label);
+            txt.setAttribute('position', `${b.x} ${-this.boxSize*0.45} 0.015`);
+            txt.setAttribute('align', 'center');
+            txt.setAttribute('color', '#ffffff');
+            txt.setAttribute('width', '0.4');
+            container.appendChild(txt);
+        });
+    },
+
+    reset: function() {
+        this.running = false;
+        this.trail = [];
+        this.particle = {
+            pos: {x: 0.12, y: 0, z: 0},
+            vel: {x: 0, y: 0, z: 0.25}
+        };
+        this.updateVisuals();
+        this.clearTrail();
+    },
+
+    toggleCharge: function() {
+        this.chargeSign *= -1;
+        if (this.entities.particle) {
+            const c = this.chargeSign > 0 ? '#ff4444' : '#4488ff';
+            this.entities.particle.setAttribute('color', c);
+            this.entities.particle.setAttribute('material', 'emissive', this.chargeSign > 0 ? '#ff2222' : '#2266ff');
+            this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p+' : 'e-');
+        }
+        this.reset();
+        this.play();
+    },
+
+    play: function() {
+        if (!this.running) {
+            this.running = true;
+            this.trail = [];
+            this.clearTrail();
+        }
+    },
+
+    step: function() {
+        if (!this.running || !this.particle) return;
+
+        const p = this.particle;
+        const q = this.chargeSign;
+        const v = p.vel;
+        const B = this.B;
+        const mass = 0.15;
+
+        // Lorentz force: F = q(v ├ù B) ÔÇö right-hand rule
+        const Fx = q * (v.y * B.z - v.z * B.y);
+        const Fy = q * (v.z * B.x - v.x * B.z);
+        const Fz = q * (v.x * B.y - v.y * B.x);
+
+        // Half-step velocity (Leapfrog)
+        v.x += (Fx / mass) * this.dt;
+        v.y += (Fy / mass) * this.dt;
+        v.z += (Fz / mass) * this.dt;
+
+        p.pos.x += v.x * this.dt;
+        p.pos.y += v.y * this.dt;
+        p.pos.z += v.z * this.dt;
+
+        // Trail
+        this.trail.push({...p.pos});
+        if (this.trail.length > this.maxTrail) this.trail.shift();
+
+        // Check bounds
+        const hs = this.boxSize * 0.8;
+        if (Math.abs(p.pos.x) > hs || Math.abs(p.pos.y) > hs || Math.abs(p.pos.z) > hs) {
+            this.running = false;
+        }
+
+        this.updateVisuals();
+    },
+
+    updateVisuals: function() {
+        if (!this.entities.particle || !this.particle) return;
+        const p = this.particle.pos;
+        this.entities.particle.setAttribute('position', `${p.x} ${p.y} ${p.z}`);
+    },
+
+    clearTrail: function() {
+        // Remove old trail lines
+        if (this.trailObj) {
+            this.container.object3D.remove(this.trailObj);
+            this.trailObj.geometry.dispose();
+            this.trailObj.material.dispose();
+            this.trailObj = null;
+        }
+    },
+
+    renderTrail: function() {
+        if (this.trail.length < 2) return;
+        this.clearTrail();
+        const points = this.trail.map(t => new THREE.Vector3(t.x, t.y, t.z));
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({
+            color: this.chargeSign > 0 ? 0xff6644 : 0x4488ff,
+            transparent: true, opacity: 0.7
+        });
+        this.trailObj = new THREE.Line(geom, mat);
+        this.container.object3D.add(this.trailObj);
+    }
+};
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  PHYSICS ENGINE - INDUCTION
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+const InductionSim = {
+    running: false,
+    loopY: 0,
+    velocity: 0,
+    gravity: 0.4,
+    loopW: 0.15,
+    loopH: 0.10,
+    resistance: 0.15,
+    loopMass: 0.02,
+    slitOpen: false,
+    fieldStrength: 0.8,
+    fieldTop: 0.12,
+    fieldBot: -0.12,
+    phase: 'idle',
+    current: 0,
+    startY: 0.32,
+    entities: {},
+
+    init: function(container) {
+        this.container = container;
+        while (container.firstChild) container.firstChild.remove();
+        container.setAttribute('visible', true);
+
+        // Magnetic field region (transparent blue box)
+        const fieldBox = document.createElement('a-box');
+        const fieldH = this.fieldTop - this.fieldBot;
+        fieldBox.setAttribute('width', 0.25);
+        fieldBox.setAttribute('height', fieldH);
+        fieldBox.setAttribute('depth', 0.25);
+        fieldBox.setAttribute('position', `0 ${(this.fieldTop+this.fieldBot)/2} 0`);
+        fieldBox.setAttribute('material', 'color:#2244cc;opacity:0.06;transparent:true;side:double');
+        container.appendChild(fieldBox);
+
+        // Field wireframe
+        const fieldWire = document.createElement('a-box');
+        fieldWire.setAttribute('width', 0.25);
+        fieldWire.setAttribute('height', fieldH);
+        fieldWire.setAttribute('depth', 0.25);
+        fieldWire.setAttribute('position', `0 ${(this.fieldTop+this.fieldBot)/2} 0`);
+        fieldWire.setAttribute('material', 'color:#4466ff;opacity:0.2;transparent:true;wireframe:true');
+        container.appendChild(fieldWire);
+
+        // B field arrows inside
+        for (let iy = -1; iy <= 1; iy++) {
+            for (let ix = -1; ix <= 1; ix++) {
+                const arrow = document.createElement('a-cylinder');
+                arrow.setAttribute('radius', 0.002);
+                arrow.setAttribute('height', 0.06);
+                arrow.setAttribute('color', '#4488ff');
+                arrow.setAttribute('opacity', 0.3);
+                arrow.setAttribute('position', `${ix*0.06} ${(this.fieldTop+this.fieldBot)/2} ${iy*0.06}`);
+                arrow.setAttribute('rotation', '90 0 0');
+                container.appendChild(arrow);
+            }
+        }
+
+        // B label
+        const bLbl = document.createElement('a-text');
+        bLbl.setAttribute('value', 'B ÔåÆ');
+        bLbl.setAttribute('position', `0.16 ${this.fieldTop+0.03} 0`);
+        bLbl.setAttribute('color', '#4488ff');
+        bLbl.setAttribute('width', '0.5');
+        container.appendChild(bLbl);
+
+        // Loop frame (4 edges)
+        this.entities.loop = document.createElement('a-entity');
+        this.entities.loop.setAttribute('position', `0 ${this.startY} 0`);
+
+        const hw = this.loopW/2, hh = this.loopH/2;
+        const edges = [
+            {pos:`0 ${hh} 0`, rot:'0 0 90', len:this.loopW},
+            {pos:`${hw} 0 0`, rot:'0 0 0', len:this.loopH},
+            {pos:`0 ${-hh} 0`, rot:'0 0 90', len:this.loopW},
+            {pos:`${-hw} 0 0`, rot:'0 0 0', len:this.loopH},
+        ];
+        edges.forEach(e => {
+            const cyl = document.createElement('a-cylinder');
+            cyl.setAttribute('radius', 0.004);
+            cyl.setAttribute('height', e.len);
+            cyl.setAttribute('color', '#ccccdd');
+            cyl.setAttribute('position', e.pos);
+            cyl.setAttribute('rotation', e.rot);
+            this.entities.loop.appendChild(cyl);
+        });
+
+        // Current direction label
+        this.entities.currentLabel = document.createElement('a-text');
+        this.entities.currentLabel.setAttribute('value', '');
+        this.entities.currentLabel.setAttribute('position', `0 ${hh+0.025} 0`);
+        this.entities.currentLabel.setAttribute('align', 'center');
+        this.entities.currentLabel.setAttribute('color', '#ffcc22');
+        this.entities.currentLabel.setAttribute('width', '0.6');
+        this.entities.loop.appendChild(this.entities.currentLabel);
+
+        // Phase label
+        this.entities.phaseLabel = document.createElement('a-text');
+        this.entities.phaseLabel.setAttribute('value', '');
+        this.entities.phaseLabel.setAttribute('position', `0.14 0 0`);
+        this.entities.phaseLabel.setAttribute('color', '#99aacc');
+        this.entities.phaseLabel.setAttribute('width', '0.4');
+        this.entities.loop.appendChild(this.entities.phaseLabel);
+
+        container.appendChild(this.entities.loop);
+
+        // Slit marker
+        this.entities.slit = document.createElement('a-box');
+        this.entities.slit.setAttribute('width', 0.015);
+        this.entities.slit.setAttribute('height', 0.015);
+        this.entities.slit.setAttribute('depth', 0.015);
+        this.entities.slit.setAttribute('color', '#ff3333');
+        this.entities.slit.setAttribute('visible', false);
+        this.entities.loop.appendChild(this.entities.slit);
+        this.entities.slit.setAttribute('position', `${-hw} ${-hh} 0`);
+
+        // Formula
+        const formula = document.createElement('a-text');
+        formula.setAttribute('value', 'EMF = -d╬ª/dt');
+        formula.setAttribute('position', `0 ${-0.35} 0`);
+        formula.setAttribute('align', 'center');
+        formula.setAttribute('color', '#ffcc44');
+        formula.setAttribute('width', '0.9');
+        container.appendChild(formula);
+
+        // VR controls
+        const btnData = [
+            {label:'Ôû╝ Drop', x:-0.20, fn:'inductionDrop'},
+            {label:'Ôå║ Reset', x:0, fn:'inductionReset'},
+            {label:'ÔÜí Spalt', x:0.20, fn:'inductionToggleSlit'},
+        ];
+        btnData.forEach(b => {
+            const bg = document.createElement('a-plane');
+            bg.setAttribute('width', 0.16);
+            bg.setAttribute('height', 0.06);
+            bg.setAttribute('position', `${b.x} -0.42 0.01`);
+            bg.setAttribute('color', '#1a1d2e');
+            bg.setAttribute('opacity', 0.85);
+            bg.setAttribute('class', 'interactive');
+            bg.addEventListener('click', () => window[b.fn]());
+            container.appendChild(bg);
+            const txt = document.createElement('a-text');
+            txt.setAttribute('value', b.label);
+            txt.setAttribute('position', `${b.x} -0.42 0.015`);
+            txt.setAttribute('align', 'center');
+            txt.setAttribute('color', '#ffffff');
+            txt.setAttribute('width', '0.5');
+            container.appendChild(txt);
+        });
+
+        this.reset();
+    },
+
+    reset: function() {
+        this.running = false;
+        this.loopY = this.startY;
+        this.velocity = 0;
+        this.current = 0;
+        this.phase = 'idle';
+        this.updateVisuals();
+    },
+
+    drop: function() {
+        if (this.running) return;
+        this.running = true;
+        this.velocity = 0;
+        this.phase = 'above';
+    },
+
+    toggleSlit: function() {
+        this.slitOpen = !this.slitOpen;
+        if (this.entities.slit) this.entities.slit.setAttribute('visible', this.slitOpen);
+        if (this.running) { this.reset(); }
+    },
+
+    step: function() {
+        if (!this.running) return;
+        const dt = 1/60;
+        const lTop = this.loopY + this.loopH/2;
+        const lBot = this.loopY - this.loopH/2;
+
+        // Determine phase
+        if (lBot >= this.fieldTop) {
+            this.phase = 'above'; this.current = 0;
+        } else if (lBot < this.fieldTop && lTop > this.fieldTop) {
+            this.phase = 'entering'; this.current = 1;
+        } else if (lTop <= this.fieldTop && lBot >= this.fieldBot) {
+            this.phase = 'inside'; this.current = 0;
+        } else if (lBot < this.fieldBot && lTop > this.fieldBot) {
+            this.phase = 'exiting'; this.current = -1;
+        } else {
+            this.phase = 'below'; this.current = 0;
+            this.running = false;
+        }
+
+        // Physics
+        let brakingForce = 0;
+        const B = this.fieldStrength;
+        const w = this.loopW;
+        const isEdge = this.phase === 'entering' || this.phase === 'exiting';
+
+        if (isEdge && !this.slitOpen && B > 0.001) {
+            const emf = B * w * Math.abs(this.velocity);
+            const I = emf / this.resistance;
+            brakingForce = B * I * w;
+            if (this.velocity < 0) brakingForce = brakingForce;
+            else brakingForce = -brakingForce;
+        }
+        if (this.slitOpen) { this.current = 0; brakingForce = 0; }
+
+        // Integration
+        const a = -this.gravity + brakingForce / this.loopMass;
+        this.velocity += a * dt;
+        this.loopY += this.velocity * dt;
+
+        this.updateVisuals();
+    },
+
+    updateVisuals: function() {
+        if (this.entities.loop) {
+            this.entities.loop.setAttribute('position', `0 ${this.loopY} 0`);
+        }
+        // Update loop color based on current flow
+        const loopCyls = this.entities.loop ? this.entities.loop.querySelectorAll('a-cylinder') : [];
+        const wireColor = this.current !== 0 ? '#ffbb33' : '#ccccdd';
+        loopCyls.forEach(c => c.setAttribute('color', wireColor));
+
+        // Current direction label
+        if (this.entities.currentLabel) {
+            if (this.current > 0) this.entities.currentLabel.setAttribute('value', 'I Ôå╗');
+            else if (this.current < 0) this.entities.currentLabel.setAttribute('value', 'I Ôå║');
+            else this.entities.currentLabel.setAttribute('value', '');
+        }
+
+        // Phase label
+        if (this.entities.phaseLabel) {
+            const labels = {
+                idle:'', above:'Oberhalb', entering:'Eintritt',
+                inside:'Innen (d╬ª/dt=0)', exiting:'Austritt', below:'Unterhalb'
+            };
+            this.entities.phaseLabel.setAttribute('value', labels[this.phase]||'');
+        }
+    }
+};
+
+// Global physics control functions (called by VR buttons)
+function lorentzPlay() { LorentzSim.play(); showToast('Simulation gestartet'); }
+function lorentzReset() { LorentzSim.reset(); showToast('Zur├╝ckgesetzt'); }
+function lorentzToggleCharge() { LorentzSim.toggleCharge(); showToast(LorentzSim.chargeSign>0?'Proton (+)':'Elektron (ÔêÆ)'); }
+function inductionDrop() { InductionSim.drop(); showToast('Schleife fallen gelassen'); }
+function inductionReset() { InductionSim.reset(); showToast('Zur├╝ckgesetzt'); }
+function inductionToggleSlit() { InductionSim.toggleSlit(); showToast(InductionSim.slitOpen?'Spalt offen (kein Strom)':'Spalt geschlossen'); }
+
+// Physics tick component
+AFRAME.registerComponent('physics-tick', {
+    tick: function(t, dt) {
+        if (LorentzSim.running) {
+            LorentzSim.step();
+            LorentzSim.renderTrail();
+        }
+        if (InductionSim.running) {
+            InductionSim.step();
+        }
+    }
+});
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  SDF PARSER
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+function parseSDF(sdfText) {
+    const lines = sdfText.split('\n');
+    if (lines.length < 5) return null;
+
+    const countsLine = lines[3].trim();
+    // V2000: first 3 chars = atom count, next 3 = bond count
+    let atomCount, bondCount;
+    if (countsLine.includes('V2000') || countsLine.includes('V3000')) {
+        const parts = countsLine.trim().split(/\s+/);
+        atomCount = parseInt(parts[0]);
+        bondCount = parseInt(parts[1]);
+    } else {
+        const parts = countsLine.trim().split(/\s+/);
+        atomCount = parseInt(parts[0]);
+        bondCount = parseInt(parts[1]);
+    }
+
+    if (isNaN(atomCount) || isNaN(bondCount)) return null;
+
+    const atoms = [];
+    const bonds = [];
+
+    for (let i = 0; i < atomCount; i++) {
+        const line = lines[4 + i];
+        if (!line) continue;
+        const p = line.trim().split(/\s+/);
+        if (p.length < 4) continue;
+        atoms.push({
+            id: i,
+            x: parseFloat(p[0]),
+            y: parseFloat(p[1]),
+            z: parseFloat(p[2]),
+            element: p[3].replace(/[^A-Za-z]/g, '')
+        });
+    }
+
+    for (let i = 0; i < bondCount; i++) {
+        const line = lines[4 + atomCount + i];
+        if (!line) continue;
+        const p = line.trim().split(/\s+/);
+        if (p.length < 3) continue;
+        bonds.push({
+            a1: parseInt(p[0]) - 1,
+            a2: parseInt(p[1]) - 1,
+            type: parseInt(p[2]),
+            stereo: p.length >= 4 ? parseInt(p[3]) : 0
+        });
+    }
+
+    return { atoms, bonds };
+}
+
+function centerAndScale(mol, targetSize) {
+    targetSize = targetSize || 0.7;
+    if (!mol || !mol.atoms.length) return 1;
+    let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
+    mol.atoms.forEach(a => {
+        if(a.x<minX)minX=a.x;if(a.x>maxX)maxX=a.x;
+        if(a.y<minY)minY=a.y;if(a.y>maxY)maxY=a.y;
+        if(a.z<minZ)minZ=a.z;if(a.z>maxZ)maxZ=a.z;
+    });
+    const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+    const maxDim = Math.max(maxX-minX, maxY-minY, maxZ-minZ, 0.1);
+    const scale = targetSize / maxDim;
+    mol.atoms.forEach(a => { a.x=(a.x-cx)*scale; a.y=(a.y-cy)*scale; a.z=(a.z-cz)*scale; });
+    return scale;
+}
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  PUBCHEM API
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+const PUBCHEM_BASE = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug';
+
+async function fetchMolecule(name) {
+    // Search CID
+    const searchUrl = `${PUBCHEM_BASE}/compound/name/${encodeURIComponent(name)}/cids/JSON`;
+    const searchResp = await fetch(searchUrl);
+    if (!searchResp.ok) throw new Error(`Molek├╝l "${name}" nicht gefunden`);
+    const searchData = await searchResp.json();
+    const cid = searchData.IdentifierList?.CID?.[0];
+    if (!cid) throw new Error(`Keine CID f├╝r "${name}"`);
+
+    // Try 3D first
+    let sdfUrl = `${PUBCHEM_BASE}/compound/cid/${cid}/SDF?record_type=3d`;
+    let sdfResp = await fetch(sdfUrl);
+    if (!sdfResp.ok) {
+        // Fallback to 2D
+        sdfUrl = `${PUBCHEM_BASE}/compound/cid/${cid}/SDF`;
+        sdfResp = await fetch(sdfUrl);
+        if (!sdfResp.ok) throw new Error('SDF nicht verf├╝gbar');
+    }
+    return await sdfResp.text();
+}
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  A-FRAME COMPONENTS
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+
+
+AFRAME.registerComponent('auto-rotate', {
+    schema: { speed: { type: 'number', default: 0.15 }, paused: { type: 'boolean', default: false } },
+    tick(t, dt) {
+        if (this.data.paused) return;
+        this.el.object3D.rotation.y += this.data.speed * (dt / 1000);
+    }
+});
+
+AFRAME.registerComponent('atom-interact', {
+    schema: { element: { type: 'string' }, idx: { type: 'int' } },
+    init() {
+        this.el.addEventListener('mouseenter', () => {
+            const el = this.data.element;
+            const name = ELEMENT_NAMES[el] || el;
+            const lbl = document.getElementById('atom-label');
+            if (lbl) {
+                lbl.setAttribute('text', 'value', `${el} ÔÇö ${name}`);
+                lbl.setAttribute('text', 'opacity', 1);
+            }
+            // Highlight atom
+            this.el.setAttribute('material', 'emissiveIntensity', 0.5);
+            this.origScale = this.el.getAttribute('scale') || {x:1,y:1,z:1};
+            this.el.setAttribute('scale', {x:1.25, y:1.25, z:1.25});
+        });
+        this.el.addEventListener('mouseleave', () => {
+            const lbl = document.getElementById('atom-label');
+            if (lbl) lbl.setAttribute('text', 'opacity', 0);
+            this.el.setAttribute('material', 'emissiveIntensity', 0.15);
+            if (this.origScale) this.el.setAttribute('scale', this.origScale);
+        });
+    }
+});
+
+// Cursor visual feedback
+AFRAME.registerComponent('cursor-feedback', {
+    init() {
+        const fill = document.getElementById('cursor-fill');
+        const ring = document.getElementById('cursor-ring');
+        if (!fill || !ring) return;
+
+        ring.addEventListener('fusing', () => {
+            fill.setAttribute('material', 'opacity', 0.6);
+            fill.setAttribute('animation', {
+                property: 'geometry.thetaLength', from: 0, to: 360,
+                dur: 1500, easing: 'linear'
+            });
+        });
+        ring.addEventListener('click', () => {
+            fill.removeAttribute('animation');
+            fill.setAttribute('geometry', 'thetaLength', 0);
+            fill.setAttribute('material', 'opacity', 0);
+            // Pulse effect
+            ring.setAttribute('animation__pulse', {
+                property: 'scale', from: '1 1 1', to: '1.5 1.5 1.5',
+                dur: 200, dir: 'alternate', loop: 1
+            });
+        });
+        ring.addEventListener('mouseleave', () => {
+            fill.removeAttribute('animation');
+            fill.setAttribute('geometry', 'thetaLength', 0);
+            fill.setAttribute('material', 'opacity', 0);
+        });
+    }
+});
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  STEREO VR RENDERER (manual split-screen for Cardboard)
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+AFRAME.registerComponent('stereo-renderer', {
+    init() {
+        this.stereoCamera = new THREE.StereoCamera();
+        this.stereoCamera.eyeSep = 0.064; // 64mm interpupillary distance
+        this.active = false;
+        this._origRender = null;
+        this._size = new THREE.Vector2();
+        this._doubleTapTimer = 0;
+        this._boundDoubleTap = this._onDoubleTap.bind(this);
+    },
+
+    activate() {
+        if (this.active) return;
+        this.active = true;
+
+        const sceneEl = this.el;
+        const renderer = sceneEl.renderer;
+        const stereoCamera = this.stereoCamera;
+        const sceneObj = sceneEl.object3D;
+        const size = this._size;
+
+        // Store original render
+        this._origRender = renderer.render.bind(renderer);
+        const origRender = this._origRender;
+
+        // Override renderer.render for stereo
+        renderer.render = function(scene, camera) {
+            // Only apply stereo to the main scene render
+            if (scene !== sceneObj) {
+                return origRender(scene, camera);
+            }
+
+            renderer.getSize(size);
+            const w = size.x, h = size.y;
+
+            stereoCamera.update(camera);
+
+            // Save state
+            const autoClear = renderer.autoClear;
+            renderer.autoClear = false;
+            renderer.clear();
+            renderer.setScissorTest(true);
+
+            // Left eye
+            renderer.setViewport(0, 0, w / 2, h);
+            renderer.setScissor(0, 0, w / 2, h);
+            origRender(scene, stereoCamera.cameraL);
+
+            // Right eye
+            renderer.setViewport(w / 2, 0, w / 2, h);
+            renderer.setScissor(w / 2, 0, w / 2, h);
+            origRender(scene, stereoCamera.cameraR);
+
+            // Restore
+            renderer.setScissorTest(false);
+            renderer.setViewport(0, 0, w, h);
+            renderer.autoClear = autoClear;
+        };
+
+        // UI: show divider, exit button
+        document.body.classList.add('stereo-active');
+        document.getElementById('stereo-divider').style.display = 'block';
+        document.getElementById('stereo-exit').style.display = 'block';
+        document.getElementById('stereo-label').style.display = 'block';
+
+        // Fullscreen
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+
+        // Lock landscape
+        try { screen.orientation.lock('landscape-primary').catch(() => {}); } catch(e) {}
+
+        // Double-tap to exit
+        document.addEventListener('touchend', this._boundDoubleTap);
+
+        console.log('[StereoVR] Activated ÔÇö split-screen rendering');
+    },
+
+    deactivate() {
+        if (!this.active) return;
+        this.active = false;
+
+        const renderer = this.el.renderer;
+        if (this._origRender) {
+            renderer.render = this._origRender;
+            this._origRender = null;
+        }
+        renderer.setScissorTest(false);
+        renderer.getSize(this._size);
+        renderer.setViewport(0, 0, this._size.x, this._size.y);
+
+        // UI: hide divider, exit button
+        document.body.classList.remove('stereo-active');
+        document.getElementById('stereo-divider').style.display = 'none';
+        document.getElementById('stereo-exit').style.display = 'none';
+        document.getElementById('stereo-label').style.display = 'none';
+
+        // Exit fullscreen
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        else if (document.webkitFullscreenElement) document.webkitExitFullscreen();
+
+        // Unlock orientation
+        try { screen.orientation.unlock(); } catch(e) {}
+
+        document.removeEventListener('touchend', this._boundDoubleTap);
+
+        console.log('[StereoVR] Deactivated ÔÇö normal rendering');
+    },
+
+    _onDoubleTap(e) {
+        const now = Date.now();
+        if (now - this._doubleTapTimer < 400) {
+            this.deactivate();
+            document.getElementById('info-bar').style.display = 'flex';
+        }
+        this._doubleTapTimer = now;
+    }
+});
+
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+//  MOLECULE RENDERER
+// ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+
+function getColor(el) { return ELEMENT_COLORS[el] || '#CCCCCC'; }
+function getRadius(el) { return ELEMENT_RADII[el] || 0.08; }
+
+function renderMolecule(mol, containerEl) {
+    // Clear existing
+    while (containerEl.firstChild) containerEl.removeChild(containerEl.firstChild);
+
+    if (!mol) return;
+    centerAndScale(mol, 1.2);
+
+    // Wrapper for rotation
+    const wrapper = document.createElement('a-entity');
+    wrapper.setAttribute('auto-rotate', 'speed: 0.15');
+    wrapper.id = 'mol-wrapper';
+
+    // Render atoms
+    mol.atoms.forEach((atom, i) => {
+        const sphere = document.createElement('a-sphere');
+        sphere.setAttribute('position', `${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)}`);
+        sphere.setAttribute('radius', getRadius(atom.element));
+        const color = getColor(atom.element);
+        sphere.setAttribute('material', `color:${color}; metalness:0.2; roughness:0.4; emissive:${color}; emissiveIntensity:0.15`);
+        sphere.setAttribute('class', 'interactive');
+        sphere.setAttribute('atom-interact', `element:${atom.element}; idx:${i}`);
+        sphere.setAttribute('segments-width', 24);
+        sphere.setAttribute('segments-height', 16);
+        wrapper.appendChild(sphere);
+    });
+
+    // Render bonds
+    mol.bonds.forEach(bond => {
+        const a1 = mol.atoms[bond.a1];
+        const a2 = mol.atoms[bond.a2];
+        if (!a1 || !a2) return;
+
+        if (bond.type === 1 && bond.stereo === 0) {
+            createBondCylinder(a1, a2, 0.025, '#888888', wrapper);
+        } else if (bond.type === 2) {
+            createDoubleBond(a1, a2, wrapper);
+        } else if (bond.type === 3) {
+            createTripleBond(a1, a2, wrapper);
+        } else if (bond.stereo === 1) {
+            // Wedge bond (solid)
+            createWedgeBond(a1, a2, wrapper);
+        } else if (bond.stereo === 6) {
+            // Dash bond
+            createDashBond(a1, a2, wrapper);
+        } else {
+            createBondCylinder(a1, a2, 0.025, '#888888', wrapper);
+        }
+    });
+
+    containerEl.appendChild(wrapper);
+}
+
+function createBondCylinder(a1, a2, radius, color, parent, offset) {
+    offset = offset || {x:0, y:0, z:0};
+    const p1 = new THREE.Vector3(a1.x + offset.x, a1.y + offset.y, a1.z + offset.z);
+    const p2 = new THREE.Vector3(a2.x + offset.x, a2.y + offset.y, a2.z + offset.z);
+    const mid = p1.clone().add(p2).multiplyScalar(0.5);
+    const dir = p2.clone().sub(p1);
+    const len = dir.length();
+    dir.normalize();
+
+    const Y = new THREE.Vector3(0, 1, 0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(Y, dir);
+    const euler = new THREE.Euler().setFromQuaternion(quat, 'YXZ');
+
+    const cyl = document.createElement('a-cylinder');
+    cyl.setAttribute('position', `${mid.x.toFixed(4)} ${mid.y.toFixed(4)} ${mid.z.toFixed(4)}`);
+    cyl.setAttribute('rotation', `${r2d(euler.x)} ${r2d(euler.y)} ${r2d(euler.z)}`);
+    cyl.setAttribute('height', len.toFixed(4));
+    cyl.setAttribute('radius', radius);
+    cyl.setAttribute('material', `color:${color}; metalness:0.3; roughness:0.5; emissive:${color}; emissiveIntensity:0.05`);
+    cyl.setAttribute('segments-radial', 8);
+    parent.appendChild(cyl);
+    return cyl;
+}
+
+function createDoubleBond(a1, a2, parent) {
+    const dir = new THREE.Vector3(a2.x-a1.x, a2.y-a1.y, a2.z-a1.z).normalize();
+    let up = new THREE.Vector3(0, 1, 0);
+    let perp = new THREE.Vector3().crossVectors(dir, up).normalize();
+    if (perp.lengthSq() < 0.01) {
+        up.set(1, 0, 0);
+        perp.crossVectors(dir, up).normalize();
+    }
+    const off = 0.03;
+    createBondCylinder(a1, a2, 0.018, '#888888', parent, {x:perp.x*off, y:perp.y*off, z:perp.z*off});
+    createBondCylinder(a1, a2, 0.018, '#888888', parent, {x:-perp.x*off, y:-perp.y*off, z:-perp.z*off});
+}
+
+function createTripleBond(a1, a2, parent) {
+    const dir = new THREE.Vector3(a2.x-a1.x, a2.y-a1.y, a2.z-a1.z).normalize();

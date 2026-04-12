@@ -1,4 +1,4 @@
-# MolekülVR — Immersives MINT-Labor in Virtual Reality
+# BeGreifbar — Immersives MINT-Labor in Virtual Reality
 
 [![Unity](https://img.shields.io/badge/Unity-2022.3_LTS-black?logo=unity)](https://unity.com/)
 [![Meta Quest](https://img.shields.io/badge/Meta%20Quest%203-blue?logo=meta)](https://www.meta.com/quest/)
@@ -11,7 +11,7 @@
 
 ## Übersicht
 
-Vollständige VR-Lernumgebung für Meta Quest 3, in der Schüler molekulare Geometrien, elektromagnetische Phänomene und komplexe mathematische Strukturen interaktiv in 3D erleben. Das Projekt umfasst drei Fachbereiche:
+**BeGreifbar** ist eine vollständige VR-Lernumgebung für Meta Quest 3, in der Schüler molekulare Geometrien, elektromagnetische Phänomene und komplexe mathematische Strukturen interaktiv in 3D erleben. Das Projekt umfasst drei Fachbereiche:
 
 | Modul | Fach | Themen |
 |-------|------|--------|
@@ -113,13 +113,15 @@ JugendForscht/
 │   │   │   ├── QuizButton.cs           # VR-Poke-Buttons mit Hand-Collider-Erkennung
 │   │   │   └── FingerTipPoker.cs       # Fingerspitzen-Collider
 │   │   ├── Tutorial/           # Video-basiertes Tutorial-System
-│   │   │   ├── TutorialManager.cs      # Haupt-Controller (Singleton + VR-Pause-Buttons)
+│   │   │   ├── TutorialManager.cs      # Haupt-Controller (Singleton, iPad-gesteuert)
 │   │   │   ├── TutorialTimeline.cs     # ScriptableObject mit Zeitstempeln
 │   │   │   ├── TutorialCue.cs          # Datenklassen für Einblendungen
 │   │   │   └── Editor/
 │   │   │       └── TutorialBuilder.cs  # Editor-Tool zum Generieren der Timeline
-│   │   ├── VR/                 # Hand-Tracking, Controller, Rotation
-│   │   │   └── HandRotationController.cs  # Pinch-Geste → Objektrotation
+│   │   ├── VR/                 # Hand-Tracking, Controller, Panel-Management
+│   │   │   ├── HandRotationController.cs  # Pinch-Geste → Objektrotation
+│   │   │   ├── VRPanelGrab.cs          # Universeller Pinch-Grab für VR-Panels
+│   │   │   └── VRPanelManager.cs       # Auto-Attach Grab + Close für alle Module
 │   │   └── WebSocketServer.cs  # HTTP + WebSocket Server für iPad-Controller
 │   ├── Scenes/
 │   │   └── SampleScene.unity   # Hauptszene
@@ -162,8 +164,8 @@ JugendForscht/
 - Einzelnes Video mit automatischen Pausen an definierten Zeitpunkten
 - 3D-Einblendungen (Moleküle, Pfeile, Keilstrichformeln) synchron zum Video
 - 11 Einheiten: Einführung → Bindungsarten → Keilstrichformel → Elektronenpaarabstoßung → 5 Geometrien → Abschluss
-- **VR-Pause-Buttons** — „▶ Weiter" und „◀ Nochmal" erscheinen als physische 3D-Buttons unter dem Video
-- Steuerung über iPad **und** direkt in VR per Finger-Poke
+- Steuerung über iPad (Weiter / Zurück / Beenden)
+- Video-Panel ist fix positioniert (nicht verschiebbar, um versehentliches Bewegen zu vermeiden)
 
 #### Quiz-System
 - **20 Fragen** direkt in VR (10 × Keilstrichformel für Klasse 9, 10 × Chiralität für Klasse 11)
@@ -245,7 +247,7 @@ Visualisierung von komplexen Funktionen und ihren Riemannschen Flächen in 3D:
 - **Sichtbare Komplexe Ebene** — Die Inputebene ($y = 0$) wird als halbtransparentes Quad mit Unity-Style Grid-Linien dargestellt.
 - **Finger-Poke Probing** — Den Zeigefinger auf die komplexe Ebene legen löst eine vertikale Schnittlinie aus. Alle Schnittpunkte mit der Fläche (auch über mehrere Blätter) werden markiert, mit exakten Werten für $z$ und $f(z)$ als Billboard-Labels.
 - **Dynamische Skalierung** — Input-Bereich ($|z|$) live am iPad einstellbar. Die Höhe (Y-Achse = $\text{Re}(f(z))$) skaliert unabhängig basierend auf der tatsächlichen Funktionswertspanne.
-- **Double-Sided Rendering** — Custom Shader (`Custom/RiemannSurface`) mit `Cull Off` und Normal-Flipping, sodass die Fläche von jeder Seite korrekt beleuchtet sichtbar ist.
+- **Double-Sided Rendering** — Custom Shader (`Custom/RiemannSurface`) mit `Cull Off` + doppelseitige Mesh-Geometrie (duplizierte Dreiecke mit umgekehrter Windung) für garantierte Sichtbarkeit von beiden Seiten auf allen Plattformen.
 
 ---
 
@@ -315,6 +317,6 @@ MIT — siehe [LICENSE](LICENSE)
 ---
 
 <p align="center">
-  <b>🔬 Wissenschaft trifft Virtual Reality 🥽</b><br>
+  <b>🔬 BeGreifbar — Wissenschaft trifft Virtual Reality 🥽</b><br>
   <i>Chemie · Physik · Mathematik — alles in einer immersiven Lernumgebung</i>
 </p>
