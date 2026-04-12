@@ -136,6 +136,13 @@ public class MoleculeLibrary : MonoBehaviour
 
         currentMolecule = molecule;
 
+        // Unlock position lock BEFORE repositioning (otherwise it fights us)
+        var posLock = renderer.GetComponent<MoleculePositionLock>();
+        if (posLock == null)
+            posLock = FindObjectOfType<MoleculePositionLock>();
+        if (posLock != null)
+            posLock.OnMoleculeLoaded();
+
         // Position molecule in front of camera BEFORE rendering
         PositionMoleculeInFrontOfCamera();
 

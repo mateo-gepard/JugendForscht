@@ -71,8 +71,10 @@ public class ChargedParticle : MonoBehaviour
     private MeshRenderer meshRenderer;
     private TrailRenderer trail;
     private Material particleMaterial;
-    private Vector3 spawnPosition;
-    private Quaternion spawnRotation;
+    // Spawn position stored in LOCAL space (relative to parent / field volume)
+    // so that ResetParticle() works correctly after the field is moved/rotated.
+    private Vector3 spawnLocalPosition;
+    private Quaternion spawnLocalRotation;
 
     // ════════════════════════════════════════════════════════════
     //  Öffentliche API
@@ -136,8 +138,12 @@ public class ChargedParticle : MonoBehaviour
         rb.isKinematic = true;
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-        transform.position = spawnPosition;
-        transform.rotation = spawnRotation;
+
+        // Restore position relative to parent (which is the LorentzLabManager
+        // or field volume). This way, if the field has been moved/rotated,
+        // the particle resets to the correct relative position.
+        transform.localPosition = spawnLocalPosition;
+        transform.localRotation = spawnLocalRotation;
 
         if (trail != null)
         {
@@ -188,8 +194,10 @@ public class ChargedParticle : MonoBehaviour
         if (fieldVolume == null)
             fieldVolume = FindObjectOfType<MagneticFieldVolume>();
 
-        spawnPosition = transform.position;
-        spawnRotation = transform.rotation;
+        // Store spawn position in LOCAL coordinates so that ResetParticle()
+        // works correctly after the parent (field volume) has been moved/rotated.
+        spawnLocalPosition = transform.localPosition;
+        spawnLocalRotation = transform.localRotation;
 
         // Visuals aufbauen
         BuildVisuals();

@@ -102,6 +102,9 @@ public class FieldVolumeGrab : MonoBehaviour
     {
         if (hand == null || !hand.IsTrackedDataValid) return;
 
+        // Don't grab field volume while a VR panel is being moved
+        if (VRPanelGrab.IsAnyPanelBeingGrabbed) return;
+
         float pinch = hand.GetFingerPinchStrength(HandFinger.Index);
         if (pinch < pinchThreshold) return;
 

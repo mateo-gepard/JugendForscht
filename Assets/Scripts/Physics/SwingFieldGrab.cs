@@ -96,6 +96,9 @@ public class SwingFieldGrab : MonoBehaviour
     {
         if (hand == null || !hand.IsTrackedDataValid) return;
 
+        // Don't grab while a VR panel is being moved
+        if (VRPanelGrab.IsAnyPanelBeingGrabbed) return;
+
         float pinch = hand.GetFingerPinchStrength(HandFinger.Index);
         if (pinch < pinchThreshold) return;
 

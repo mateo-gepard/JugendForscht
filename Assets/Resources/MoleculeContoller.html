@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>VR Lernumgebung</title>
+<title>BeGreifbar</title>
 <style>
 /* ========== PALETTE + SUBJECT VARIANTS ========== */
 :root{
@@ -505,7 +505,7 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
   <div class="tb-brand">
     <div class="tb-logo" id="brandIcon"><svg class="ic"><use href="#i-atom"/></svg></div>
     <div>
-      <div class="tb-title" id="brandTitle">VR Lab</div>
+      <div class="tb-title" id="brandTitle">BeGreifbar</div>
       <div class="tb-sub" id="brandSub">Chemie</div>
     </div>
   </div>
@@ -732,20 +732,7 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
       </div>
     </div>
 
-    <!-- Quiz toggle -->
-    <div class="nc">
-      <div class="nc-label">Quiz-Modus</div>
-      <div class="toggle-card">
-        <div class="toggle-card-info">
-          <div class="toggle-card-title">
-            F<sub>L</sub> ausblenden
-            <span class="toggle-card-badge badge-off" id="quizModeLabel">Aus</span>
-          </div>
-          <div class="toggle-card-desc">Sch&uuml;ler zeigen Kraftrichtung</div>
-        </div>
-        <button class="ios-switch" onclick="lorentzToggleQuiz()" id="btnQuizMode"></button>
-      </div>
-    </div>
+
 
     <!-- Finger rule toggle -->
     <div class="nc">
@@ -812,15 +799,7 @@ input[type="range"]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;b
       <button class="nb nb-err" onclick="swingReset()"><svg class="ic"><use href="#i-rotate"/></svg> Pendel reset</button>
     </div>
 
-    <div class="nc">
-      <div class="nc-label">Quiz-Modus</div>
-      <div class="toggle-card">
-        <div class="toggle-card-info">
-          <div class="toggle-card-title">F<sub>L</sub> ausblenden <span class="toggle-card-badge badge-off" id="swingQuizLabel">Aus</span></div>
-        </div>
-        <button class="ios-switch" onclick="swingToggleQuiz()" id="btnSwingQuiz"></button>
-      </div>
-    </div>
+
 
     <div class="nc">
       <div class="nc-label">Finger-Regel</div>
@@ -1451,20 +1430,22 @@ function buildQuizHTML(mode) {
         return '<div class="nc" id="quizActive" style="margin-bottom:14px">'+
             '<div class="nc-label" style="display:flex;justify-content:space-between;align-items:center"><span id="quizCategory">Quiz</span><span id="quizScore" style="color:var(--accent);font-weight:700">0 Punkte</span></div>'+
             '<div style="background:var(--bg);border-radius:var(--r-xs);padding:10px 14px;margin-bottom:14px;box-shadow:var(--neo-in)"><div class="ci-label" id="quizProgressLabel">Frage 1 von 10</div><div style="width:100%;height:4px;background:rgba(0,0,0,.04);border-radius:2px;margin-top:8px;overflow:hidden"><div id="quizProgressBar" style="height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s"></div></div></div>'+
-            '<div id="quizQuestionText" style="font-size:16px;font-weight:600;line-height:1.6;margin-bottom:16px;min-height:48px">\u2014</div>'+
+            '<div id="quizQuestionText" style="font-size:15px;font-weight:600;line-height:1.6;margin-bottom:16px;min-height:48px;word-wrap:break-word;overflow-wrap:break-word">\u2014</div>'+
             '<div id="quizMolecule" style="font-size:11px;color:var(--t3);margin-bottom:14px"></div>'+
             '<div id="quizAnswers" style="display:flex;flex-direction:column;gap:10px"></div>'+
-            '<div id="quizExplanation" class="chiral-info" style="display:none;margin-top:14px"><div class="ci-label">Erkl\u00e4rung</div><div class="ci-detail" id="quizExplanationText"></div></div>'+
-            '<div id="quizNextRow" style="display:none;margin-top:14px"><button class="nb nb-ok" onclick="quizNext()">N\u00e4chste Frage \u203a</button></div>'+
+            '<div id="quizExplanation" class="chiral-info" style="display:none;margin-top:16px"><div class="ci-label">Erkl\u00e4rung</div><div class="ci-detail" id="quizExplanationText" style="word-wrap:break-word;overflow-wrap:break-word"></div></div>'+
+            '<div id="quizNextRow" style="display:none;margin-top:16px"><button class="nb nb-ok" onclick="quizNext()">Weiter \u203a</button></div>'+
             '<button class="nb nb-err" onclick="quizEnd()" style="margin-top:10px">Quiz beenden</button>'+
         '</div>';
     } else {
         return '<div class="nc" id="quizFinished" style="margin-bottom:14px;text-align:center;padding:32px 20px">'+
             '<div id="quizResultEmoji" style="margin-bottom:14px"><svg class="ic" style="width:56px;height:56px;color:var(--warn)"><use href="#i-trophy"/></svg></div>'+
-            '<div id="quizResultScore" style="font-size:22px;font-weight:800;margin-bottom:6px">\u2014</div>'+
-            '<div id="quizResultRating" style="font-size:14px;color:var(--t2);margin-bottom:24px">\u2014</div>'+
-            '<button class="nb nb-acc" onclick="quizStart(\x27'+quizActiveCategory+'\x27)" style="margin-bottom:10px"><svg class="ic"><use href="#i-rotate"/></svg> Nochmal</button>'+
+            '<div id="quizResultScore" style="font-size:22px;font-weight:800;margin-bottom:8px;word-wrap:break-word;overflow-wrap:break-word">\u2014</div>'+
+            '<div id="quizResultRating" style="font-size:14px;color:var(--t2);margin-bottom:28px">\u2014</div>'+
+            '<div style="display:flex;flex-direction:column;gap:12px">'+
+            '<button class="nb nb-acc" onclick="quizStart(\x27'+quizActiveCategory+'\x27)"><svg class="ic"><use href="#i-rotate"/></svg> Nochmal</button>'+
             '<button class="nb nb-ghost" onclick="quizReset()">Zur\u00fcck</button>'+
+            '</div>'+
         '</div>';
     }
 }
@@ -1541,7 +1522,6 @@ function lorentzSetCharge(sign) {
     send({type:'lorentz',action:sign>0?'set_charge_positive':'set_charge_negative'});
     updateChargeButtons(sign);
 }
-function lorentzToggleQuiz() { send({type:'lorentz',action:'quiz_mode'}); }
 
 var fingerRuleActive = false;
 function lorentzToggleFingerRule() {
@@ -1562,11 +1542,6 @@ function updateChargeButtons(sign) {
 }
 function handleLorentzState(data) {
     if(data.charge!==undefined)updateChargeButtons(data.charge);
-    lorentzQuizActive = data.quizMode||false;
-    var sw = document.getElementById('btnQuizMode');
-    var lb = document.getElementById('quizModeLabel');
-    if(lorentzQuizActive){sw.className='ios-switch sw-err';lb.textContent='An';lb.className='toggle-card-badge badge-on';}
-    else{sw.className='ios-switch';lb.textContent='Aus';lb.className='toggle-card-badge badge-off';}
     var bar=document.getElementById('lorentzStateBar');
     if(data.state==='running')bar.innerHTML='<span style="color:var(--ok)">\u25cf</span> L\u00e4uft\u2026';
     else if(data.state==='paused')bar.innerHTML='<span style="color:var(--warn)">\u25cf</span> Pausiert';
@@ -1580,7 +1555,7 @@ function swingCurrentOff() { send({type:'swing',action:'current_off'}); swingCur
 function swingReverseCurrentDir() { send({type:'swing',action:'reverse_current'}); }
 function swingReverseField()      { send({type:'swing',action:'reverse_field'}); }
 function swingReset()             { send({type:'swing',action:'reset'}); }
-function swingToggleQuiz()        { send({type:'swing',action:'quiz_mode'}); }
+
 
 var swingFingerActive = false;
 function swingToggleFingerRule() {
@@ -1596,10 +1571,6 @@ function updateSwingCurrentBtns(){var on=document.getElementById('btnSwingOn'),o
 
 function handleSwingState(data) {
     swingCurrentActive=data.currentOn||false;updateSwingCurrentBtns();
-    swingQuizActive=data.quizMode||false;
-    var sw=document.getElementById('btnSwingQuiz'),lb=document.getElementById('swingQuizLabel');
-    if(swingQuizActive){sw.className='ios-switch sw-err';lb.textContent='An';lb.className='toggle-card-badge badge-on';}
-    else{sw.className='ios-switch';lb.textContent='Aus';lb.className='toggle-card-badge badge-off';}
     if(data.fingerRule!==undefined){
         swingFingerActive=data.fingerRule;
         var fb=document.getElementById('btnSwingFinger'),fl=document.getElementById('swingFingerLabel');

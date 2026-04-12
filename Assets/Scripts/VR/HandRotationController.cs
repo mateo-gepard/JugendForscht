@@ -191,6 +191,10 @@ public class HandRotationController : MonoBehaviour
             return;
         }
 
+        // Don't start new grabs while a VR panel is being moved
+        if (VRPanelGrab.IsAnyPanelBeingGrabbed && !isGrabbing)
+            return;
+
         // Get pinch strength from Building Blocks Hand
         float pinchStrength = hand.GetFingerPinchStrength(HandFinger.Index);
         bool shouldGrab = pinchStrength > pinchThreshold;

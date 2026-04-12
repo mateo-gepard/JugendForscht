@@ -86,10 +86,7 @@ public class TutorialManager : MonoBehaviour
 
     private WebSocketServer cachedWebSocket;
 
-    // VR buttons shown during pause
-    private GameObject vrButtonContainer;
-    private QuizButton vrWeiterButton;
-    private QuizButton vrNochmalButton;
+
 
     // ════════════════════════════════════════════════════════════
     // ANIMATION CONSTANTS
@@ -222,7 +219,7 @@ public class TutorialManager : MonoBehaviour
         currentUnitIndex = -1;
         videoReady = false;
 
-        HideVRPauseButtons();
+
 
         OnTutorialStateChanged?.Invoke(false);
         OnContinueButtonStateChanged?.Invoke(false);
@@ -236,7 +233,7 @@ public class TutorialManager : MonoBehaviour
         // Debug.Log("[Tutorial] Continue pressed");
         isWaitingForContinue = false;
         OnContinueButtonStateChanged?.Invoke(false);
-        HideVRPauseButtons();
+
 
         if (transitionCoroutine != null)
             StopCoroutine(transitionCoroutine);
@@ -252,7 +249,7 @@ public class TutorialManager : MonoBehaviour
         // Debug.Log("[Tutorial] Going back");
         isWaitingForContinue = false;
         OnContinueButtonStateChanged?.Invoke(false);
-        HideVRPauseButtons();
+
 
         if (transitionCoroutine != null)
         {
@@ -391,8 +388,7 @@ public class TutorialManager : MonoBehaviour
             string unitName = timeline.units[currentUnitIndex].name;
             NotifyIPad($"{{\"type\":\"tutorial\",\"status\":\"waitingContinue\",\"unit\":{currentUnitIndex},\"unitName\":\"{unitName}\"}}");
 
-            // Show VR buttons so user can continue/replay from within the headset
-            ShowVRPauseButtons();
+
 
             // Debug.Log($"[Tutorial] Paused – completed unit: {unitName}");
         }
@@ -999,113 +995,7 @@ public class TutorialManager : MonoBehaviour
         videoDisplayPanel.SetActive(true);
     }
 
-    // ════════════════════════════════════════════════════════════
-    // VR PAUSE BUTTONS (Weiter / Nochmal)
-    // ════════════════════════════════════════════════════════════
 
-    private void ShowVRPauseButtons()
-    {
-        if (vrButtonContainer == null)
-            CreateVRPauseButtons();
-
-        if (vrButtonContainer == null) return;
-
-        // Position below the video panel
-        if (videoDisplayPanel != null)
-        {
-            Vector3 videoPos = videoDisplayPanel.transform.position;
-            Vector3 down = -videoDisplayPanel.transform.up;
-            Vector3 buttonPos = videoPos + down * (videoScale * 0.6f);
-            vrButtonContainer.transform.position = buttonPos;
-            vrButtonContainer.transform.rotation = videoDisplayPanel.transform.rotation;
-        }
-
-        vrButtonContainer.SetActive(true);
-
-        // Reset button states
-        if (vrWeiterButton != null) vrWeiterButton.ResetButton();
-        if (vrNochmalButton != null) vrNochmalButton.ResetButton();
-    }
-
-    private void HideVRPauseButtons()
-    {
-        if (vrButtonContainer != null)
-            vrButtonContainer.SetActive(false);
-    }
-
-    private void CreateVRPauseButtons()
-    {
-        vrButtonContainer = new GameObject("TutorialVRButtons");
-
-        float btnWidth = 0.12f;
-        float btnHeight = 0.04f;
-        float btnDepth = 0.02f;
-        float spacing = 0.15f;
-
-        // ── "Weiter" Button (right, green) ──
-        vrWeiterButton = CreateTutorialButton(
-            "WeiterButton", "Weiter  ▶",
-            new Vector3(spacing / 2f, 0, 0),
-            new Color(0.1f, 0.45f, 0.2f, 1f),
-            new Color(0.15f, 0.65f, 0.3f, 1f),
-            btnWidth, btnHeight, btnDepth);
-        vrWeiterButton.OnPressed += (idx) => ContinueToNextStep();
-
-        // ── "Nochmal" Button (left, blue) ──
-        vrNochmalButton = CreateTutorialButton(
-            "NochmalButton", "◀  Nochmal",
-            new Vector3(-spacing / 2f, 0, 0),
-            new Color(0.15f, 0.25f, 0.5f, 1f),
-            new Color(0.2f, 0.35f, 0.7f, 1f),
-            btnWidth, btnHeight, btnDepth);
-        vrNochmalButton.OnPressed += (idx) => GoToPreviousStep();
-
-        vrButtonContainer.SetActive(false);
-    }
-
-    private QuizButton CreateTutorialButton(string name, string text, Vector3 localPos,
-        Color normalCol, Color hoverCol, float w, float h, float d)
-    {
-        // Visual cube
-        GameObject btnObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        btnObj.name = name;
-        btnObj.transform.SetParent(vrButtonContainer.transform, false);
-        btnObj.transform.localPosition = localPos;
-        btnObj.transform.localScale = new Vector3(w, h, d);
-
-        // Replace default collider with a much deeper trigger zone
-        Destroy(btnObj.GetComponent<Collider>());
-        var triggerZone = btnObj.AddComponent<BoxCollider>();
-        triggerZone.isTrigger = true;
-        triggerZone.size = new Vector3(1f, 1f, 6f); // 6x deeper in local space = ~12cm
-
-        // Rigidbody needed for OnTriggerEnter to fire
-        var rb = btnObj.AddComponent<Rigidbody>();
-        rb.isKinematic = true;
-        rb.useGravity = false;
-
-        // QuizButton component
-        var qb = btnObj.AddComponent<QuizButton>();
-        qb.answerIndex = 0;
-        qb.normalColor = normalCol;
-        qb.hoverColor = hoverCol;
-        qb.cooldownTime = 0.8f;
-
-        // Label as SIBLING in container (not child of scaled cube!)
-        var labelObj = new GameObject(name + "_Label");
-        labelObj.transform.SetParent(vrButtonContainer.transform, false);
-        labelObj.transform.localPosition = localPos + new Vector3(0, 0, -d * 0.6f);
-
-        var tm = labelObj.AddComponent<TextMesh>();
-        tm.text = text;
-        tm.fontSize = 48;
-        tm.characterSize = 0.008f;
-        tm.anchor = TextAnchor.MiddleCenter;
-        tm.alignment = TextAlignment.Center;
-        tm.color = Color.white;
-
-        return qb;
-    }
 
     // ════════════════════════════════════════════════════════════
     // HELPERS

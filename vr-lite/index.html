@@ -286,10 +286,6 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
     <a-light type="directional" color="#dde4ff" intensity="0.4" position="-3 3 -2"></a-light>
     <a-light type="point" color="#6c8aff" intensity="0.25" position="0 2 -1.5" distance="6"></a-light>
 
-    <!-- Subtle floor -->
-    <a-ring position="0 0.01 -2" rotation="-90 0 0" radius-inner="0" radius-outer="3"
-        material="shader:flat; color:#6c8aff; opacity:0.06; transparent:true"></a-ring>
-
     <!-- Camera Rig -->
     <a-entity id="rig" position="0 1.6 0">
         <a-camera id="camera" look-controls="pointerLockEnabled:false" wasd-controls="enabled:false">
@@ -306,7 +302,7 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
                 </a-ring>
             </a-entity>
 
-            <!-- HUD: molecule name -->
+            <!-- HUD (camera-attached) -->
             <a-text id="hud-name" value="" position="0 -0.22 -0.8" align="center"
                 color="#333355" width="0.8" opacity="0.9" font="roboto"></a-text>
             <a-text id="hud-formula" value="" position="0 -0.25 -0.8" align="center"
@@ -318,24 +314,28 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
         </a-camera>
     </a-entity>
 
-    <!-- Molecule Container (in front of camera, eye level) -->
-    <a-entity id="mol-container" position="0 1.6 -1.2">
-    </a-entity>
+    <!-- ═══ CONTENT ANCHOR ═══ -->
+    <!-- Positioned/rotated during calibration so everything appears in front of the user -->
+    <a-entity id="content-anchor">
 
-    <!-- Physics Container -->
-    <a-entity id="physics-container" position="0 1.6 -1.2" visible="false">
-    </a-entity>
+        <!-- VR Navigation Panel (dynamic, state-driven) -->
+        <a-entity id="vr-nav" position="0 0 -1.2"></a-entity>
 
-    <!-- Math Container -->
-    <a-entity id="math-container" position="0 1.6 -1.2" visible="false">
-    </a-entity>
+        <!-- Back Button (persistent, top-right of view) -->
+        <a-entity id="vr-back-btn" position="0.48 0.32 -1.18" visible="false">
+            <a-plane width="0.18" height="0.07" color="#556" opacity="0.85"
+                class="interactive" id="back-btn-plane"
+                material="shader:flat; side:double"></a-plane>
+            <a-text value="< Zurueck" position="0 0 0.01" align="center"
+                color="#ffffff" width="0.4"></a-text>
+        </a-entity>
 
-    <!-- VR Menu Container (slightly in front, at eye) -->
-    <a-entity id="vr-menu" position="0 1.6 -1.3" visible="false">
-    </a-entity>
+        <!-- Content Containers (all hidden until loaded) -->
+        <a-entity id="mol-container" position="0 0 -1.2" visible="false"></a-entity>
+        <a-entity id="physics-container" position="0 0 -1.2" visible="false"></a-entity>
+        <a-entity id="math-container" position="0 0 -1.2" visible="false"></a-entity>
+        <a-entity id="quiz-container" position="0 0 -1.3" visible="false"></a-entity>
 
-    <!-- Quiz Container -->
-    <a-entity id="quiz-container" position="0 1.6 -1.3" visible="false">
     </a-entity>
 
 </a-scene>

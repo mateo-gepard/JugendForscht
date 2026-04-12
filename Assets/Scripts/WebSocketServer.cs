@@ -109,8 +109,9 @@ public class WebSocketServer : MonoBehaviour
 
             isRunning = true;
 
-            // Debug.Log($"[WebSocket] Server started on {serverIP}:{port}");
-            // Debug.Log($"[WebSocket] iPad URL: http://{serverIP}:{port}");
+            // Show URL prominently - this is essential for connecting!
+            Debug.Log($"[WebSocket] ★ Server started on {serverIP}:{port}");
+            Debug.Log($"[WebSocket] ★★★ iPad URL: http://{serverIP}:{port} ★★★");
         }
         catch (Exception e)
         {
@@ -379,11 +380,37 @@ public class WebSocketServer : MonoBehaviour
         }
 
         byte[] payload = Encoding.UTF8.GetBytes(message);
-        byte[] frame = new byte[payload.Length + 2];
 
-        frame[0] = 0x81; // Text frame
-        frame[1] = (byte)payload.Length;
-        Array.Copy(payload, 0, frame, 2, payload.Length);
+        // Build WebSocket frame with proper length encoding (RFC 6455)
+        byte[] frame;
+        if (payload.Length <= 125)
+        {
+            frame = new byte[payload.Length + 2];
+            frame[0] = 0x81; // Text frame, FIN bit set
+            frame[1] = (byte)payload.Length;
+            Array.Copy(payload, 0, frame, 2, payload.Length);
+        }
+        else if (payload.Length <= 65535)
+        {
+            // 2-byte extended payload length
+            frame = new byte[payload.Length + 4];
+            frame[0] = 0x81;
+            frame[1] = 126;
+            frame[2] = (byte)((payload.Length >> 8) & 0xFF);
+            frame[3] = (byte)(payload.Length & 0xFF);
+            Array.Copy(payload, 0, frame, 4, payload.Length);
+        }
+        else
+        {
+            // 8-byte extended payload length (for very large messages)
+            frame = new byte[payload.Length + 10];
+            frame[0] = 0x81;
+            frame[1] = 127;
+            long len = payload.Length;
+            for (int i = 0; i < 8; i++)
+                frame[9 - i] = (byte)((len >> (8 * i)) & 0xFF);
+            Array.Copy(payload, 0, frame, 10, payload.Length);
+        }
 
         // Lock to prevent collection modification during enumeration
         lock (clients)
@@ -450,7 +477,7 @@ public class WebSocketServer : MonoBehaviour
     /// </summary>
     private void ProcessMessage(string message)
     {
-        // Debug.Log($"[WebSocket] Received: {message}");
+        Debug.Log($"[WebSocket] Received: {message}");
 
         try
         {
@@ -481,10 +508,18 @@ public class WebSocketServer : MonoBehaviour
                     }
                 }
 
+                if (library == null)
+                    library = FindObjectOfType<MoleculeLibrary>();
                 if (library != null)
                 {
+                    Debug.Log($"[WebSocket] Loading molecule: {data.molecule}");
                     library.LoadAndDisplayMolecule(data.molecule);
                     BroadcastMessage($"{{\"type\":\"status\",\"message\":\"Loading {data.molecule}...\"}}");
+                }
+                else
+                {
+                    Debug.LogError("[WebSocket] library is NULL! Cannot load molecule.");
+                    BroadcastMessage("{\"type\":\"error\",\"message\":\"MoleculeLibrary nicht gefunden! Bitte Scene prüfen.\"}");
                 }
             }
             else if (data.type == "iso_load" && !string.IsNullOrEmpty(data.molecule))
@@ -515,6 +550,8 @@ public class WebSocketServer : MonoBehaviour
                     }
                 }
 
+                if (library == null)
+                    library = FindObjectOfType<MoleculeLibrary>();
                 if (library != null)
                 {
                     library.LoadAndDisplayMolecule(data.molecule);
@@ -546,25 +583,25 @@ public class WebSocketServer : MonoBehaviour
             {
                 HandleBuilderCommand(data.action);
             }
-            else if (data.type == "clear_all")
+            else if (data.type == "clear_all" || data.type == "close_all")
             {
-                // Clear everything: molecule, chirality markers, enantiomer, plane
-                var vis = FindObjectOfType<ChiralityVisualizer>();
-                if (vis != null) vis.ClearMarkers();
-                var anim = FindObjectOfType<IsomerAnimator>();
-                if (anim != null) anim.ClearEnantiomer();
-                if (library != null) library.ClearCurrentMolecule();
-
-                if (moleculeRenderer == null)
-                    moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
-                if (moleculeRenderer != null)
+                // Close all panels via VRPanelManager
+                var panelMgr = VRPanelManager.Instance;
+                if (panelMgr != null)
                 {
-                    var planeAlign = moleculeRenderer.GetComponent<MoleculePlaneAlignment>();
-                    if (planeAlign != null)
-                        planeAlign.SetPlaneVisibility(false);
+                    panelMgr.CloseAllPanels();
+                }
+                else
+                {
+                    // Fallback: manual cleanup
+                    var vis = FindObjectOfType<ChiralityVisualizer>();
+                    if (vis != null) vis.ClearMarkers();
+                    var anim = FindObjectOfType<IsomerAnimator>();
+                    if (anim != null) anim.ClearEnantiomer();
+                    if (library != null) library.ClearCurrentMolecule();
                 }
 
-                BroadcastMessage("{\"type\":\"status\",\"message\":\"Alles gelöscht\"}");
+                BroadcastMessage("{\"type\":\"status\",\"message\":\"Alles geschlossen\"}");
             }
             else if (data.type == "vr_panel")
             {
@@ -626,6 +663,20 @@ public class WebSocketServer : MonoBehaviour
         {
             Debug.LogWarning("[WebSocket] Cannot set stereo display: renderer not found");
         }
+    }
+
+    /// <summary>
+    /// Forces a re-lookup of the MoleculeRenderer reference.
+    /// Called by BuilderManager after stopping the builder, because
+    /// StartBuilder() disables the renderer GameObject and the cached
+    /// reference becomes stale/null.
+    /// </summary>
+    public void RefreshRendererReference()
+    {
+        // Use includeInactive=true because the renderer may still be disabled
+        var renderers = FindObjectsOfType<MoleculeRenderer>(true);
+        moleculeRenderer = renderers.Length > 0 ? renderers[0] : null;
+        Debug.Log($"[WebSocket] RefreshRendererReference: found={moleculeRenderer != null}");
     }
 
     /// <summary>

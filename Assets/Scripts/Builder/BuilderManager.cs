@@ -151,10 +151,22 @@ public class BuilderManager : MonoBehaviour
         if (builderRoot != null) Destroy(builderRoot);
         builderRoot = null; periodicTable = null;
 
-        var renderer = FindObjectOfType<MoleculeRenderer>();
-        if (renderer != null) renderer.gameObject.SetActive(true);
+        // CRITICAL: Use includeInactive=true because StartBuilder disabled the renderer.
+        // FindObjectOfType<MoleculeRenderer>() can NOT find inactive GameObjects!
+        var renderers = FindObjectsOfType<MoleculeRenderer>(true);
+        if (renderers.Length > 0)
+        {
+            renderers[0].gameObject.SetActive(true);
+            Debug.Log("[Builder] MoleculeRenderer re-enabled");
+        }
+
+        // Force WebSocketServer to refresh its cached renderer reference
+        // (it may still point to the disabled object)
         if (webSocket != null)
+        {
+            webSocket.RefreshRendererReference();
             webSocket.BroadcastMessage("{\"type\":\"builder_state\",\"active\":false}");
+        }
     }
 
     /// <summary>

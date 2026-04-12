@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Networking;
 using System;
 using System.Threading.Tasks;
@@ -28,8 +28,8 @@ public class PubChemAPI : MonoBehaviour
         string encodedName = UnityWebRequest.EscapeURL(moleculeName).Replace("+", "%20");
         string url = $"{BASE_URL}/compound/name/{encodedName}/cids/JSON";
         
-        // Debug.Log($"[PubChem] Searching for: {moleculeName}");
-        // Debug.Log($"[PubChem] URL: {url}");
+        Debug.Log($"[PubChem] Searching for: {moleculeName}");
+        Debug.Log($"[PubChem] URL: {url}");
         
         try
         {
@@ -143,7 +143,7 @@ public class PubChemAPI : MonoBehaviour
     
     private async Task<string> SendGetRequest(string url)
     {
-        // Debug.Log($"[PubChem] Sending request to: {url}");
+        Debug.Log($"[PubChem] Sending request to: {url}");
         
         using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
@@ -170,7 +170,7 @@ public class PubChemAPI : MonoBehaviour
                 throw new Exception($"HTTP Error: {request.error}");
             }
             
-            // Debug.Log($"[PubChem] Request successful ({request.downloadHandler.text.Length} bytes)");
+            Debug.Log($"[PubChem] Request successful ({request.downloadHandler.text.Length} bytes)");
             return request.downloadHandler.text;
         }
     }

@@ -148,6 +148,30 @@ public static class RiemannMeshGenerator
             }
         }
 
+        // ── PASS 3: Duplicate triangles with reversed winding for double-sided geometry ──
+        // This ensures the surface is visible from below even if the shader
+        // doesn't support Cull Off (e.g. on Quest where Custom/RiemannSurface
+        // may fall back to Unlit/Color).
+        int frontVertCount = vertices.Count;
+        int frontTriCount = triangles.Count;
+
+        // Duplicate all vertices (back-face copies with flipped normals —
+        // normals are recalculated later, but the separate vertex set ensures
+        // correct per-face normals for the reversed triangles).
+        for (int i = 0; i < frontVertCount; i++)
+        {
+            vertices.Add(vertices[i]);
+            colors.Add(colors[i]);
+        }
+
+        // Add reversed-winding triangles referencing the duplicate vertices
+        for (int t = 0; t < frontTriCount; t += 3)
+        {
+            triangles.Add(triangles[t]     + frontVertCount);
+            triangles.Add(triangles[t + 2] + frontVertCount);  // swapped
+            triangles.Add(triangles[t + 1] + frontVertCount);  // swapped
+        }
+
         // ── Build mesh ──
         Mesh mesh = new Mesh();
         mesh.indexFormat = vertices.Count > 65535
