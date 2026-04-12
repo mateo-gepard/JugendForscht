@@ -661,6 +661,22 @@ public class WebSocketServer : MonoBehaviour
             moleculeRenderer = FindObjectOfType<MoleculeRenderer>();
 
         var planeAlign = moleculeRenderer?.GetComponent<MoleculePlaneAlignment>();
+
+        // ── Universal cleanup: clear ALL chirality/isomer visuals when switching modes ──
+        // This runs for EVERY mode switch, so nothing is left behind.
+        if (currentMode != "isomerie")
+        {
+            // Clear chirality markers (star indicators on chiral centers)
+            var chiralVis = FindObjectOfType<ChiralityVisualizer>();
+            if (chiralVis != null) chiralVis.ClearMarkers();
+
+            // Clear isomer/enantiomer displays
+            var isomerAnim = FindObjectOfType<IsomerAnimator>();
+            if (isomerAnim != null) isomerAnim.ClearEnantiomer();
+
+            // Hide chirality panel
+            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
+        }
         
         // Handle Chirality VR Panel Visibility
         // The iPad UI tab "Chiralität" sends mode "isomerie"
@@ -675,10 +691,6 @@ public class WebSocketServer : MonoBehaviour
             }
             chiralityPanel.gameObject.SetActive(true);
             Debug.Log("[WebSocket] ChiralityPanel shown");
-        }
-        else
-        {
-            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
         }
 
         if (currentMode == "isomerie")
@@ -722,7 +734,6 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = false;
                 planeAlign.SetPlaneVisibility(false);
             }
-            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
             if (library != null) library.ClearCurrentMolecule();
 
             if (ConductorSwingManager.Instance == null)
@@ -742,7 +753,6 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = false;
                 planeAlign.SetPlaneVisibility(false);
             }
-            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
             if (library != null) library.ClearCurrentMolecule();
 
             if (InductionLoopManager.Instance == null)
@@ -762,7 +772,6 @@ public class WebSocketServer : MonoBehaviour
                 planeAlign.showPlaneInVR = false;
                 planeAlign.SetPlaneVisibility(false);
             }
-            if (chiralityPanel != null) chiralityPanel.gameObject.SetActive(false);
             if (library != null) library.ClearCurrentMolecule();
 
             // Riemann-Manager aktivieren

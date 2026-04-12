@@ -91,14 +91,35 @@ public class BuilderManager : MonoBehaviour
         isActive = true;
         FindHands();
 
-        var renderer = FindObjectOfType<MoleculeRenderer>();
-        if (renderer != null) renderer.gameObject.SetActive(false);
+        // Clear chirality markers (star markers on chiral centers)
+        var chiralVis = FindObjectOfType<ChiralityVisualizer>();
+        if (chiralVis != null) chiralVis.ClearMarkers();
+
+        // Hide chirality control panel
+        var chiralPanel = FindObjectOfType<ChiralityPanelDisplay>();
+        if (chiralPanel != null) chiralPanel.gameObject.SetActive(false);
+
+        // Clear isomer display
         var animator = FindObjectOfType<IsomerAnimator>();
         if (animator != null) animator.ClearEnantiomer();
 
+        // Hide the molecule renderer
+        var renderer = FindObjectOfType<MoleculeRenderer>();
+        if (renderer != null)
+        {
+            renderer.gameObject.SetActive(false);
+
+            // Also hide the stereo plane if visible
+            var planeAlign = renderer.GetComponent<MoleculePlaneAlignment>();
+            if (planeAlign != null) planeAlign.SetPlaneVisibility(false);
+        }
+
+        // Clear the loaded molecule data
+        var lib = moleculeLibrary ?? FindObjectOfType<MoleculeLibrary>();
+        if (lib != null) lib.ClearCurrentMolecule();
+
         if (elementDatabase == null)
         {
-            var lib = moleculeLibrary ?? FindObjectOfType<MoleculeLibrary>();
             if (lib != null && lib.elementDatabase != null) elementDatabase = lib.elementDatabase;
         }
 
