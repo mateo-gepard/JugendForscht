@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>MolekülVR Lite — Molekulare Geometrie in VR</title>
-<meta name="description" content="Interaktive 3D-Molekülvisualisierung in Virtual Reality — direkt im Browser. Jugend Forscht.">
+<title>BeGreifbar Lite — MINT in Virtual Reality</title>
+<meta name="description" content="Chemie, Physik und Mathe interaktiv in VR erleben — direkt im Browser. Jugend Forscht.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚗️</text></svg>">
@@ -72,6 +72,28 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 /* Footer */
 .footer{text-align:center;padding:16px 0 8px;color:var(--text3);font-size:12px;font-weight:500}
 
+/* ═══ MODULE TABS ═══ */
+.tabs{display:flex;gap:6px;margin:0 0 20px;background:var(--bg);border-radius:var(--r);padding:4px;box-shadow:var(--neo-in)}
+.tab{flex:1;padding:10px 0;border-radius:16px;border:none;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;color:var(--text3);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab.active{background:var(--bg);color:var(--accent);box-shadow:var(--neo-sm)}
+.tab svg{width:16px;height:16px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Physics cards */
+.phys-card{background:var(--bg);border-radius:var(--r);padding:18px 16px;margin-bottom:12px;box-shadow:var(--neo-sm);cursor:pointer;transition:all .15s;border:2px solid transparent}
+.phys-card:active,.phys-card.selected{box-shadow:var(--neo-in);border-color:var(--accent)}
+.phys-card h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.phys-card p{font-size:12px;color:var(--text2);line-height:1.5}
+.phys-card .phys-tag{display:inline-block;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:8px;margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Math function grid */
+.fn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.fn-card{background:var(--bg);border-radius:var(--r-sm);padding:14px 10px;text-align:center;cursor:pointer;box-shadow:var(--neo-sm);transition:all .15s;border:2px solid transparent}
+.fn-card:active,.fn-card.selected{box-shadow:var(--neo-in);border-color:var(--accent)}
+.fn-card .fn-expr{font-size:15px;font-weight:700;color:var(--accent);font-family:'Courier New',monospace;margin-bottom:4px}
+.fn-card .fn-name{font-size:11px;font-weight:500;color:var(--text2)}
+
 /* Toast */
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);z-index:9999;padding:12px 24px;border-radius:var(--r-sm);background:var(--text);color:#fff;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -117,45 +139,101 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
         <header class="header">
             <div class="logo">
                 <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2.2 6 5.88"/><path d="M17.5 5.88 15 2.2"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/><path d="m8 18-2 3"/><path d="m16 18 2 3"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                 </div>
-                <div><h1>MolekülVR</h1><span class="sub">Lite Edition</span></div>
+                <div><h1>BeGreifbar</h1><span class="sub">Lite Edition</span></div>
             </div>
             <div class="badge">Mobile VR</div>
         </header>
 
         <section class="hero">
             <div class="hero-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
             </div>
-            <h2>Moleküle in Virtual Reality</h2>
-            <p>Lade 3D-Moleküle direkt im Browser und betrachte sie stereoskopisch mit deiner Cardboard-Brille.</p>
+            <h2>MINT in Virtual Reality</h2>
+            <p>Chemie, Physik und Mathe interaktiv im Browser erleben — stereoskopisch mit deiner Cardboard-Brille.</p>
         </section>
 
-        <div class="search-wrap">
-            <input type="text" id="search-input" placeholder="Molekül suchen..." autocomplete="off" autocapitalize="off" spellcheck="false">
-            <button onclick="searchMolecule()" aria-label="Suchen">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <!-- ═══ MODULE TABS ═══ -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('chemie')" id="tab-chemie">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/></svg>
+                Chemie
+            </button>
+            <button class="tab" onclick="switchTab('physik')" id="tab-physik">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                Physik
+            </button>
+            <button class="tab" onclick="switchTab('mathe')" id="tab-mathe">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V4"/><path d="m5 11 7-7 7 7"/><path d="M3 20h18"/></svg>
+                Mathe
             </button>
         </div>
 
-        <div class="section-label">Moleküle</div>
-        <div class="mol-grid" id="mol-grid"></div>
+        <!-- ═══ CHEMIE TAB ═══ -->
+        <div class="tab-content active" id="content-chemie">
+            <div class="search-wrap">
+                <input type="text" id="search-input" placeholder="Molekül suchen..." autocomplete="off" autocapitalize="off" spellcheck="false">
+                <button onclick="searchMolecule()" aria-label="Suchen">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+            </div>
+            <div class="section-label">Moleküle</div>
+            <div class="mol-grid" id="mol-grid"></div>
+            <div class="cta-row">
+                <button class="btn btn-primary" onclick="enterWithMolecule()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
+                    VR Starten
+                </button>
+                <button class="btn btn-secondary" onclick="startQuizFromMenu()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                    Quiz
+                </button>
+            </div>
+        </div>
 
-        <div class="cta-row">
-            <button class="btn btn-primary" onclick="enterWithMolecule()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
-                VR Starten
-            </button>
-            <button class="btn btn-secondary" onclick="startQuizFromMenu()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                Quiz
-            </button>
+        <!-- ═══ PHYSIK TAB ═══ -->
+        <div class="tab-content" id="content-physik">
+            <div class="section-label">Experimente</div>
+            <div class="phys-card selected" id="phys-lorentz" onclick="selectPhysics('lorentz')">
+                <h3>Lorentzkraft</h3>
+                <p>Geladenes Teilchen im Magnetfeld — beobachte die Kreisbahn und die Kraft F = q(v × B).</p>
+                <span class="phys-tag">E-Dynamik</span>
+            </div>
+            <div class="phys-card" id="phys-induction" onclick="selectPhysics('induction')">
+                <h3>Induktion</h3>
+                <p>Leiterschleife fällt durch ein Magnetfeld — Lenzsche Regel und Induktionsstrom.</p>
+                <span class="phys-tag">E-Magnetismus</span>
+            </div>
+            <div class="cta-row">
+                <button class="btn btn-primary" onclick="enterPhysics()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
+                    Experiment starten
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══ MATHE TAB ═══ -->
+        <div class="tab-content" id="content-mathe">
+            <div class="search-wrap">
+                <input type="text" id="fn-input" placeholder="f(z) = z^2, sqrt(z), sin(z)..." autocomplete="off" spellcheck="false">
+                <button onclick="plotCustomFunction()" aria-label="Plotten">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="m7 16 4-8 4 4 4-12"/></svg>
+                </button>
+            </div>
+            <div class="section-label">Funktionen</div>
+            <div class="fn-grid" id="fn-grid"></div>
+            <div class="cta-row">
+                <button class="btn btn-primary" onclick="enterMath()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
+                    3D ansehen
+                </button>
+            </div>
         </div>
 
         <div class="info-cards">
             <div class="info-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 5v-.5"/><path d="M12 19.5V19"/><path d="m5.06 5.06-.35-.36"/><path d="m18.95 18.95-.35-.36"/><path d="M5 12h-.5"/><path d="M19.5 12H19"/><path d="m5.06 18.95-.35.35"/><path d="m18.95 5.06-.35.35"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 5v-.5"/><path d="M12 19.5V19"/><path d="m5.06 5.06-.35-.36"/><path d="m18.95 18.95-.35-.36"/><path d="M5 12h-.5"/><path d="M19.5 12H19"/></svg>
                 <div class="ic-label">Gaze-Cursor</div>
             </div>
             <div class="info-card">
@@ -163,12 +241,12 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
                 <div class="ic-label">Gyroscope</div>
             </div>
             <div class="info-card">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2.2 6 5.88"/><path d="M17.5 5.88 15 2.2"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/></svg>
                 <div class="ic-label">PubChem</div>
             </div>
         </div>
 
-        <div class="footer">Jugend Forscht · Molekulare Geometrie · 2026</div>
+        <div class="footer">Jugend Forscht · BeGreifbar · 2026</div>
     </div>
 </div>
 
@@ -197,7 +275,7 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
     device-orientation-permission-ui="enabled: true"
     renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
     loading-screen="enabled: false"
-    stereo-renderer>
+    stereo-renderer physics-tick math-rotate>
 
     <!-- Sky -->
     <a-sky color="#070710"></a-sky>
@@ -248,6 +326,14 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 
     <!-- Molecule Container -->
     <a-entity id="mol-container" position="0 1.6 -1.2">
+    </a-entity>
+
+    <!-- Physics Container -->
+    <a-entity id="physics-container" position="0 1.4 -1.0" visible="false">
+    </a-entity>
+
+    <!-- Math Container -->
+    <a-entity id="math-container" position="0 1.4 -1.0" visible="false">
     </a-entity>
 
     <!-- VR Menu Container -->
@@ -374,6 +460,763 @@ const QUIZ_QUESTIONS = [
         explain:'Ein flacher Sechsring hätte 120°, aber sp3-C braucht 109,5°. Die Sesselkonformation löst das Problem.'
     }
 ];
+
+const MATH_PRESETS = [
+    {expr:'z^2',      label:'Parabel',        desc:'Quadratische Funktion'},
+    {expr:'sqrt(z)',   label:'Wurzel',         desc:'Riemannfläche mit 2 Blättern'},
+    {expr:'1/z',       label:'Inversion',      desc:'Pol bei z=0'},
+    {expr:'sin(z)',    label:'Sinus',          desc:'Komplexer Sinus'},
+    {expr:'z^3-z',     label:'Kubisch',        desc:'Drei Nullstellen'},
+    {expr:'exp(z)',    label:'Exponential',    desc:'Komplexe e-Funktion'},
+    {expr:'log(z)',    label:'Logarithmus',    desc:'Unendlich viele Blätter'},
+    {expr:'z^2+1',     label:'z²+1',           desc:'Keine reellen Nullstellen'},
+];
+
+// ══════════════════════════════════════════════════════════════
+//  COMPLEX MATH ENGINE
+// ══════════════════════════════════════════════════════════════
+
+class Complex {
+    constructor(re=0, im=0) { this.re = re; this.im = im; }
+    static fromPolar(r, th) { return new Complex(r*Math.cos(th), r*Math.sin(th)); }
+    add(b) { return new Complex(this.re+b.re, this.im+b.im); }
+    sub(b) { return new Complex(this.re-b.re, this.im-b.im); }
+    mul(b) { return new Complex(this.re*b.re - this.im*b.im, this.re*b.im + this.im*b.re); }
+    div(b) { const d = b.re*b.re + b.im*b.im; if(d<1e-15) return new Complex(1e6,0); return new Complex((this.re*b.re+this.im*b.im)/d, (this.im*b.re-this.re*b.im)/d); }
+    abs() { return Math.sqrt(this.re*this.re + this.im*this.im); }
+    arg() { return Math.atan2(this.im, this.re); }
+    pow(n) { const r = this.abs(), th = this.arg(); return Complex.fromPolar(Math.pow(r,n), th*n); }
+    sqrt() { const r = this.abs(), th = this.arg(); return Complex.fromPolar(Math.sqrt(r), th/2); }
+    exp() { const ex = Math.exp(this.re); return new Complex(ex*Math.cos(this.im), ex*Math.sin(this.im)); }
+    log() { return new Complex(Math.log(this.abs()+1e-15), this.arg()); }
+    sin() { const a=this; return new Complex(Math.sin(a.re)*Math.cosh(a.im), Math.cos(a.re)*Math.sinh(a.im)); }
+    cos() { const a=this; return new Complex(Math.cos(a.re)*Math.cosh(a.im), -Math.sin(a.re)*Math.sinh(a.im)); }
+    neg() { return new Complex(-this.re, -this.im); }
+    scale(s) { return new Complex(this.re*s, this.im*s); }
+}
+
+function parseComplexExpr(expr) {
+    // Tokenize and parse a complex function expression
+    expr = expr.replace(/\s/g,'').toLowerCase();
+    return function(z) { return evalExpr(expr, z); };
+}
+
+function evalExpr(expr, z) {
+    // Handle addition/subtraction at top level
+    let depth = 0, lastOp = -1;
+    for (let i = expr.length-1; i >= 0; i--) {
+        const c = expr[i];
+        if (c === ')') depth++;
+        if (c === '(') depth--;
+        if (depth === 0 && (c === '+' || c === '-') && i > 0 && expr[i-1] !== '^' && expr[i-1] !== '(' && expr[i-1] !== '*' && expr[i-1] !== '/') {
+            lastOp = i; break;
+        }
+    }
+    if (lastOp > 0) {
+        const left = evalExpr(expr.slice(0, lastOp), z);
+        const right = evalExpr(expr.slice(lastOp+1), z);
+        return expr[lastOp] === '+' ? left.add(right) : left.sub(right);
+    }
+    // Handle multiplication/division
+    depth = 0; lastOp = -1;
+    for (let i = expr.length-1; i >= 0; i--) {
+        const c = expr[i];
+        if (c === ')') depth++;
+        if (c === '(') depth--;
+        if (depth === 0 && (c === '*' || c === '/')) { lastOp = i; break; }
+    }
+    if (lastOp > 0) {
+        const left = evalExpr(expr.slice(0, lastOp), z);
+        const right = evalExpr(expr.slice(lastOp+1), z);
+        return expr[lastOp] === '*' ? left.mul(right) : left.div(right);
+    }
+    // Handle power
+    depth = 0; lastOp = -1;
+    for (let i = expr.length-1; i >= 0; i--) {
+        const c = expr[i];
+        if (c === ')') depth++;
+        if (c === '(') depth--;
+        if (depth === 0 && c === '^') { lastOp = i; break; }
+    }
+    if (lastOp > 0) {
+        const base = evalExpr(expr.slice(0, lastOp), z);
+        const exp = parseFloat(expr.slice(lastOp+1));
+        return isNaN(exp) ? base : base.pow(exp);
+    }
+    // Handle parentheses
+    if (expr[0] === '(' && expr[expr.length-1] === ')') return evalExpr(expr.slice(1,-1), z);
+    // Handle functions
+    if (expr.startsWith('sin(')) return evalExpr(expr.slice(4,-1), z).sin();
+    if (expr.startsWith('cos(')) return evalExpr(expr.slice(4,-1), z).cos();
+    if (expr.startsWith('exp(')) return evalExpr(expr.slice(4,-1), z).exp();
+    if (expr.startsWith('log(')) return evalExpr(expr.slice(4,-1), z).log();
+    if (expr.startsWith('ln('))  return evalExpr(expr.slice(3,-1), z).log();
+    if (expr.startsWith('sqrt(')) return evalExpr(expr.slice(5,-1), z).sqrt();
+    if (expr.startsWith('abs(')) { const v = evalExpr(expr.slice(4,-1), z); return new Complex(v.abs(),0); }
+    // Handle z
+    if (expr === 'z') return z;
+    if (expr === 'i') return new Complex(0,1);
+    if (expr === 'pi' || expr === 'π') return new Complex(Math.PI,0);
+    if (expr === 'e') return new Complex(Math.E,0);
+    // Number
+    const num = parseFloat(expr);
+    if (!isNaN(num)) return new Complex(num, 0);
+    // Fallback: treat as z
+    return z;
+}
+
+function generateSurfaceMesh(fn, bounds, resolution) {
+    const {xMin,xMax,yMin,yMax} = bounds;
+    const res = resolution || 50;
+    const positions = [];
+    const colors = [];
+    const indices = [];
+    let maxH = 0;
+
+    for (let iy = 0; iy <= res; iy++) {
+        for (let ix = 0; ix <= res; ix++) {
+            const u = ix / res, v = iy / res;
+            const x = xMin + u * (xMax - xMin);
+            const y = yMin + v * (yMax - yMin);
+            const z = new Complex(x, y);
+            let fz;
+            try { fz = fn(z); } catch(e) { fz = new Complex(0,0); }
+            let h = fz.re;
+            if (!isFinite(h) || isNaN(h)) h = 0;
+            h = Math.max(-5, Math.min(5, h));
+            if (Math.abs(h) > maxH) maxH = Math.abs(h);
+            positions.push(x, h, y);
+            // Color by phase (arg)
+            const phase = fz.arg();
+            const hue = (phase + Math.PI) / (2 * Math.PI);
+            const rgb = hslToRgb(hue, 0.7, 0.55);
+            colors.push(rgb[0], rgb[1], rgb[2]);
+        }
+    }
+    // Normalize height
+    const scale = maxH > 0.01 ? 2.0 / maxH : 1;
+    for (let i = 1; i < positions.length; i += 3) positions[i] *= scale;
+
+    for (let iy = 0; iy < res; iy++) {
+        for (let ix = 0; ix < res; ix++) {
+            const a = iy * (res+1) + ix;
+            const b = a + 1;
+            const c = a + (res+1);
+            const d = c + 1;
+            indices.push(a, b, c);
+            indices.push(b, d, c);
+        }
+    }
+    return { positions: new Float32Array(positions), colors: new Float32Array(colors), indices, maxH, scale };
+}
+
+function hslToRgb(h,s,l) {
+    let r,g,b;
+    if (s===0) { r=g=b=l; } else {
+        const q = l<0.5 ? l*(1+s) : l+s-l*s;
+        const p = 2*l-q;
+        r = hue2rgb(p,q,h+1/3);
+        g = hue2rgb(p,q,h);
+        b = hue2rgb(p,q,h-1/3);
+    }
+    return [r,g,b];
+}
+function hue2rgb(p,q,t) { if(t<0)t++;if(t>1)t--;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p; }
+
+function renderMathSurface(fn, exprText) {
+    const container = document.getElementById('math-container');
+    // Clear previous
+    while (container.firstChild) container.firstChild.remove();
+    container.setAttribute('visible', true);
+    document.getElementById('mol-container').setAttribute('visible', false);
+    document.getElementById('physics-container').setAttribute('visible', false);
+
+    const bounds = {xMin:-3, xMax:3, yMin:-3, yMax:3};
+    const mesh = generateSurfaceMesh(fn, bounds, 60);
+
+    // Use THREE.js directly
+    const scene = document.getElementById('scene');
+    const threeScene = scene.object3D;
+
+    // Create mesh
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(mesh.colors, 3));
+    geom.setIndex(mesh.indices);
+    geom.computeVertexNormals();
+
+    const mat = new THREE.MeshPhongMaterial({
+        vertexColors: true, side: THREE.DoubleSide,
+        shininess: 40, transparent: true, opacity: 0.88
+    });
+    const surfMesh = new THREE.Mesh(geom, mat);
+    surfMesh.scale.set(0.18, 0.18, 0.18);
+
+    // Wireframe overlay
+    const wireMat = new THREE.MeshBasicMaterial({
+        vertexColors: true, wireframe: true, transparent: true, opacity: 0.15
+    });
+    const wireMesh = new THREE.Mesh(geom.clone(), wireMat);
+    wireMesh.scale.copy(surfMesh.scale);
+
+    const group = new THREE.Group();
+    group.add(surfMesh);
+    group.add(wireMesh);
+
+    // Axes
+    const axLen = 0.65;
+    const axMat = new THREE.LineBasicMaterial({color: 0xffffff, transparent:true, opacity:0.4});
+    [new THREE.Vector3(-axLen,0,0), new THREE.Vector3(axLen,0,0)].forEach((v,i) => {
+        const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-axLen,0,0), new THREE.Vector3(axLen,0,0)]);
+        if(i===0) group.add(new THREE.Line(g, axMat));
+    });
+    // Y axis
+    const gyGeom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-axLen,0), new THREE.Vector3(0,axLen,0)]);
+    group.add(new THREE.Line(gyGeom, axMat));
+    // Z axis
+    const gzGeom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,-axLen), new THREE.Vector3(0,0,axLen)]);
+    group.add(new THREE.Line(gzGeom, axMat));
+
+    // X axis (Re)
+    const gxGeom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-axLen,0,0), new THREE.Vector3(axLen,0,0)]);
+    group.add(new THREE.Line(gxGeom, new THREE.LineBasicMaterial({color:0xff6666,transparent:true,opacity:0.6})));
+
+    // Auto-rotate
+    container.object3D.add(group);
+    container.object3D.userData.mathGroup = group;
+    container.object3D.userData.autoRotate = true;
+
+    // Label
+    const labelEl = document.createElement('a-text');
+    labelEl.setAttribute('value', `f(z) = ${exprText}`);
+    labelEl.setAttribute('position', '0 -0.5 0');
+    labelEl.setAttribute('align', 'center');
+    labelEl.setAttribute('color', '#9aa0b0');
+    labelEl.setAttribute('width', '1.5');
+    container.appendChild(labelEl);
+
+    // Axis labels
+    ['Re(z)', 'Im(z)', 'Re(f)'].forEach((txt, i) => {
+        const l = document.createElement('a-text');
+        l.setAttribute('value', txt);
+        l.setAttribute('align', 'center');
+        l.setAttribute('color', '#6c8aff');
+        l.setAttribute('width', '0.8');
+        const p = i===0 ? `0.14 -0.04 0` : i===1 ? `0 -0.04 0.14` : `0.02 0.14 0`;
+        l.setAttribute('position', p);
+        container.appendChild(l);
+    });
+
+    updateHUD(exprText, 'Komplexe Funktion');
+}
+
+// Animation tick for math surface rotation
+AFRAME.registerComponent('math-rotate', {
+    tick: function(t, dt) {
+        const mc = document.getElementById('math-container');
+        if (!mc || !mc.object3D.userData.autoRotate) return;
+        const g = mc.object3D.userData.mathGroup;
+        if (g) g.rotation.y += 0.0003 * dt;
+    }
+});
+
+// ══════════════════════════════════════════════════════════════
+//  PHYSICS ENGINE - LORENTZ FORCE
+// ══════════════════════════════════════════════════════════════
+
+const LorentzSim = {
+    running: false,
+    particle: null,    // {pos, vel}
+    trail: [],
+    chargeSign: 1,     // +1 proton, -1 electron
+    B: {x:0, y:0, z:0.5},  // magnetic field (z-direction)
+    boxSize: 0.5,
+    entities: {particle:null, trail:null, arrows:{}},
+    arrowEntities: [],
+    fieldArrowEntities: [],
+    dt: 1/60,
+    maxTrail: 300,
+
+    init: function(container) {
+        this.container = container;
+        while (container.firstChild) container.firstChild.remove();
+        container.setAttribute('visible', true);
+
+        // Magnetic field box (wireframe)
+        const boxEl = document.createElement('a-box');
+        boxEl.setAttribute('width', this.boxSize);
+        boxEl.setAttribute('height', this.boxSize);
+        boxEl.setAttribute('depth', this.boxSize);
+        boxEl.setAttribute('material', 'color:#2244aa;opacity:0.08;transparent:true;side:double');
+        boxEl.setAttribute('position', '0 0 0');
+        container.appendChild(boxEl);
+
+        // Wireframe edges
+        const wireEl = document.createElement('a-box');
+        wireEl.setAttribute('width', this.boxSize);
+        wireEl.setAttribute('height', this.boxSize);
+        wireEl.setAttribute('depth', this.boxSize);
+        wireEl.setAttribute('material', 'color:#4466ff;opacity:0.25;transparent:true;wireframe:true');
+        container.appendChild(wireEl);
+
+        // B-field arrows (static, showing field direction)
+        this.fieldArrowEntities = [];
+        const spacing = this.boxSize / 3;
+        for (let ix = -1; ix <= 1; ix++) {
+            for (let iy = -1; iy <= 1; iy++) {
+                const arrow = document.createElement('a-entity');
+                arrow.setAttribute('position', `${ix*spacing*0.4} ${iy*spacing*0.4} 0`);
+                // Arrow shaft
+                const shaft = document.createElement('a-cylinder');
+                shaft.setAttribute('radius', 0.003);
+                shaft.setAttribute('height', 0.12);
+                shaft.setAttribute('color', '#4488ff');
+                shaft.setAttribute('opacity', 0.35);
+                shaft.setAttribute('rotation', '90 0 0');
+                arrow.appendChild(shaft);
+                // Arrow head
+                const head = document.createElement('a-cone');
+                head.setAttribute('radius-bottom', 0.008);
+                head.setAttribute('radius-top', 0);
+                head.setAttribute('height', 0.025);
+                head.setAttribute('color', '#4488ff');
+                head.setAttribute('opacity', 0.5);
+                head.setAttribute('position', '0 0 -0.07');
+                head.setAttribute('rotation', '90 0 0');
+                arrow.appendChild(head);
+                container.appendChild(arrow);
+                this.fieldArrowEntities.push(arrow);
+            }
+        }
+
+        // B label
+        const bLabel = document.createElement('a-text');
+        bLabel.setAttribute('value', 'B');
+        bLabel.setAttribute('position', `0 ${this.boxSize*0.35} ${-this.boxSize*0.35}`);
+        bLabel.setAttribute('align', 'center');
+        bLabel.setAttribute('color', '#4488ff');
+        bLabel.setAttribute('width', '0.6');
+        container.appendChild(bLabel);
+
+        // Particle sphere
+        this.entities.particle = document.createElement('a-sphere');
+        this.entities.particle.setAttribute('radius', 0.02);
+        this.entities.particle.setAttribute('color', this.chargeSign > 0 ? '#ff4444' : '#4488ff');
+        this.entities.particle.setAttribute('material', 'shader:flat');
+        container.appendChild(this.entities.particle);
+
+        // Charge label
+        this.entities.chargeLabel = document.createElement('a-text');
+        this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p⁺' : 'e⁻');
+        this.entities.chargeLabel.setAttribute('position', '0 0.04 0');
+        this.entities.chargeLabel.setAttribute('align', 'center');
+        this.entities.chargeLabel.setAttribute('color', '#ffffff');
+        this.entities.chargeLabel.setAttribute('width', '0.5');
+        this.entities.particle.appendChild(this.entities.chargeLabel);
+
+        // Formula label
+        const formulaEl = document.createElement('a-text');
+        formulaEl.setAttribute('value', 'F = q(v × B)');
+        formulaEl.setAttribute('position', `0 ${-this.boxSize*0.38} 0`);
+        formulaEl.setAttribute('align', 'center');
+        formulaEl.setAttribute('color', '#ff8866');
+        formulaEl.setAttribute('width', '1.0');
+        container.appendChild(formulaEl);
+
+        // VR control buttons in scene
+        this.buildVRControls(container);
+
+        this.reset();
+    },
+
+    buildVRControls: function(container) {
+        const btnData = [
+            {label:'▶ Start', x:-0.28, fn:'lorentzPlay'},
+            {label:'↺ Reset', x:-0.09, fn:'lorentzReset'},
+            {label:'± Ladung', x:0.10, fn:'lorentzToggleCharge'},
+        ];
+        btnData.forEach(b => {
+            const bg = document.createElement('a-plane');
+            bg.setAttribute('width', 0.16);
+            bg.setAttribute('height', 0.06);
+            bg.setAttribute('position', `${b.x} ${-this.boxSize*0.5} 0.01`);
+            bg.setAttribute('color', '#1a1d2e');
+            bg.setAttribute('opacity', 0.85);
+            bg.setAttribute('class', 'interactive');
+            bg.addEventListener('click', () => window[b.fn]());
+            container.appendChild(bg);
+
+            const txt = document.createElement('a-text');
+            txt.setAttribute('value', b.label);
+            txt.setAttribute('position', `${b.x} ${-this.boxSize*0.5} 0.015`);
+            txt.setAttribute('align', 'center');
+            txt.setAttribute('color', '#ffffff');
+            txt.setAttribute('width', '0.5');
+            container.appendChild(txt);
+        });
+    },
+
+    reset: function() {
+        this.running = false;
+        this.trail = [];
+        this.particle = {
+            pos: {x: -this.boxSize*0.35, y: 0, z: 0},
+            vel: {x: 0.15, y: 0.05, z: 0}
+        };
+        this.updateVisuals();
+        this.clearTrail();
+    },
+
+    toggleCharge: function() {
+        this.chargeSign *= -1;
+        if (this.entities.particle) {
+            this.entities.particle.setAttribute('color', this.chargeSign > 0 ? '#ff4444' : '#4488ff');
+            this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p⁺' : 'e⁻');
+        }
+        this.reset();
+    },
+
+    play: function() {
+        if (!this.running) {
+            this.running = true;
+            this.trail = [];
+            this.clearTrail();
+        }
+    },
+
+    step: function() {
+        if (!this.running || !this.particle) return;
+
+        const p = this.particle;
+        const q = this.chargeSign;
+        const v = p.vel;
+        const B = this.B;
+        const mass = 0.15;
+
+        // Lorentz force: F = q(v × B) — right-hand rule
+        const Fx = q * (v.y * B.z - v.z * B.y);
+        const Fy = q * (v.z * B.x - v.x * B.z);
+        const Fz = q * (v.x * B.y - v.y * B.x);
+
+        // Half-step velocity (Leapfrog)
+        v.x += (Fx / mass) * this.dt;
+        v.y += (Fy / mass) * this.dt;
+        v.z += (Fz / mass) * this.dt;
+
+        p.pos.x += v.x * this.dt;
+        p.pos.y += v.y * this.dt;
+        p.pos.z += v.z * this.dt;
+
+        // Trail
+        this.trail.push({...p.pos});
+        if (this.trail.length > this.maxTrail) this.trail.shift();
+
+        // Check bounds
+        const hs = this.boxSize * 0.8;
+        if (Math.abs(p.pos.x) > hs || Math.abs(p.pos.y) > hs || Math.abs(p.pos.z) > hs) {
+            this.running = false;
+        }
+
+        this.updateVisuals();
+    },
+
+    updateVisuals: function() {
+        if (!this.entities.particle || !this.particle) return;
+        const p = this.particle.pos;
+        this.entities.particle.setAttribute('position', `${p.x} ${p.y} ${p.z}`);
+    },
+
+    clearTrail: function() {
+        // Remove old trail lines
+        if (this.trailObj) {
+            this.container.object3D.remove(this.trailObj);
+            this.trailObj.geometry.dispose();
+            this.trailObj.material.dispose();
+            this.trailObj = null;
+        }
+    },
+
+    renderTrail: function() {
+        if (this.trail.length < 2) return;
+        this.clearTrail();
+        const points = this.trail.map(t => new THREE.Vector3(t.x, t.y, t.z));
+        const geom = new THREE.BufferGeometry().setFromPoints(points);
+        const mat = new THREE.LineBasicMaterial({
+            color: this.chargeSign > 0 ? 0xff6644 : 0x4488ff,
+            transparent: true, opacity: 0.7
+        });
+        this.trailObj = new THREE.Line(geom, mat);
+        this.container.object3D.add(this.trailObj);
+    }
+};
+
+// ══════════════════════════════════════════════════════════════
+//  PHYSICS ENGINE - INDUCTION
+// ══════════════════════════════════════════════════════════════
+
+const InductionSim = {
+    running: false,
+    loopY: 0,
+    velocity: 0,
+    gravity: 0.4,
+    loopW: 0.15,
+    loopH: 0.10,
+    resistance: 0.15,
+    loopMass: 0.02,
+    slitOpen: false,
+    fieldStrength: 0.8,
+    fieldTop: 0.12,
+    fieldBot: -0.12,
+    phase: 'idle',
+    current: 0,
+    startY: 0.32,
+    entities: {},
+
+    init: function(container) {
+        this.container = container;
+        while (container.firstChild) container.firstChild.remove();
+        container.setAttribute('visible', true);
+
+        // Magnetic field region (transparent blue box)
+        const fieldBox = document.createElement('a-box');
+        const fieldH = this.fieldTop - this.fieldBot;
+        fieldBox.setAttribute('width', 0.25);
+        fieldBox.setAttribute('height', fieldH);
+        fieldBox.setAttribute('depth', 0.25);
+        fieldBox.setAttribute('position', `0 ${(this.fieldTop+this.fieldBot)/2} 0`);
+        fieldBox.setAttribute('material', 'color:#2244cc;opacity:0.06;transparent:true;side:double');
+        container.appendChild(fieldBox);
+
+        // Field wireframe
+        const fieldWire = document.createElement('a-box');
+        fieldWire.setAttribute('width', 0.25);
+        fieldWire.setAttribute('height', fieldH);
+        fieldWire.setAttribute('depth', 0.25);
+        fieldWire.setAttribute('position', `0 ${(this.fieldTop+this.fieldBot)/2} 0`);
+        fieldWire.setAttribute('material', 'color:#4466ff;opacity:0.2;transparent:true;wireframe:true');
+        container.appendChild(fieldWire);
+
+        // B field arrows inside
+        for (let iy = -1; iy <= 1; iy++) {
+            for (let ix = -1; ix <= 1; ix++) {
+                const arrow = document.createElement('a-cylinder');
+                arrow.setAttribute('radius', 0.002);
+                arrow.setAttribute('height', 0.06);
+                arrow.setAttribute('color', '#4488ff');
+                arrow.setAttribute('opacity', 0.3);
+                arrow.setAttribute('position', `${ix*0.06} ${(this.fieldTop+this.fieldBot)/2} ${iy*0.06}`);
+                arrow.setAttribute('rotation', '90 0 0');
+                container.appendChild(arrow);
+            }
+        }
+
+        // B label
+        const bLbl = document.createElement('a-text');
+        bLbl.setAttribute('value', 'B →');
+        bLbl.setAttribute('position', `0.16 ${this.fieldTop+0.03} 0`);
+        bLbl.setAttribute('color', '#4488ff');
+        bLbl.setAttribute('width', '0.5');
+        container.appendChild(bLbl);
+
+        // Loop frame (4 edges)
+        this.entities.loop = document.createElement('a-entity');
+        this.entities.loop.setAttribute('position', `0 ${this.startY} 0`);
+
+        const hw = this.loopW/2, hh = this.loopH/2;
+        const edges = [
+            {pos:`0 ${hh} 0`, rot:'0 0 90', len:this.loopW},
+            {pos:`${hw} 0 0`, rot:'0 0 0', len:this.loopH},
+            {pos:`0 ${-hh} 0`, rot:'0 0 90', len:this.loopW},
+            {pos:`${-hw} 0 0`, rot:'0 0 0', len:this.loopH},
+        ];
+        edges.forEach(e => {
+            const cyl = document.createElement('a-cylinder');
+            cyl.setAttribute('radius', 0.004);
+            cyl.setAttribute('height', e.len);
+            cyl.setAttribute('color', '#ccccdd');
+            cyl.setAttribute('position', e.pos);
+            cyl.setAttribute('rotation', e.rot);
+            this.entities.loop.appendChild(cyl);
+        });
+
+        // Current direction label
+        this.entities.currentLabel = document.createElement('a-text');
+        this.entities.currentLabel.setAttribute('value', '');
+        this.entities.currentLabel.setAttribute('position', `0 ${hh+0.025} 0`);
+        this.entities.currentLabel.setAttribute('align', 'center');
+        this.entities.currentLabel.setAttribute('color', '#ffcc22');
+        this.entities.currentLabel.setAttribute('width', '0.6');
+        this.entities.loop.appendChild(this.entities.currentLabel);
+
+        // Phase label
+        this.entities.phaseLabel = document.createElement('a-text');
+        this.entities.phaseLabel.setAttribute('value', '');
+        this.entities.phaseLabel.setAttribute('position', `0.14 0 0`);
+        this.entities.phaseLabel.setAttribute('color', '#99aacc');
+        this.entities.phaseLabel.setAttribute('width', '0.4');
+        this.entities.loop.appendChild(this.entities.phaseLabel);
+
+        container.appendChild(this.entities.loop);
+
+        // Slit marker
+        this.entities.slit = document.createElement('a-box');
+        this.entities.slit.setAttribute('width', 0.015);
+        this.entities.slit.setAttribute('height', 0.015);
+        this.entities.slit.setAttribute('depth', 0.015);
+        this.entities.slit.setAttribute('color', '#ff3333');
+        this.entities.slit.setAttribute('visible', false);
+        this.entities.loop.appendChild(this.entities.slit);
+        this.entities.slit.setAttribute('position', `${-hw} ${-hh} 0`);
+
+        // Formula
+        const formula = document.createElement('a-text');
+        formula.setAttribute('value', 'EMF = -dΦ/dt');
+        formula.setAttribute('position', `0 ${-0.35} 0`);
+        formula.setAttribute('align', 'center');
+        formula.setAttribute('color', '#ffcc44');
+        formula.setAttribute('width', '0.9');
+        container.appendChild(formula);
+
+        // VR controls
+        const btnData = [
+            {label:'▼ Drop', x:-0.20, fn:'inductionDrop'},
+            {label:'↺ Reset', x:0, fn:'inductionReset'},
+            {label:'⚡ Spalt', x:0.20, fn:'inductionToggleSlit'},
+        ];
+        btnData.forEach(b => {
+            const bg = document.createElement('a-plane');
+            bg.setAttribute('width', 0.16);
+            bg.setAttribute('height', 0.06);
+            bg.setAttribute('position', `${b.x} -0.42 0.01`);
+            bg.setAttribute('color', '#1a1d2e');
+            bg.setAttribute('opacity', 0.85);
+            bg.setAttribute('class', 'interactive');
+            bg.addEventListener('click', () => window[b.fn]());
+            container.appendChild(bg);
+            const txt = document.createElement('a-text');
+            txt.setAttribute('value', b.label);
+            txt.setAttribute('position', `${b.x} -0.42 0.015`);
+            txt.setAttribute('align', 'center');
+            txt.setAttribute('color', '#ffffff');
+            txt.setAttribute('width', '0.5');
+            container.appendChild(txt);
+        });
+
+        this.reset();
+    },
+
+    reset: function() {
+        this.running = false;
+        this.loopY = this.startY;
+        this.velocity = 0;
+        this.current = 0;
+        this.phase = 'idle';
+        this.updateVisuals();
+    },
+
+    drop: function() {
+        if (this.running) return;
+        this.running = true;
+        this.velocity = 0;
+        this.phase = 'above';
+    },
+
+    toggleSlit: function() {
+        this.slitOpen = !this.slitOpen;
+        if (this.entities.slit) this.entities.slit.setAttribute('visible', this.slitOpen);
+        if (this.running) { this.reset(); }
+    },
+
+    step: function() {
+        if (!this.running) return;
+        const dt = 1/60;
+        const lTop = this.loopY + this.loopH/2;
+        const lBot = this.loopY - this.loopH/2;
+
+        // Determine phase
+        if (lBot >= this.fieldTop) {
+            this.phase = 'above'; this.current = 0;
+        } else if (lBot < this.fieldTop && lTop > this.fieldTop) {
+            this.phase = 'entering'; this.current = 1;
+        } else if (lTop <= this.fieldTop && lBot >= this.fieldBot) {
+            this.phase = 'inside'; this.current = 0;
+        } else if (lBot < this.fieldBot && lTop > this.fieldBot) {
+            this.phase = 'exiting'; this.current = -1;
+        } else {
+            this.phase = 'below'; this.current = 0;
+            this.running = false;
+        }
+
+        // Physics
+        let brakingForce = 0;
+        const B = this.fieldStrength;
+        const w = this.loopW;
+        const isEdge = this.phase === 'entering' || this.phase === 'exiting';
+
+        if (isEdge && !this.slitOpen && B > 0.001) {
+            const emf = B * w * Math.abs(this.velocity);
+            const I = emf / this.resistance;
+            brakingForce = B * I * w;
+            if (this.velocity < 0) brakingForce = brakingForce;
+            else brakingForce = -brakingForce;
+        }
+        if (this.slitOpen) { this.current = 0; brakingForce = 0; }
+
+        // Integration
+        const a = -this.gravity + brakingForce / this.loopMass;
+        this.velocity += a * dt;
+        this.loopY += this.velocity * dt;
+
+        this.updateVisuals();
+    },
+
+    updateVisuals: function() {
+        if (this.entities.loop) {
+            this.entities.loop.setAttribute('position', `0 ${this.loopY} 0`);
+        }
+        // Update loop color based on current flow
+        const loopCyls = this.entities.loop ? this.entities.loop.querySelectorAll('a-cylinder') : [];
+        const wireColor = this.current !== 0 ? '#ffbb33' : '#ccccdd';
+        loopCyls.forEach(c => c.setAttribute('color', wireColor));
+
+        // Current direction label
+        if (this.entities.currentLabel) {
+            if (this.current > 0) this.entities.currentLabel.setAttribute('value', 'I ↻');
+            else if (this.current < 0) this.entities.currentLabel.setAttribute('value', 'I ↺');
+            else this.entities.currentLabel.setAttribute('value', '');
+        }
+
+        // Phase label
+        if (this.entities.phaseLabel) {
+            const labels = {
+                idle:'', above:'Oberhalb', entering:'Eintritt',
+                inside:'Innen (dΦ/dt=0)', exiting:'Austritt', below:'Unterhalb'
+            };
+            this.entities.phaseLabel.setAttribute('value', labels[this.phase]||'');
+        }
+    }
+};
+
+// Global physics control functions (called by VR buttons)
+function lorentzPlay() { LorentzSim.play(); showToast('Simulation gestartet'); }
+function lorentzReset() { LorentzSim.reset(); showToast('Zurückgesetzt'); }
+function lorentzToggleCharge() { LorentzSim.toggleCharge(); showToast(LorentzSim.chargeSign>0?'Proton (+)':'Elektron (−)'); }
+function inductionDrop() { InductionSim.drop(); showToast('Schleife fallen gelassen'); }
+function inductionReset() { InductionSim.reset(); showToast('Zurückgesetzt'); }
+function inductionToggleSlit() { InductionSim.toggleSlit(); showToast(InductionSim.slitOpen?'Spalt offen (kein Strom)':'Spalt geschlossen'); }
+
+// Physics tick component
+AFRAME.registerComponent('physics-tick', {
+    tick: function(t, dt) {
+        if (LorentzSim.running) {
+            LorentzSim.step();
+            LorentzSim.renderTrail();
+        }
+        if (InductionSim.running) {
+            InductionSim.step();
+        }
+    }
+});
 
 // ══════════════════════════════════════════════════════════════
 //  SDF PARSER
@@ -1211,7 +2054,32 @@ function wrapText(text, maxChars) {
 
 let currentMolecule = null;
 let selectedPreset = null;
+let selectedPhysics = 'lorentz';
+let selectedFunction = null;
+let activeModule = 'chemie'; // 'chemie', 'physik', 'mathe'
 
+// ── Tab Switching ──
+function switchTab(tab) {
+    ['chemie','physik','mathe'].forEach(t => {
+        document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+        document.getElementById('content-'+t).classList.toggle('active', t===tab);
+    });
+}
+
+function selectPhysics(type) {
+    selectedPhysics = type;
+    document.getElementById('phys-lorentz').classList.toggle('selected', type==='lorentz');
+    document.getElementById('phys-induction').classList.toggle('selected', type==='induction');
+}
+
+function selectFunction(expr) {
+    selectedFunction = expr;
+    document.querySelectorAll('.fn-card').forEach(c => c.classList.remove('selected'));
+    const cards = document.querySelectorAll('.fn-card');
+    cards.forEach(c => { if(c.dataset.expr === expr) c.classList.add('selected'); });
+}
+
+// ── Module Entry Points ──
 async function loadAndDisplay(name, label, formula) {
     showLoading(true, `Lade ${label || name}...`);
     try {
@@ -1219,10 +2087,14 @@ async function loadAndDisplay(name, label, formula) {
         const mol = parseSDF(sdf);
         if (!mol || mol.atoms.length === 0) throw new Error('Molekül konnte nicht geparst werden');
         currentMolecule = { mol, name, label: label || name, formula: formula || '' };
+        document.getElementById('mol-container').setAttribute('visible', true);
+        document.getElementById('physics-container').setAttribute('visible', false);
+        document.getElementById('math-container').setAttribute('visible', false);
         renderMolecule(mol, document.getElementById('mol-container'));
         updateHUD(label || name, formula || `${mol.atoms.length} Atome`);
         updateInfoBar(label || name, formula || '', mol.atoms.length);
         showToast(`${label || name} geladen — ${mol.atoms.length} Atome`);
+        activeModule = 'chemie';
     } catch (e) {
         showToast('Fehler: ' + e.message);
         console.error(e);
@@ -1230,6 +2102,64 @@ async function loadAndDisplay(name, label, formula) {
     showLoading(false);
 }
 
+function enterWithMolecule() {
+    const name = selectedPreset || 'ethanol';
+    const preset = PRESETS.find(p => p.name === name) || { name, label: name, formula: '' };
+    loadAndDisplay(preset.name, preset.label, preset.formula).then(() => {
+        document.getElementById('overlay').classList.add('hidden');
+        document.getElementById('info-bar').style.display = 'flex';
+        enterStereoVR();
+    });
+}
+
+function enterPhysics() {
+    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('info-bar').style.display = 'flex';
+    activeModule = 'physik';
+
+    document.getElementById('mol-container').setAttribute('visible', false);
+    document.getElementById('math-container').setAttribute('visible', false);
+
+    const container = document.getElementById('physics-container');
+    if (selectedPhysics === 'lorentz') {
+        LorentzSim.init(container);
+        updateInfoBar('Lorentzkraft', 'F = q(v × B)', 0);
+        updateHUD('Lorentzkraft', 'F = q(v × B)');
+    } else {
+        InductionSim.init(container);
+        updateInfoBar('Induktion', 'EMF = -dΦ/dt', 0);
+        updateHUD('Induktion', 'EMF = -dΦ/dt');
+    }
+    showToast(`${selectedPhysics === 'lorentz' ? 'Lorentzkraft' : 'Induktion'} geladen`);
+    enterStereoVR();
+}
+
+function enterMath() {
+    const expr = selectedFunction || 'z^2';
+    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('info-bar').style.display = 'flex';
+    activeModule = 'mathe';
+
+    try {
+        const fn = parseComplexExpr(expr);
+        renderMathSurface(fn, expr);
+        updateInfoBar(`f(z) = ${expr}`, 'Komplexe Funktion', 0);
+        showToast(`f(z) = ${expr} geplottet`);
+    } catch(e) {
+        showToast('Fehler: ' + e.message);
+    }
+    enterStereoVR();
+}
+
+function plotCustomFunction() {
+    const input = document.getElementById('fn-input');
+    const expr = input.value.trim();
+    if (!expr) return;
+    selectedFunction = expr;
+    enterMath();
+}
+
+// ── Navigation ──
 function updateHUD(name, formula) {
     const hudName = document.getElementById('hud-name');
     const hudFormula = document.getElementById('hud-formula');
@@ -1239,16 +2169,13 @@ function updateHUD(name, formula) {
 
 function updateInfoBar(name, formula, atomCount) {
     const text = document.getElementById('mol-info-text');
-    if (text) text.innerHTML = `${name} <small>${formula} · ${atomCount} Atome</small>`;
-}
-
-function enterWithMolecule() {
-    const name = selectedPreset || 'ethanol';
-    const preset = PRESETS.find(p => p.name === name) || { name, label: name, formula: '' };
-    loadAndDisplay(preset.name, preset.label, preset.formula).then(() => {
-        document.getElementById('overlay').classList.add('hidden');
-        enterStereoVR();
-    });
+    if (text) {
+        if (activeModule === 'chemie' && atomCount > 0) {
+            text.innerHTML = `${name} <small>${formula} · ${atomCount} Atome</small>`;
+        } else {
+            text.innerHTML = `${name} <small>${formula}</small>`;
+        }
+    }
 }
 
 function enterStereoVR() {
@@ -1281,6 +2208,12 @@ function backToLanding() {
     quizActive = false;
     document.getElementById('quiz-container').setAttribute('visible', false);
     if (menuVisible) toggleVRMenu();
+    // Stop physics
+    LorentzSim.running = false;
+    InductionSim.running = false;
+    // Stop math rotation
+    const mc = document.getElementById('math-container');
+    if (mc) mc.object3D.userData.autoRotate = false;
 }
 
 function startQuizFromMenu() {
@@ -1312,7 +2245,7 @@ function showToast(msg) {
 // ══════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Build molecule grid (neomorphic cards, no emojis)
+    // Build molecule grid (neomorphic cards)
     const grid = document.getElementById('mol-grid');
     PRESETS.forEach(p => {
         const card = document.createElement('div');
@@ -1327,9 +2260,28 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.appendChild(card);
     });
 
+    // Build math function grid
+    const fnGrid = document.getElementById('fn-grid');
+    MATH_PRESETS.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'fn-card';
+        card.dataset.expr = p.expr;
+        card.innerHTML = `<div class="fn-expr">${p.expr}</div><div class="fn-name">${p.label}</div>`;
+        card.addEventListener('click', () => {
+            selectedFunction = p.expr;
+            fnGrid.querySelectorAll('.fn-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            showToast(`${p.label} ausgewählt`);
+        });
+        fnGrid.appendChild(card);
+    });
+
     // Search on Enter key
     document.getElementById('search-input').addEventListener('keypress', e => {
         if (e.key === 'Enter') searchMolecule();
+    });
+    document.getElementById('fn-input').addEventListener('keypress', e => {
+        if (e.key === 'Enter') plotCustomFunction();
     });
 
     // Build VR menu
