@@ -1684,13 +1684,6 @@ function makeNeoCard(parent, x, y, w, h, onClick) {
 
 function buildCalibrationPanel(nav) {
     makePanel(nav, 1.4, 0.8);
-    // Logo icon accent
-    const iconBg = document.createElement('a-plane');
-    iconBg.setAttribute('width', 0.1);
-    iconBg.setAttribute('height', 0.1);
-    iconBg.setAttribute('position', '0 0.30 0.02');
-    iconBg.setAttribute('material', `color:${NEO.accent}; opacity:0.15; transparent:true; shader:flat; side:double`);
-    nav.appendChild(iconBg);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'BeGreifbar Lite');
     title.setAttribute('position', '0 0.18 0.02');
@@ -1753,19 +1746,13 @@ function buildMainMenu(nav) {
         accentBar.setAttribute('position', `${x} ${0.02 + 0.23 - 0.02} 0.015`);
         accentBar.setAttribute('material', `color:${s.color}; opacity:0.8; transparent:true; shader:flat; side:double`);
         nav.appendChild(accentBar);
-        // Icon letter
-        const iconCircle = document.createElement('a-plane');
-        iconCircle.setAttribute('width', 0.10);
-        iconCircle.setAttribute('height', 0.10);
-        iconCircle.setAttribute('position', `${x} ${0.02 + 0.10} 0.02`);
-        iconCircle.setAttribute('material', `color:${s.color}; opacity:0.12; transparent:true; shader:flat; side:double`);
-        nav.appendChild(iconCircle);
+        // Icon text (no background plane — just rendered text in front of card)
         const iconTxt = document.createElement('a-text');
         iconTxt.setAttribute('value', s.iconLetter);
-        iconTxt.setAttribute('position', `${x} ${0.02 + 0.10} 0.025`);
+        iconTxt.setAttribute('position', `${x} ${0.02 + 0.10} 0.03`);
         iconTxt.setAttribute('align', 'center');
         iconTxt.setAttribute('color', s.color);
-        iconTxt.setAttribute('width', 0.55);
+        iconTxt.setAttribute('width', 0.6);
         nav.appendChild(iconTxt);
         const nameEl = document.createElement('a-text');
         nameEl.setAttribute('value', s.label);
@@ -1847,19 +1834,13 @@ function buildPhysikMenu(nav) {
         bar.setAttribute('position', `${item.x} ${-0.04 + 0.18} 0.015`);
         bar.setAttribute('material', `color:${item.color}; opacity:0.7; transparent:true; shader:flat; side:double`);
         nav.appendChild(bar);
-        // Icon badge with letter
-        const badge = document.createElement('a-plane');
-        badge.setAttribute('width', 0.09);
-        badge.setAttribute('height', 0.09);
-        badge.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.02`);
-        badge.setAttribute('material', `color:${item.color}; opacity:0.1; transparent:true; shader:flat; side:double`);
-        nav.appendChild(badge);
+        // Icon text only (no background plane)
         const badgeTxt = document.createElement('a-text');
         badgeTxt.setAttribute('value', item.icon);
-        badgeTxt.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.025`);
+        badgeTxt.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.03`);
         badgeTxt.setAttribute('align', 'center');
         badgeTxt.setAttribute('color', item.color);
-        badgeTxt.setAttribute('width', 0.5);
+        badgeTxt.setAttribute('width', 0.55);
         nav.appendChild(badgeTxt);
         let txt = document.createElement('a-text');
         txt.setAttribute('value', item.label); txt.setAttribute('position', `${item.x} ${-0.04 - 0.02} 0.025`);
