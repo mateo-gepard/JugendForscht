@@ -1538,6 +1538,8 @@ function navigateTo(state) {
     const nav = document.getElementById('vr-nav');
     while (nav.firstChild) nav.firstChild.remove();
     nav.setAttribute('visible', state !== 'viewing' && state !== 'quiz');
+    // Also strip all interactive classes from any leftover elements
+    nav.querySelectorAll('.interactive').forEach(el => el.classList.remove('interactive'));
     switch(state) {
         case 'calibrate': buildCalibrationPanel(nav); break;
         case 'main': buildMainMenu(nav); break;
@@ -1683,53 +1685,53 @@ function makeNeoCard(parent, x, y, w, h, onClick) {
 }
 
 function buildCalibrationPanel(nav) {
-    makePanel(nav, 1.4, 0.8);
+    makePanel(nav, 2.3, 1.3);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'BeGreifbar Lite');
-    title.setAttribute('position', '0 0.18 0.02');
+    title.setAttribute('position', '0 0.30 0.02');
     title.setAttribute('align', 'center');
     title.setAttribute('color', NEO.accent);
-    title.setAttribute('width', 1.6);
+    title.setAttribute('width', 2.6);
     nav.appendChild(title);
     const edition = document.createElement('a-text');
     edition.setAttribute('value', 'LITE EDITION');
-    edition.setAttribute('position', '0 0.10 0.02');
+    edition.setAttribute('position', '0 0.16 0.02');
     edition.setAttribute('align', 'center');
     edition.setAttribute('color', NEO.textSoft);
-    edition.setAttribute('width', 0.7);
+    edition.setAttribute('width', 1.1);
     nav.appendChild(edition);
     // Divider line
     const divider = document.createElement('a-plane');
-    divider.setAttribute('width', 0.6);
-    divider.setAttribute('height', 0.002);
-    divider.setAttribute('position', '0 0.04 0.02');
+    divider.setAttribute('width', 1.0);
+    divider.setAttribute('height', 0.003);
+    divider.setAttribute('position', '0 0.06 0.02');
     divider.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
     nav.appendChild(divider);
     const hint = document.createElement('a-text');
     hint.setAttribute('value', 'Schau geradeaus und waehle:');
-    hint.setAttribute('position', '0 -0.02 0.02');
+    hint.setAttribute('position', '0 -0.04 0.02');
     hint.setAttribute('align', 'center');
     hint.setAttribute('color', NEO.textSoft);
-    hint.setAttribute('width', 1.1);
+    hint.setAttribute('width', 1.8);
     nav.appendChild(hint);
-    makeButton(nav, 'Kalibrieren & Start', 0, -0.18, 0.65, 0.14, NEO.accent, () => calibrateVR());
+    makeButton(nav, 'Kalibrieren & Start', 0, -0.30, 1.1, 0.22, NEO.accent, () => calibrateVR());
 }
 
 function buildMainMenu(nav) {
-    makePanel(nav, 1.6, 1.1);
+    makePanel(nav, 2.6, 1.8);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Fach waehlen');
-    title.setAttribute('position', '0 0.40 0.02');
+    title.setAttribute('position', '0 0.66 0.02');
     title.setAttribute('align', 'center');
     title.setAttribute('color', NEO.text);
-    title.setAttribute('width', 1.5);
+    title.setAttribute('width', 2.4);
     nav.appendChild(title);
     const subtitle = document.createElement('a-text');
     subtitle.setAttribute('value', 'Waehle ein Themengebiet');
-    subtitle.setAttribute('position', '0 0.30 0.02');
+    subtitle.setAttribute('position', '0 0.50 0.02');
     subtitle.setAttribute('align', 'center');
     subtitle.setAttribute('color', NEO.textSoft);
-    subtitle.setAttribute('width', 0.9);
+    subtitle.setAttribute('width', 1.5);
     nav.appendChild(subtitle);
     const subjects = [
         { label: 'Chemie', icon: 'Molekuele', color: NEO.accent, iconLetter: 'CH', state: 'chemie' },
@@ -1737,137 +1739,136 @@ function buildMainMenu(nav) {
         { label: 'Mathe', icon: '3D Funktionen', color: '#3bb87a', iconLetter: 'f(x)', state: 'mathe' },
     ];
     subjects.forEach((s, i) => {
-        const x = (i - 1) * 0.46;
-        const card = makeNeoCard(nav, x, 0.02, 0.40, 0.46, () => navigateTo(s.state));
+        const x = (i - 1) * 0.76;
+        const card = makeNeoCard(nav, x, 0.03, 0.66, 0.76, () => navigateTo(s.state));
         // Color accent bar at top of card
         const accentBar = document.createElement('a-plane');
-        accentBar.setAttribute('width', 0.28);
-        accentBar.setAttribute('height', 0.006);
-        accentBar.setAttribute('position', `${x} ${0.02 + 0.23 - 0.02} 0.015`);
+        accentBar.setAttribute('width', 0.46);
+        accentBar.setAttribute('height', 0.008);
+        accentBar.setAttribute('position', `${x} ${0.03 + 0.38 - 0.03} 0.015`);
         accentBar.setAttribute('material', `color:${s.color}; opacity:0.8; transparent:true; shader:flat; side:double`);
         nav.appendChild(accentBar);
-        // Icon text (no background plane — just rendered text in front of card)
+        // Icon text
         const iconTxt = document.createElement('a-text');
         iconTxt.setAttribute('value', s.iconLetter);
-        iconTxt.setAttribute('position', `${x} ${0.02 + 0.10} 0.03`);
+        iconTxt.setAttribute('position', `${x} ${0.03 + 0.16} 0.03`);
         iconTxt.setAttribute('align', 'center');
         iconTxt.setAttribute('color', s.color);
-        iconTxt.setAttribute('width', 0.6);
+        iconTxt.setAttribute('width', 1.0);
         nav.appendChild(iconTxt);
         const nameEl = document.createElement('a-text');
         nameEl.setAttribute('value', s.label);
-        nameEl.setAttribute('position', `${x} ${0.02 - 0.02} 0.025`);
+        nameEl.setAttribute('position', `${x} ${0.03 - 0.04} 0.025`);
         nameEl.setAttribute('align', 'center');
         nameEl.setAttribute('color', NEO.text);
-        nameEl.setAttribute('width', 0.7);
+        nameEl.setAttribute('width', 1.1);
         nav.appendChild(nameEl);
         const descEl = document.createElement('a-text');
         descEl.setAttribute('value', s.icon);
-        descEl.setAttribute('position', `${x} ${0.02 - 0.10} 0.025`);
+        descEl.setAttribute('position', `${x} ${0.03 - 0.16} 0.025`);
         descEl.setAttribute('align', 'center');
         descEl.setAttribute('color', NEO.textSoft);
-        descEl.setAttribute('width', 0.45);
+        descEl.setAttribute('width', 0.75);
         nav.appendChild(descEl);
     });
-    makeButton(nav, 'Neu kalibrieren', 0, -0.44, 0.4, 0.08, null, () => navigateTo('calibrate'));
+    makeButton(nav, 'Neu kalibrieren', 0, -0.72, 0.66, 0.13, null, () => navigateTo('calibrate'));
 }
 
 function buildChemieMenu(nav) {
     activeModule = 'chemie';
-    makePanel(nav, 1.65, 1.4);
+    makePanel(nav, 2.7, 2.3);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Chemie');
-    title.setAttribute('position', '0 0.58 0.02');
+    title.setAttribute('position', '0 0.96 0.02');
     title.setAttribute('align', 'center');
     title.setAttribute('color', NEO.text);
-    title.setAttribute('width', 1.5);
+    title.setAttribute('width', 2.4);
     nav.appendChild(title);
     const subtitle = document.createElement('a-text');
     subtitle.setAttribute('value', 'Molekuel waehlen');
-    subtitle.setAttribute('position', '0 0.48 0.02');
+    subtitle.setAttribute('position', '0 0.80 0.02');
     subtitle.setAttribute('align', 'center');
     subtitle.setAttribute('color', NEO.textSoft);
-    subtitle.setAttribute('width', 0.9);
+    subtitle.setAttribute('width', 1.5);
     nav.appendChild(subtitle);
-    const cols = 3, rows = 4, btnW = 0.48, btnH = 0.15, gapX = 0.04, gapY = 0.025;
-    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.34;
+    const cols = 3, rows = 4, btnW = 0.78, btnH = 0.25, gapX = 0.06, gapY = 0.04;
+    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.56;
     PRESETS.forEach((p, i) => {
         if (i >= cols * rows) return;
         const col = i % cols, row = Math.floor(i / cols);
         const x = startX + col * (btnW + gapX), y = startY - row * (btnH + gapY);
-        // Neumorphic card for each molecule
         makeNeoCard(nav, x, y, btnW, btnH, () => loadMoleculeVR(p.name, p.label, p.formula));
         const lbl = document.createElement('a-text');
-        lbl.setAttribute('value', p.label); lbl.setAttribute('position', `${x} ${y+0.022} 0.025`);
+        lbl.setAttribute('value', p.label); lbl.setAttribute('position', `${x} ${y+0.036} 0.025`);
         lbl.setAttribute('align', 'center'); lbl.setAttribute('color', NEO.text);
         lbl.setAttribute('width', btnW * 1.6); lbl.setAttribute('wrapCount', 10);
         nav.appendChild(lbl);
         const fml = document.createElement('a-text');
-        fml.setAttribute('value', p.formula); fml.setAttribute('position', `${x} ${y-0.032} 0.025`);
+        fml.setAttribute('value', p.formula); fml.setAttribute('position', `${x} ${y-0.050} 0.025`);
         fml.setAttribute('align', 'center'); fml.setAttribute('color', NEO.accent);
         fml.setAttribute('width', btnW * 1.3); fml.setAttribute('wrapCount', 12);
         nav.appendChild(fml);
     });
-    makeButton(nav, 'Quiz starten', 0, -0.56, 0.45, 0.11, NEO.accent, () => startQuizVR());
+    makeButton(nav, 'Quiz starten', 0, -0.92, 0.74, 0.18, NEO.accent, () => startQuizVR());
 }
 
 function buildPhysikMenu(nav) {
     activeModule = 'physik';
-    makePanel(nav, 1.4, 1.0);
+    makePanel(nav, 2.3, 1.6);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Physik');
-    title.setAttribute('position', '0 0.38 0.02'); title.setAttribute('align', 'center');
-    title.setAttribute('color', NEO.text); title.setAttribute('width', 1.4);
+    title.setAttribute('position', '0 0.62 0.02'); title.setAttribute('align', 'center');
+    title.setAttribute('color', NEO.text); title.setAttribute('width', 2.3);
     nav.appendChild(title);
     const subtitle = document.createElement('a-text');
     subtitle.setAttribute('value', 'Experiment waehlen');
-    subtitle.setAttribute('position', '0 0.28 0.02'); subtitle.setAttribute('align', 'center');
-    subtitle.setAttribute('color', NEO.textSoft); subtitle.setAttribute('width', 0.9);
+    subtitle.setAttribute('position', '0 0.46 0.02'); subtitle.setAttribute('align', 'center');
+    subtitle.setAttribute('color', NEO.textSoft); subtitle.setAttribute('width', 1.5);
     nav.appendChild(subtitle);
-    [{id:'lorentz',label:'Lorentzkraft',formula:'F = q(v x B)',x:-0.28,color:'#5b7fff',fc:NEO.accent,icon:'F'},
-     {id:'induction',label:'Induktion',formula:'EMF = -dPhi/dt',x:0.28,color:'#e8725c',fc:'#e8725c',icon:'E'}].forEach(item => {
-        const card = makeNeoCard(nav, item.x, -0.04, 0.48, 0.40, () => loadPhysicsVR(item.id));
+    [{id:'lorentz',label:'Lorentzkraft',formula:'F = q(v x B)',x:-0.46,color:'#5b7fff',fc:NEO.accent,icon:'F'},
+     {id:'induction',label:'Induktion',formula:'EMF = -dPhi/dt',x:0.46,color:'#e8725c',fc:'#e8725c',icon:'E'}].forEach(item => {
+        const card = makeNeoCard(nav, item.x, -0.06, 0.78, 0.66, () => loadPhysicsVR(item.id));
         // Accent bar
         const bar = document.createElement('a-plane');
-        bar.setAttribute('width', 0.30);
-        bar.setAttribute('height', 0.005);
-        bar.setAttribute('position', `${item.x} ${-0.04 + 0.18} 0.015`);
+        bar.setAttribute('width', 0.50);
+        bar.setAttribute('height', 0.008);
+        bar.setAttribute('position', `${item.x} ${-0.06 + 0.30} 0.015`);
         bar.setAttribute('material', `color:${item.color}; opacity:0.7; transparent:true; shader:flat; side:double`);
         nav.appendChild(bar);
-        // Icon text only (no background plane)
+        // Icon text only
         const badgeTxt = document.createElement('a-text');
         badgeTxt.setAttribute('value', item.icon);
-        badgeTxt.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.03`);
+        badgeTxt.setAttribute('position', `${item.x} ${-0.06 + 0.14} 0.03`);
         badgeTxt.setAttribute('align', 'center');
         badgeTxt.setAttribute('color', item.color);
-        badgeTxt.setAttribute('width', 0.55);
+        badgeTxt.setAttribute('width', 0.9);
         nav.appendChild(badgeTxt);
         let txt = document.createElement('a-text');
-        txt.setAttribute('value', item.label); txt.setAttribute('position', `${item.x} ${-0.04 - 0.02} 0.025`);
-        txt.setAttribute('align', 'center'); txt.setAttribute('color', NEO.text); txt.setAttribute('width', 0.65);
+        txt.setAttribute('value', item.label); txt.setAttribute('position', `${item.x} ${-0.06 - 0.04} 0.025`);
+        txt.setAttribute('align', 'center'); txt.setAttribute('color', NEO.text); txt.setAttribute('width', 1.1);
         nav.appendChild(txt);
         txt = document.createElement('a-text');
-        txt.setAttribute('value', item.formula); txt.setAttribute('position', `${item.x} ${-0.04 - 0.10} 0.025`);
-        txt.setAttribute('align', 'center'); txt.setAttribute('color', item.fc); txt.setAttribute('width', 0.5);
+        txt.setAttribute('value', item.formula); txt.setAttribute('position', `${item.x} ${-0.06 - 0.16} 0.025`);
+        txt.setAttribute('align', 'center'); txt.setAttribute('color', item.fc); txt.setAttribute('width', 0.8);
         nav.appendChild(txt);
     });
 }
 
 function buildMatheMenu(nav) {
     activeModule = 'mathe';
-    makePanel(nav, 1.6, 1.3);
+    makePanel(nav, 2.6, 2.1);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Mathe');
-    title.setAttribute('position', '0 0.52 0.02'); title.setAttribute('align', 'center');
-    title.setAttribute('color', NEO.text); title.setAttribute('width', 1.4);
+    title.setAttribute('position', '0 0.86 0.02'); title.setAttribute('align', 'center');
+    title.setAttribute('color', NEO.text); title.setAttribute('width', 2.3);
     nav.appendChild(title);
     const mathSub = document.createElement('a-text');
     mathSub.setAttribute('value', 'Funktion waehlen');
-    mathSub.setAttribute('position', '0 0.42 0.02'); mathSub.setAttribute('align', 'center');
-    mathSub.setAttribute('color', NEO.textSoft); mathSub.setAttribute('width', 0.9);
+    mathSub.setAttribute('position', '0 0.70 0.02'); mathSub.setAttribute('align', 'center');
+    mathSub.setAttribute('color', NEO.textSoft); mathSub.setAttribute('width', 1.5);
     nav.appendChild(mathSub);
-    const cols = 3, rows = 3, btnW = 0.46, btnH = 0.16, gapX = 0.04, gapY = 0.03;
-    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.24;
+    const cols = 3, rows = 3, btnW = 0.74, btnH = 0.26, gapX = 0.06, gapY = 0.05;
+    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.40;
     MATH_PRESETS.forEach((p, i) => {
         if (i >= cols * rows) return;
         const col = i % cols, row = Math.floor(i / cols);
@@ -1879,7 +1880,7 @@ function buildMatheMenu(nav) {
         lbl.setAttribute('width', btnW * 1.1); lbl.setAttribute('wrapCount', 14);
         nav.appendChild(lbl);
         const sub = document.createElement('a-text');
-        sub.setAttribute('value', p.label); sub.setAttribute('position', `${x} ${y-0.035} 0.025`);
+        sub.setAttribute('value', p.label); sub.setAttribute('position', `${x} ${y-0.058} 0.025`);
         sub.setAttribute('align', 'center'); sub.setAttribute('color', NEO.textSoft);
         sub.setAttribute('width', btnW * 0.85); sub.setAttribute('wrapCount', 16);
         nav.appendChild(sub);
@@ -1944,7 +1945,10 @@ function startQuizVR() {
     // Thoroughly clear ALL content (including raw THREE.js objects)
     clearAllContent();
     clearHUD();
-    document.getElementById('vr-nav').setAttribute('visible', false);
+    // CRITICAL: Clear vr-nav children so hidden molecule buttons can't be hit by raycaster
+    const nav = document.getElementById('vr-nav');
+    while (nav.firstChild) nav.firstChild.remove();
+    nav.setAttribute('visible', false);
     document.getElementById('vr-back-btn').setAttribute('visible', true);
     showQuizQuestion();
 }
@@ -1956,47 +1960,47 @@ function showQuizQuestion() {
     const container = document.getElementById('quiz-container');
     container.setAttribute('visible', true);
     while (container.firstChild) container.removeChild(container.firstChild);
-    makePanel(container, 1.55, 1.5);
+    makePanel(container, 2.5, 2.4);
     // Progress bar background
     const progBg = document.createElement('a-plane');
-    progBg.setAttribute('width', 1.3);
-    progBg.setAttribute('height', 0.008);
-    progBg.setAttribute('position', '0 0.62 0.015');
+    progBg.setAttribute('width', 2.1);
+    progBg.setAttribute('height', 0.012);
+    progBg.setAttribute('position', '0 1.02 0.015');
     progBg.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
     container.appendChild(progBg);
     // Progress bar fill
     const progPct = (quizIdx) / QUIZ_QUESTIONS.length;
     const progFill = document.createElement('a-plane');
-    const progW = Math.max(0.01, 1.3 * progPct);
+    const progW = Math.max(0.01, 2.1 * progPct);
     progFill.setAttribute('width', progW);
-    progFill.setAttribute('height', 0.008);
-    progFill.setAttribute('position', `${-1.3/2 + progW/2} 0.62 0.016`);
+    progFill.setAttribute('height', 0.012);
+    progFill.setAttribute('position', `${-2.1/2 + progW/2} 1.02 0.016`);
     progFill.setAttribute('material', `color:${NEO.accent}; opacity:0.8; transparent:true; shader:flat; side:double`);
     container.appendChild(progFill);
     const progress = document.createElement('a-text');
     progress.setAttribute('value', 'Frage ' + (quizIdx+1) + ' / ' + QUIZ_QUESTIONS.length + '   \u2022   ' + quizScore + ' Punkte');
-    progress.setAttribute('position', '0 0.56 0.02'); progress.setAttribute('align', 'center');
-    progress.setAttribute('color', NEO.accent); progress.setAttribute('width', 1.3);
+    progress.setAttribute('position', '0 0.92 0.02'); progress.setAttribute('align', 'center');
+    progress.setAttribute('color', NEO.accent); progress.setAttribute('width', 2.1);
     container.appendChild(progress);
     const qEl = document.createElement('a-text');
     qEl.setAttribute('value', wrapText(q.q, 34));
-    qEl.setAttribute('position', '0 0.42 0.02'); qEl.setAttribute('align', 'center');
-    qEl.setAttribute('color', NEO.text); qEl.setAttribute('width', 1.3);
+    qEl.setAttribute('position', '0 0.70 0.02'); qEl.setAttribute('align', 'center');
+    qEl.setAttribute('color', NEO.text); qEl.setAttribute('width', 2.1);
     qEl.setAttribute('baseline', 'top'); qEl.setAttribute('wrapCount', 36);
     container.appendChild(qEl);
-    const btnH = 0.13, btnGap = 0.025, startY = 0.12;
+    const btnH = 0.21, btnGap = 0.04, startY = 0.20;
     q.a.forEach((answer, i) => {
         const y = startY - i * (btnH + btnGap);
         // Neumorphic answer card
         const shadow = document.createElement('a-plane');
-        shadow.setAttribute('width', 1.3);
-        shadow.setAttribute('height', btnH - 0.01);
-        shadow.setAttribute('position', '0.004 ' + (y-0.004) + ' 0.005');
+        shadow.setAttribute('width', 2.1);
+        shadow.setAttribute('height', btnH - 0.02);
+        shadow.setAttribute('position', '0.006 ' + (y-0.006) + ' 0.005');
         shadow.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
         container.appendChild(shadow);
         const plane = document.createElement('a-plane');
         plane.setAttribute('position', '0 ' + y + ' 0.01');
-        plane.setAttribute('width', 1.3); plane.setAttribute('height', btnH - 0.01);
+        plane.setAttribute('width', 2.1); plane.setAttribute('height', btnH - 0.02);
         plane.setAttribute('class', 'interactive');
         plane.setAttribute('material', `color:${NEO.cardBg}; opacity:0.95; transparent:true; shader:flat; side:double`);
         plane.id = 'quiz-plane-' + i;
@@ -2005,23 +2009,17 @@ function showQuizQuestion() {
         plane.addEventListener('click', () => submitQuizAnswer(i));
         container.appendChild(plane);
         // Answer number badge
-        const numBadge = document.createElement('a-plane');
-        numBadge.setAttribute('width', 0.05);
-        numBadge.setAttribute('height', 0.05);
-        numBadge.setAttribute('position', `${-0.58} ${y} 0.015`);
-        numBadge.setAttribute('material', `color:${NEO.accent}; opacity:0.12; transparent:true; shader:flat; side:double`);
-        container.appendChild(numBadge);
         const numTxt = document.createElement('a-text');
-        numTxt.setAttribute('value', String.fromCharCode(65 + i)); // A, B, C, D
-        numTxt.setAttribute('position', `${-0.58} ${y} 0.02`);
+        numTxt.setAttribute('value', String.fromCharCode(65 + i));
+        numTxt.setAttribute('position', `${-0.95} ${y} 0.02`);
         numTxt.setAttribute('align', 'center'); numTxt.setAttribute('color', NEO.accent);
-        numTxt.setAttribute('width', 0.35);
+        numTxt.setAttribute('width', 0.55);
         container.appendChild(numTxt);
         const label = document.createElement('a-text');
         label.setAttribute('value', wrapText(answer, 38));
         label.setAttribute('position', '0.02 ' + y + ' 0.025');
         label.setAttribute('align', 'center'); label.setAttribute('color', NEO.text);
-        label.setAttribute('width', 1.1); label.setAttribute('wrapCount', 40);
+        label.setAttribute('width', 1.8); label.setAttribute('wrapCount', 40);
         container.appendChild(label);
     });
 }
@@ -2041,11 +2039,11 @@ function submitQuizAnswer(idx) {
         const container = document.getElementById('quiz-container');
         const explEl = document.createElement('a-text');
         explEl.setAttribute('value', wrapText(q.explain, 36));
-        explEl.setAttribute('position', '0 -0.50 0.02'); explEl.setAttribute('align', 'center');
-        explEl.setAttribute('color', '#047857'); explEl.setAttribute('width', 1.1);
+        explEl.setAttribute('position', '0 -0.82 0.02'); explEl.setAttribute('align', 'center');
+        explEl.setAttribute('color', '#047857'); explEl.setAttribute('width', 1.8);
         explEl.setAttribute('wrapCount', 40);
         container.appendChild(explEl);
-        makeButton(container, quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter \u2192', 0, -0.64, 0.45, 0.11, NEO.accent, () => { quizIdx++; showQuizQuestion(); });
+        makeButton(container, quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter \u2192', 0, -1.04, 0.74, 0.18, NEO.accent, () => { quizIdx++; showQuizQuestion(); });
     }, 800);
 }
 
@@ -2054,35 +2052,35 @@ function showQuizFinished() {
     while (container.firstChild) container.removeChild(container.firstChild);
     const pct = Math.round(quizScore / QUIZ_QUESTIONS.length * 100);
     let rating = pct >= 80 ? 'Ausgezeichnet!' : pct >= 60 ? 'Gut gemacht!' : pct >= 40 ? 'Nicht schlecht.' : 'Weiter ueben!';
-    makePanel(container, 1.2, 0.9);
+    makePanel(container, 2.0, 1.5);
     // Score circle
     const scoreBg = document.createElement('a-plane');
-    scoreBg.setAttribute('width', 0.18);
-    scoreBg.setAttribute('height', 0.18);
-    scoreBg.setAttribute('position', '0 0.28 0.02');
+    scoreBg.setAttribute('width', 0.30);
+    scoreBg.setAttribute('height', 0.30);
+    scoreBg.setAttribute('position', '0 0.46 0.02');
     scoreBg.setAttribute('material', `color:${pct >= 60 ? '#a7f3d0' : '#fde68a'}; opacity:0.3; transparent:true; shader:flat; side:double`);
     container.appendChild(scoreBg);
     const pctText = document.createElement('a-text');
     pctText.setAttribute('value', pct + '%');
-    pctText.setAttribute('position', '0 0.28 0.025'); pctText.setAttribute('align', 'center');
-    pctText.setAttribute('color', pct >= 60 ? '#047857' : '#92400e'); pctText.setAttribute('width', 1.2);
+    pctText.setAttribute('position', '0 0.46 0.025'); pctText.setAttribute('align', 'center');
+    pctText.setAttribute('color', pct >= 60 ? '#047857' : '#92400e'); pctText.setAttribute('width', 2.0);
     container.appendChild(pctText);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Quiz beendet!');
-    title.setAttribute('position', '0 0.12 0.02'); title.setAttribute('align', 'center');
-    title.setAttribute('color', NEO.text); title.setAttribute('width', 1.4);
+    title.setAttribute('position', '0 0.20 0.02'); title.setAttribute('align', 'center');
+    title.setAttribute('color', NEO.text); title.setAttribute('width', 2.3);
     container.appendChild(title);
     const score = document.createElement('a-text');
     score.setAttribute('value', quizScore + ' von ' + QUIZ_QUESTIONS.length + ' richtig');
-    score.setAttribute('position', '0 0.02 0.02'); score.setAttribute('align', 'center');
-    score.setAttribute('color', NEO.textSoft); score.setAttribute('width', 1.1);
+    score.setAttribute('position', '0 0.04 0.02'); score.setAttribute('align', 'center');
+    score.setAttribute('color', NEO.textSoft); score.setAttribute('width', 1.8);
     container.appendChild(score);
     const ratingEl = document.createElement('a-text');
     ratingEl.setAttribute('value', rating);
-    ratingEl.setAttribute('position', '0 -0.10 0.02'); ratingEl.setAttribute('align', 'center');
-    ratingEl.setAttribute('color', pct >= 60 ? '#047857' : '#92400e'); ratingEl.setAttribute('width', 1.2);
+    ratingEl.setAttribute('position', '0 -0.16 0.02'); ratingEl.setAttribute('align', 'center');
+    ratingEl.setAttribute('color', pct >= 60 ? '#047857' : '#92400e'); ratingEl.setAttribute('width', 2.0);
     container.appendChild(ratingEl);
-    makeButton(container, 'Zurueck', 0, -0.30, 0.40, 0.10, null, () => { quizActive = false; document.getElementById('quiz-container').setAttribute('visible', false); navigateTo('chemie'); });
+    makeButton(container, 'Zurueck', 0, -0.50, 0.66, 0.16, null, () => { quizActive = false; document.getElementById('quiz-container').setAttribute('visible', false); navigateTo('chemie'); });
 }
 
 function wrapText(text, maxChars) {
@@ -2273,27 +2271,27 @@ document.addEventListener('DOMContentLoaded', () => {
     <a-entity id="content-anchor" position="0 1.6 0">
 
         <!-- VR Navigation Panel (dynamic, state-driven) -->
-        <a-entity id="vr-nav" position="0 0 -1.2"></a-entity>
+        <a-entity id="vr-nav" position="0 0 -2.0"></a-entity>
 
         <!-- Back Button (persistent, top-right of view) -->
-        <a-entity id="vr-back-btn" position="0.62 0.48 -1.18" visible="false">
+        <a-entity id="vr-back-btn" position="1.0 0.75 -1.95" visible="false">
             <!-- Neumorphic back button -->
-            <a-plane width="0.26" height="0.09" position="0.004 -0.004 0"
+            <a-plane width="0.42" height="0.15" position="0.006 -0.006 0"
                 material="shader:flat; color:#a8b0c0; opacity:0.35; transparent:true; side:double"></a-plane>
-            <a-plane width="0.26" height="0.09" position="-0.003 0.003 0.003"
+            <a-plane width="0.42" height="0.15" position="-0.004 0.004 0.003"
                 material="shader:flat; color:#f8faff; opacity:0.4; transparent:true; side:double"></a-plane>
-            <a-plane width="0.26" height="0.09" color="#e0e5ef" opacity="0.94"
+            <a-plane width="0.42" height="0.15" color="#e0e5ef" opacity="0.94"
                 class="interactive" id="back-btn-plane"
                 material="shader:flat; side:double"></a-plane>
             <a-text value="\u2190 Zurueck" position="0 0 0.01" align="center"
-                color="#3a4060" width="0.6"></a-text>
+                color="#3a4060" width="1.0"></a-text>
         </a-entity>
 
         <!-- Content Containers (all hidden until loaded) -->
-        <a-entity id="mol-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="physics-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="math-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="quiz-container" position="0 0 -1.15" visible="false"></a-entity>
+        <a-entity id="mol-container" position="0 0 -2.0" visible="false"></a-entity>
+        <a-entity id="physics-container" position="0 0 -2.0" visible="false"></a-entity>
+        <a-entity id="math-container" position="0 0 -2.0" visible="false"></a-entity>
+        <a-entity id="quiz-container" position="0 0 -1.95" visible="false"></a-entity>
 
     </a-entity>
 
