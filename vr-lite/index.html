@@ -1469,6 +1469,7 @@ function calibrateVR() {
 }
 
 function navigateTo(state) {
+    console.log('[BeGreifbar] navigateTo:', state);
     navState = state;
     ['mol-container','physics-container','math-container','quiz-container'].forEach(id => {
         const el = document.getElementById(id);
@@ -1856,8 +1857,20 @@ function wrapText(text, maxChars) {
 function startVR() {
     document.getElementById('overlay').classList.add('hidden');
     document.getElementById('info-bar').style.display = 'flex';
-    enterStereoVR();
-    setTimeout(() => navigateTo('calibrate'), 300);
+    const sceneEl = document.getElementById('scene');
+    function doStart() {
+        console.log('[BeGreifbar] Scene ready, activating VR...');
+        enterStereoVR();
+        setTimeout(() => navigateTo('calibrate'), 300);
+    }
+    if (sceneEl && sceneEl.hasLoaded) {
+        doStart();
+    } else if (sceneEl) {
+        console.log('[BeGreifbar] Waiting for scene to load...');
+        sceneEl.addEventListener('loaded', doStart, { once: true });
+    } else {
+        console.error('[BeGreifbar] Scene element not found!');
+    }
 }
 
 function updateHUD(name, formula) {
@@ -1871,8 +1884,11 @@ function updateHUD(name, formula) {
 
 function enterStereoVR() {
     const sceneEl = document.getElementById('scene');
-    const comp = sceneEl.components['stereo-renderer'];
+    console.log('[BeGreifbar] enterStereoVR, scene:', !!sceneEl, 'hasLoaded:', sceneEl?.hasLoaded);
+    const comp = sceneEl ? sceneEl.components['stereo-renderer'] : null;
+    console.log('[BeGreifbar] stereo-renderer component:', !!comp);
     if (comp) comp.activate();
+    else console.error('[BeGreifbar] stereo-renderer component NOT found!');
 }
 
 function exitStereoVR() {
