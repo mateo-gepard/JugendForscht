@@ -11,87 +11,85 @@
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#08080f;--card:rgba(18,20,32,0.85);--accent:#6c8aff;--accent2:#a78bfa;--accent3:#34d399;--text:#e8eaed;--text2:#9aa0b0;--text3:#5c6378;--border:rgba(255,255,255,0.07);--glow:rgba(108,138,255,0.25);--r:16px}
+:root{--bg:#e4e8ee;--card:#e4e8ee;--accent:#5b7fff;--accent-soft:rgba(91,127,255,0.1);--text:#1a1d23;--text2:#5a6270;--text3:#8e95a0;--white:#fff;--shadow-d:rgba(163,177,198,0.6);--shadow-l:rgba(255,255,255,0.85);--neo:6px 6px 14px var(--shadow-d),-6px -6px 14px var(--shadow-l);--neo-sm:3px 3px 8px var(--shadow-d),-3px -3px 8px var(--shadow-l);--neo-in:inset 3px 3px 6px var(--shadow-d),inset -3px -3px 6px var(--shadow-l);--r:20px;--r-sm:14px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 
 /* ═══ OVERLAY / LANDING PAGE ═══ */
-#overlay{position:fixed;inset:0;z-index:1000;overflow-y:auto;overflow-x:hidden;transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.4,0,.2,1)}
-#overlay.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
-.bg-mesh{position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 20% 50%,rgba(108,138,255,.12),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(167,139,250,.1),transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(52,211,153,.06),transparent 50%),linear-gradient(180deg,#08080f 0%,#0c0c1a 50%,#08080f 100%)}
-.stars{position:fixed;inset:0;z-index:-1;overflow:hidden}
-.stars span{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s infinite alternate}
-@keyframes twinkle{0%{opacity:.2;transform:scale(1)}100%{opacity:1;transform:scale(1.3)}}
-.container{max-width:520px;margin:0 auto;padding:16px;position:relative;z-index:1}
+#overlay{position:fixed;inset:0;z-index:1000;overflow-y:auto;overflow-x:hidden;background:var(--bg);transition:opacity .5s ease,transform .5s ease}
+#overlay.hidden{opacity:0;transform:scale(1.03);pointer-events:none}
+.container{max-width:480px;margin:0 auto;padding:20px 20px 32px}
 
 /* Header */
-.header{display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px}
-.logo{display:flex;align-items:center;gap:12px}
-.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 20px var(--glow)}
-.logo h1{font-size:18px;font-weight:800;letter-spacing:-.5px}
-.logo span{display:block;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
-.badge{padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(52,211,153,.12);color:var(--accent3);border:1px solid rgba(52,211,153,.2)}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 24px}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo-sm);background:var(--bg)}
+.logo-icon svg{width:24px;height:24px;color:var(--accent)}
+.logo h1{font-size:19px;font-weight:700;letter-spacing:-.3px;color:var(--text)}
+.logo .sub{display:block;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.badge{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;color:var(--accent);box-shadow:var(--neo-sm);background:var(--bg)}
 
 /* Hero */
-.hero{text-align:center;padding:32px 0 24px}
-.hero h2{font-size:28px;font-weight:800;letter-spacing:-.5px;line-height:1.2;background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero p{color:var(--text2);font-size:14px;margin-top:10px;line-height:1.6;max-width:360px;margin-left:auto;margin-right:auto}
-.hero-glow{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--glow),transparent 70%);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;animation:pulse 3s ease-in-out infinite}
-.hero-glow .emoji{font-size:52px;filter:drop-shadow(0 0 20px var(--glow))}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+.hero{text-align:center;padding:20px 0 28px}
+.hero-icon{width:80px;height:80px;border-radius:28px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;box-shadow:var(--neo);background:var(--bg)}
+.hero-icon svg{width:36px;height:36px;color:var(--accent)}
+.hero h2{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1.25;color:var(--text)}
+.hero p{color:var(--text2);font-size:14px;margin-top:10px;line-height:1.65;max-width:340px;margin-left:auto;margin-right:auto;font-weight:400}
 
 /* Search */
-.search-wrap{position:relative;margin:0 0 20px}
-.search-wrap input{width:100%;padding:14px 48px 14px 18px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;backdrop-filter:blur(12px)}
-.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.search-wrap{position:relative;margin:0 0 24px}
+.search-wrap input{width:100%;padding:15px 52px 15px 20px;border-radius:var(--r);border:none;background:var(--bg);color:var(--text);font-size:15px;font-family:inherit;font-weight:400;outline:none;box-shadow:var(--neo-in);transition:box-shadow .2s}
+.search-wrap input:focus{box-shadow:var(--neo-in),0 0 0 2px var(--accent)}
 .search-wrap input::placeholder{color:var(--text3)}
-.search-wrap button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
-.search-wrap button:active{transform:translateY(-50%) scale(.9)}
+.search-wrap button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:var(--r-sm);border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 6px rgba(91,127,255,.35);transition:transform .15s}
+.search-wrap button:active{transform:translateY(-50%) scale(.92)}
+.search-wrap button svg{width:18px;height:18px}
 
 /* Molecule Grid */
-.section-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin:0 0 12px;padding:0 4px}
-.mol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-.mol-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);user-select:none;-webkit-user-select:none}
-.mol-card:active{transform:scale(.94);background:rgba(108,138,255,.12);border-color:rgba(108,138,255,.3)}
-.mol-card .icon{font-size:28px;margin-bottom:6px;display:block}
-.mol-card .name{font-size:12px;font-weight:600;margin-bottom:2px}
-.mol-card .formula{font-size:11px;color:var(--text3);font-weight:500}
+.section-label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin:0 0 14px;padding:0 4px}
+.mol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.mol-card{background:var(--bg);border-radius:var(--r);padding:16px 8px 14px;text-align:center;cursor:pointer;box-shadow:var(--neo-sm);transition:all .15s;user-select:none;-webkit-user-select:none;border:2px solid transparent}
+.mol-card:active,.mol-card.selected{box-shadow:var(--neo-in);border-color:var(--accent)}
+.mol-card .formula-badge{display:inline-block;font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:10px;margin-bottom:8px;letter-spacing:.3px}
+.mol-card .name{font-size:12px;font-weight:600;color:var(--text)}
 
 /* CTA Buttons */
-.cta-row{display:flex;gap:10px;margin:20px 0}
-.btn{flex:1;padding:16px;border-radius:14px;border:none;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;user-select:none}
-.btn:active{transform:scale(.96)}
-.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 20px var(--glow)}
-.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.cta-row{display:flex;gap:12px;margin:24px 0}
+.btn{flex:1;padding:16px;border-radius:var(--r);border:none;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px;user-select:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:4px 4px 12px rgba(91,127,255,.35),-2px -2px 8px var(--shadow-l)}
+.btn-primary:active{box-shadow:inset 2px 2px 6px rgba(0,0,0,.15)}
+.btn-secondary{background:var(--bg);color:var(--text);box-shadow:var(--neo-sm)}
+.btn-secondary:active{box-shadow:var(--neo-in)}
+.btn svg{width:20px;height:20px}
 
 /* Info Cards */
-.info-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
-.info-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
-.info-card .ic-icon{font-size:20px;margin-bottom:4px}
+.info-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.info-card{background:var(--bg);border-radius:var(--r-sm);padding:16px 10px;text-align:center;box-shadow:var(--neo-sm)}
+.info-card svg{width:22px;height:22px;color:var(--accent);margin-bottom:6px}
 .info-card .ic-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 
 /* Footer */
-.footer{text-align:center;padding:20px 0 32px;color:var(--text3);font-size:12px}
-.footer a{color:var(--accent);text-decoration:none}
+.footer{text-align:center;padding:16px 0 8px;color:var(--text3);font-size:12px;font-weight:500}
 
 /* Toast */
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);z-index:9999;padding:12px 24px;border-radius:12px;background:rgba(18,20,32,.95);color:var(--text);font-size:13px;font-weight:500;border:1px solid var(--border);backdrop-filter:blur(12px);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);z-index:9999;padding:12px 24px;border-radius:var(--r-sm);background:var(--text);color:#fff;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* Loading */
-.loading-overlay{position:fixed;inset:0;z-index:2000;background:rgba(8,8,15,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay{position:fixed;inset:0;z-index:2000;background:rgba(228,232,238,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(8px)}
 .loading-overlay.show{opacity:1;pointer-events:all}
-.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.spinner{width:40px;height:40px;border:3px solid var(--shadow-d);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:var(--text2);font-size:14px;font-weight:500}
 
-/* ═══ VR INFO BAR (2D mode) ═══ */
-#info-bar{position:fixed;bottom:0;left:0;right:0;z-index:500;padding:12px 16px;background:rgba(8,8,15,.9);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-#info-bar .mol-info{font-size:13px;font-weight:600}
+/* ═══ INFO BAR (2D mode) ═══ */
+#info-bar{position:fixed;bottom:0;left:0;right:0;z-index:500;padding:12px 16px;background:rgba(228,232,238,.92);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:space-between}
+#info-bar .mol-info{font-size:13px;font-weight:600;color:var(--text)}
 #info-bar .mol-info small{color:var(--text3);font-weight:400;margin-left:6px}
 #info-bar .bar-actions{display:flex;gap:8px}
-#info-bar .bar-btn{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
-#info-bar .bar-btn:active{background:rgba(108,138,255,.15)}
+#info-bar .bar-btn{padding:8px 14px;border-radius:10px;border:none;background:var(--bg);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:var(--neo-sm)}
+#info-bar .bar-btn:active{box-shadow:var(--neo-in)}
 
 /* A-Frame overrides */
 .a-enter-vr-button{display:none!important}
@@ -115,43 +113,62 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 
 <!-- ═══════════════ LANDING PAGE ═══════════════ -->
 <div id="overlay">
-    <div class="bg-mesh"></div>
-    <div class="stars" id="stars"></div>
     <div class="container">
         <header class="header">
             <div class="logo">
-                <div class="logo-icon">⚗️</div>
-                <div><h1>MolekülVR</h1><span>Lite Edition</span></div>
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2.2 6 5.88"/><path d="M17.5 5.88 15 2.2"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/><path d="m8 18-2 3"/><path d="m16 18 2 3"/></svg>
+                </div>
+                <div><h1>MolekülVR</h1><span class="sub">Lite Edition</span></div>
             </div>
-            <div class="badge">📱 Mobile VR</div>
+            <div class="badge">Mobile VR</div>
         </header>
 
         <section class="hero">
-            <div class="hero-glow"><div class="emoji">🧬</div></div>
-            <h2>Moleküle in Virtual Reality erleben</h2>
-            <p>Lade 3D-Moleküle direkt im Browser und betrachte sie in VR mit deiner Cardboard-Brille.</p>
+            <div class="hero-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </div>
+            <h2>Moleküle in Virtual Reality</h2>
+            <p>Lade 3D-Moleküle direkt im Browser und betrachte sie stereoskopisch mit deiner Cardboard-Brille.</p>
         </section>
 
         <div class="search-wrap">
-            <input type="text" id="search-input" placeholder="Molekül suchen... (z.B. caffeine)" autocomplete="off" autocapitalize="off" spellcheck="false">
-            <button onclick="searchMolecule()" aria-label="Suchen">🔍</button>
+            <input type="text" id="search-input" placeholder="Molekül suchen..." autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button onclick="searchMolecule()" aria-label="Suchen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
         </div>
 
-        <div class="section-title">Beliebte Moleküle</div>
+        <div class="section-label">Moleküle</div>
         <div class="mol-grid" id="mol-grid"></div>
 
         <div class="cta-row">
-            <button class="btn btn-primary" onclick="enterWithMolecule()">🥽 VR Starten</button>
-            <button class="btn btn-secondary" onclick="startQuizFromMenu()">❓ Quiz</button>
+            <button class="btn btn-primary" onclick="enterWithMolecule()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="22" height="12" rx="3"/><path d="M12 6v2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/></svg>
+                VR Starten
+            </button>
+            <button class="btn btn-secondary" onclick="startQuizFromMenu()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                Quiz
+            </button>
         </div>
 
         <div class="info-cards">
-            <div class="info-card"><div class="ic-icon">👀</div><div class="ic-label">Gaze-Steuerung</div></div>
-            <div class="info-card"><div class="ic-icon">📱</div><div class="ic-label">Gyroscope 3DoF</div></div>
-            <div class="info-card"><div class="ic-icon">🧪</div><div class="ic-label">PubChem API</div></div>
+            <div class="info-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 5v-.5"/><path d="M12 19.5V19"/><path d="m5.06 5.06-.35-.36"/><path d="m18.95 18.95-.35-.36"/><path d="M5 12h-.5"/><path d="M19.5 12H19"/><path d="m5.06 18.95-.35.35"/><path d="m18.95 5.06-.35.35"/></svg>
+                <div class="ic-label">Gaze-Cursor</div>
+            </div>
+            <div class="info-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><polyline points="22 2 22 8 16 8"/></svg>
+                <div class="ic-label">Gyroscope</div>
+            </div>
+            <div class="info-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2.2 6 5.88"/><path d="M17.5 5.88 15 2.2"/><circle cx="12" cy="12" r="3"/><path d="M12 15v7"/></svg>
+                <div class="ic-label">PubChem</div>
+            </div>
         </div>
 
-        <div class="footer">Jugend Forscht · Molekulare Geometrie · 2026<br><span style="font-size:11px;color:var(--text3)">Für Google Cardboard & kompatible VR-Brillen</span></div>
+        <div class="footer">Jugend Forscht · Molekulare Geometrie · 2026</div>
     </div>
 </div>
 
@@ -162,10 +179,10 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 <div id="info-bar" style="display:none">
     <div class="mol-info" id="mol-info-text">—</div>
     <div class="bar-actions">
-        <button class="bar-btn" onclick="enterStereoVR()">🥽 VR</button>
-        <button class="bar-btn" onclick="showVRMenu()">📋 Menü</button>
-        <button class="bar-btn" onclick="startQuizMode()">❓ Quiz</button>
-        <button class="bar-btn" onclick="backToLanding()">✕</button>
+        <button class="bar-btn" onclick="enterStereoVR()">VR</button>
+        <button class="bar-btn" onclick="showVRMenu()">Menü</button>
+        <button class="bar-btn" onclick="startQuizMode()">Quiz</button>
+        <button class="bar-btn" onclick="backToLanding()">Zurück</button>
     </div>
 </div>
 
@@ -1230,7 +1247,6 @@ function enterWithMolecule() {
     const preset = PRESETS.find(p => p.name === name) || { name, label: name, formula: '' };
     loadAndDisplay(preset.name, preset.label, preset.formula).then(() => {
         document.getElementById('overlay').classList.add('hidden');
-        // Activate stereo VR split-screen
         enterStereoVR();
     });
 }
@@ -1262,7 +1278,6 @@ function searchMolecule() {
 function backToLanding() {
     document.getElementById('overlay').classList.remove('hidden');
     document.getElementById('info-bar').style.display = 'none';
-    // Clear quiz
     quizActive = false;
     document.getElementById('quiz-container').setAttribute('visible', false);
     if (menuVisible) toggleVRMenu();
@@ -1297,31 +1312,16 @@ function showToast(msg) {
 // ══════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Generate stars on landing page
-    const starsEl = document.getElementById('stars');
-    for (let i = 0; i < 80; i++) {
-        const s = document.createElement('span');
-        s.style.left = Math.random() * 100 + '%';
-        s.style.top = Math.random() * 100 + '%';
-        const size = 1 + Math.random() * 2;
-        s.style.width = size + 'px';
-        s.style.height = size + 'px';
-        s.style.animationDelay = Math.random() * 3 + 's';
-        s.style.animationDuration = (2 + Math.random() * 3) + 's';
-        starsEl.appendChild(s);
-    }
-
-    // Build molecule grid
+    // Build molecule grid (neomorphic cards, no emojis)
     const grid = document.getElementById('mol-grid');
     PRESETS.forEach(p => {
         const card = document.createElement('div');
         card.className = 'mol-card';
-        card.innerHTML = `<span class="icon">${p.icon}</span><div class="name">${p.label}</div><div class="formula">${p.formula}</div>`;
+        card.innerHTML = `<div class="formula-badge">${p.formula}</div><div class="name">${p.label}</div>`;
         card.addEventListener('click', () => {
             selectedPreset = p.name;
-            // Highlight selected
-            grid.querySelectorAll('.mol-card').forEach(c => c.style.borderColor = '');
-            card.style.borderColor = 'rgba(108,138,255,0.5)';
+            grid.querySelectorAll('.mol-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
             showToast(`${p.label} ausgewählt`);
         });
         grid.appendChild(card);
@@ -1366,10 +1366,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-
-    // Menu toggle (look up in VR — using touch on screen for 2D)
-    // In 2D mode, menu is accessible via the info bar buttons
 });
 </script>
 </body>
 </html>
+
