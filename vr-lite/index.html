@@ -486,7 +486,7 @@ function renderMathSurface(fn, exprText) {
     labelEl.setAttribute('position', '0 -0.5 0');
     labelEl.setAttribute('align', 'center');
     labelEl.setAttribute('color', '#9aa0b0');
-    labelEl.setAttribute('width', '1.5');
+    labelEl.setAttribute('width', '2.2');
     container.appendChild(labelEl);
 
     // Axis labels
@@ -495,7 +495,7 @@ function renderMathSurface(fn, exprText) {
         l.setAttribute('value', txt);
         l.setAttribute('align', 'center');
         l.setAttribute('color', '#6c8aff');
-        l.setAttribute('width', '0.8');
+        l.setAttribute('width', '1.2');
         const p = i===0 ? `0.14 -0.04 0` : i===1 ? `0 -0.04 0.14` : `0.02 0.14 0`;
         l.setAttribute('position', p);
         container.appendChild(l);
@@ -579,7 +579,7 @@ const LorentzSim = {
         bLabel.setAttribute('position', `${this.boxSize*0.3} ${this.boxSize*0.3} 0`);
         bLabel.setAttribute('align', 'center');
         bLabel.setAttribute('color', '#6688ff');
-        bLabel.setAttribute('width', '0.5');
+        bLabel.setAttribute('width', '0.8');
         container.appendChild(bLabel);
 
         // Particle sphere (BIGGER)
@@ -595,7 +595,7 @@ const LorentzSim = {
         this.entities.chargeLabel.setAttribute('position', '0 0.04 0');
         this.entities.chargeLabel.setAttribute('align', 'center');
         this.entities.chargeLabel.setAttribute('color', '#ffffff');
-        this.entities.chargeLabel.setAttribute('width', '0.35');
+        this.entities.chargeLabel.setAttribute('width', '0.55');
         this.entities.particle.appendChild(this.entities.chargeLabel);
 
         // Formula
@@ -604,7 +604,7 @@ const LorentzSim = {
         formulaEl.setAttribute('position', `0 ${-this.boxSize*0.35} 0`);
         formulaEl.setAttribute('align', 'center');
         formulaEl.setAttribute('color', '#ff8866');
-        formulaEl.setAttribute('width', '0.8');
+        formulaEl.setAttribute('width', '1.2');
         container.appendChild(formulaEl);
 
         // VR buttons
@@ -622,13 +622,22 @@ const LorentzSim = {
             {label:'Start', x:0.18, fn:'lorentzPlay'},
         ];
         btnData.forEach(b => {
+            // Neumorphic button: shadow layer
+            const shadow = document.createElement('a-plane');
+            shadow.setAttribute('width', 0.15);
+            shadow.setAttribute('height', 0.065);
+            shadow.setAttribute('position', `${b.x+0.003} ${-this.boxSize*0.45 - 0.003} 0.005`);
+            shadow.setAttribute('material', 'color:#b0b8c8; opacity:0.4; transparent:true; shader:flat; side:double');
+            container.appendChild(shadow);
+            // Main button
             const bg = document.createElement('a-plane');
-            bg.setAttribute('width', 0.14);
-            bg.setAttribute('height', 0.06);
+            bg.setAttribute('width', 0.15);
+            bg.setAttribute('height', 0.065);
             bg.setAttribute('position', `${b.x} ${-this.boxSize*0.45} 0.01`);
-            bg.setAttribute('color', '#334');
-            bg.setAttribute('opacity', 0.85);
+            bg.setAttribute('material', 'color:#e0e5ef; opacity:0.92; transparent:true; shader:flat; side:double');
             bg.setAttribute('class', 'interactive');
+            bg.addEventListener('mouseenter', () => { bg.setAttribute('material', 'color', '#d0d5e2'); bg.object3D.scale.set(1.06, 1.06, 1); });
+            bg.addEventListener('mouseleave', () => { bg.setAttribute('material', 'color', '#e0e5ef'); bg.object3D.scale.set(1, 1, 1); });
             bg.addEventListener('click', () => window[b.fn]());
             container.appendChild(bg);
 
@@ -636,8 +645,8 @@ const LorentzSim = {
             txt.setAttribute('value', b.label);
             txt.setAttribute('position', `${b.x} ${-this.boxSize*0.45} 0.015`);
             txt.setAttribute('align', 'center');
-            txt.setAttribute('color', '#ffffff');
-            txt.setAttribute('width', '0.4');
+            txt.setAttribute('color', '#3a4060');
+            txt.setAttribute('width', '0.55');
             container.appendChild(txt);
         });
     },
@@ -804,7 +813,7 @@ const InductionSim = {
         bLbl.setAttribute('value', 'B →');
         bLbl.setAttribute('position', `0.16 ${this.fieldTop+0.03} 0`);
         bLbl.setAttribute('color', '#4488ff');
-        bLbl.setAttribute('width', '0.5');
+        bLbl.setAttribute('width', '0.8');
         container.appendChild(bLbl);
 
         // Loop frame (4 edges)
@@ -834,7 +843,7 @@ const InductionSim = {
         this.entities.currentLabel.setAttribute('position', `0 ${hh+0.025} 0`);
         this.entities.currentLabel.setAttribute('align', 'center');
         this.entities.currentLabel.setAttribute('color', '#ffcc22');
-        this.entities.currentLabel.setAttribute('width', '0.6');
+        this.entities.currentLabel.setAttribute('width', '0.9');
         this.entities.loop.appendChild(this.entities.currentLabel);
 
         // Phase label
@@ -842,7 +851,7 @@ const InductionSim = {
         this.entities.phaseLabel.setAttribute('value', '');
         this.entities.phaseLabel.setAttribute('position', `0.14 0 0`);
         this.entities.phaseLabel.setAttribute('color', '#99aacc');
-        this.entities.phaseLabel.setAttribute('width', '0.4');
+        this.entities.phaseLabel.setAttribute('width', '0.6');
         this.entities.loop.appendChild(this.entities.phaseLabel);
 
         container.appendChild(this.entities.loop);
@@ -863,31 +872,40 @@ const InductionSim = {
         formula.setAttribute('position', `0 ${-0.35} 0`);
         formula.setAttribute('align', 'center');
         formula.setAttribute('color', '#ffcc44');
-        formula.setAttribute('width', '0.9');
+        formula.setAttribute('width', '1.3');
         container.appendChild(formula);
 
-        // VR controls
+        // VR controls — neumorphic style
         const btnData = [
-            {label:'▼ Drop', x:-0.20, fn:'inductionDrop'},
-            {label:'↺ Reset', x:0, fn:'inductionReset'},
-            {label:'⚡ Spalt', x:0.20, fn:'inductionToggleSlit'},
+            {label:'\u25BC Drop', x:-0.20, fn:'inductionDrop'},
+            {label:'\u21BA Reset', x:0, fn:'inductionReset'},
+            {label:'\u26A1 Spalt', x:0.20, fn:'inductionToggleSlit'},
         ];
         btnData.forEach(b => {
+            // Shadow layer
+            const shadow = document.createElement('a-plane');
+            shadow.setAttribute('width', 0.17);
+            shadow.setAttribute('height', 0.065);
+            shadow.setAttribute('position', `${b.x+0.003} ${-0.42 - 0.003} 0.005`);
+            shadow.setAttribute('material', 'color:#b0b8c8; opacity:0.4; transparent:true; shader:flat; side:double');
+            container.appendChild(shadow);
+            // Main button
             const bg = document.createElement('a-plane');
-            bg.setAttribute('width', 0.16);
-            bg.setAttribute('height', 0.06);
+            bg.setAttribute('width', 0.17);
+            bg.setAttribute('height', 0.065);
             bg.setAttribute('position', `${b.x} -0.42 0.01`);
-            bg.setAttribute('color', '#1a1d2e');
-            bg.setAttribute('opacity', 0.85);
+            bg.setAttribute('material', 'color:#e0e5ef; opacity:0.92; transparent:true; shader:flat; side:double');
             bg.setAttribute('class', 'interactive');
+            bg.addEventListener('mouseenter', () => { bg.setAttribute('material', 'color', '#d0d5e2'); bg.object3D.scale.set(1.06, 1.06, 1); });
+            bg.addEventListener('mouseleave', () => { bg.setAttribute('material', 'color', '#e0e5ef'); bg.object3D.scale.set(1, 1, 1); });
             bg.addEventListener('click', () => window[b.fn]());
             container.appendChild(bg);
             const txt = document.createElement('a-text');
             txt.setAttribute('value', b.label);
             txt.setAttribute('position', `${b.x} -0.42 0.015`);
             txt.setAttribute('align', 'center');
-            txt.setAttribute('color', '#ffffff');
-            txt.setAttribute('width', '0.5');
+            txt.setAttribute('color', '#3a4060');
+            txt.setAttribute('width', '0.65');
             container.appendChild(txt);
         });
 
@@ -1455,6 +1473,44 @@ let navState = 'pre';
 let activeModule = 'chemie';
 let currentMolecule = null;
 
+// Thoroughly clear all 3D content from all containers,
+// including raw THREE.js objects that A-Frame child removal misses.
+function clearAllContent() {
+    const containerIds = ['mol-container','physics-container','math-container','quiz-container'];
+    containerIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('visible', false);
+        // 1. Remove all A-Frame child elements
+        while (el.firstChild) el.removeChild(el.firstChild);
+        // 2. Remove raw THREE.js objects added directly to object3D
+        //    (math surfaces, Lorentz trails, axes, etc.)
+        if (el.object3D) {
+            const toRemove = [];
+            el.object3D.traverse(child => {
+                if (child !== el.object3D) toRemove.push(child);
+            });
+            toRemove.forEach(child => {
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) {
+                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                    else child.material.dispose();
+                }
+                if (child.parent) child.parent.remove(child);
+            });
+            el.object3D.userData = {};
+        }
+    });
+    // 3. Clean up Lorentz trail reference
+    if (LorentzSim.trailObj) {
+        if (LorentzSim.trailObj.geometry) LorentzSim.trailObj.geometry.dispose();
+        if (LorentzSim.trailObj.material) LorentzSim.trailObj.material.dispose();
+        LorentzSim.trailObj = null;
+    }
+    LorentzSim.running = false;
+    InductionSim.running = false;
+}
+
 function calibrateVR() {
     const cam = document.getElementById('camera');
     const anchor = document.getElementById('content-anchor');
@@ -1471,17 +1527,17 @@ function calibrateVR() {
 function navigateTo(state) {
     console.log('[BeGreifbar] navigateTo:', state);
     navState = state;
-    ['mol-container','physics-container','math-container','quiz-container'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.setAttribute('visible', false);
-    });
-    LorentzSim.running = false;
-    InductionSim.running = false;
+    // Thoroughly clear ALL 3D content (A-Frame elements + raw THREE.js objects)
+    clearAllContent();
+
+    // Clear leftover HUD text and atom labels so they don't stick to the gaze pointer
+    clearHUD();
+
     const backBtn = document.getElementById('vr-back-btn');
     if (backBtn) backBtn.setAttribute('visible', state !== 'calibrate' && state !== 'main');
     const nav = document.getElementById('vr-nav');
     while (nav.firstChild) nav.firstChild.remove();
-    nav.setAttribute('visible', state !== 'viewing');
+    nav.setAttribute('visible', state !== 'viewing' && state !== 'quiz');
     switch(state) {
         case 'calibrate': buildCalibrationPanel(nav); break;
         case 'main': buildMainMenu(nav); break;
@@ -1498,202 +1554,339 @@ function goBack() {
     else if (navState === 'chemie' || navState === 'physik' || navState === 'mathe') navigateTo('main');
 }
 
-function makePanel(parent, w, h, color, opacity) {
+// ═══ NEUMORPHIC VR DESIGN SYSTEM ═══
+// Matches the light neumorphic landing page: soft #e0e5ef bg, layered depth, accent gradients
+const NEO = {
+    bg: '#e0e5ef',
+    bgLight: '#eef1f7',
+    bgDark: '#c8cdd8',
+    shadow: '#a8b0c0',
+    highlight: '#f8faff',
+    text: '#2a2f3e',
+    textSoft: '#6b7280',
+    accent: '#5b7fff',
+    accent2: '#7c5cff',
+    accentSoft: '#8fa4ff',
+    success: '#34d399',
+    danger: '#ef4444',
+    cardBg: '#e4e8f0',
+};
+
+function makePanel(parent, w, h, _color, _opacity) {
+    // Outer shadow (bottom-right)
+    const shadowBR = document.createElement('a-plane');
+    shadowBR.setAttribute('width', w);
+    shadowBR.setAttribute('height', h);
+    shadowBR.setAttribute('material', `color:${NEO.shadow}; opacity:0.45; transparent:true; shader:flat; side:double`);
+    shadowBR.setAttribute('position', '0.008 -0.008 -0.02');
+    parent.appendChild(shadowBR);
+    // Inner highlight (top-left)
+    const highlightTL = document.createElement('a-plane');
+    highlightTL.setAttribute('width', w);
+    highlightTL.setAttribute('height', h);
+    highlightTL.setAttribute('material', `color:${NEO.highlight}; opacity:0.6; transparent:true; shader:flat; side:double`);
+    highlightTL.setAttribute('position', '-0.005 0.005 -0.015');
+    parent.appendChild(highlightTL);
+    // Main panel
     const bg = document.createElement('a-plane');
     bg.setAttribute('width', w);
     bg.setAttribute('height', h);
-    bg.setAttribute('material', `color:${color||'#1a1e2e'}; opacity:${opacity||0.88}; transparent:true; shader:flat; side:double`);
+    bg.setAttribute('material', `color:${NEO.bg}; opacity:0.94; transparent:true; shader:flat; side:double`);
     bg.setAttribute('position', '0 0 -0.01');
     parent.appendChild(bg);
+    // Subtle accent stripe at top
+    const stripe = document.createElement('a-plane');
+    stripe.setAttribute('width', w * 0.4);
+    stripe.setAttribute('height', 0.005);
+    stripe.setAttribute('material', `color:${NEO.accent}; opacity:0.6; transparent:true; shader:flat; side:double`);
+    stripe.setAttribute('position', `0 ${h/2 - 0.005} -0.005`);
+    parent.appendChild(stripe);
     return bg;
 }
 
-function makeButton(parent, label, x, y, w, h, color, onClick) {
+function makeButton(parent, label, x, y, w, h, accentColor, onClick, opts) {
+    opts = opts || {};
+    const isAccent = accentColor && accentColor !== '#444' && accentColor !== NEO.cardBg;
+    // Shadow layer
+    const shadow = document.createElement('a-plane');
+    shadow.setAttribute('width', w);
+    shadow.setAttribute('height', h);
+    shadow.setAttribute('position', `${x+0.004} ${y-0.004} 0.005`);
+    shadow.setAttribute('material', `color:${NEO.shadow}; opacity:0.35; transparent:true; shader:flat; side:double`);
+    parent.appendChild(shadow);
+    // Main button
     const plane = document.createElement('a-plane');
     plane.setAttribute('position', `${x} ${y} 0.01`);
     plane.setAttribute('width', w);
     plane.setAttribute('height', h);
     plane.setAttribute('class', 'interactive');
-    plane.setAttribute('material', `color:${color||'#2a2e40'}; opacity:0.9; transparent:true; shader:flat; side:double`);
-    plane.addEventListener('mouseenter', () => { plane.setAttribute('material', 'opacity', 1); plane.object3D.scale.set(1.05, 1.05, 1); });
-    plane.addEventListener('mouseleave', () => { plane.setAttribute('material', 'opacity', 0.9); plane.object3D.scale.set(1, 1, 1); });
+    const btnColor = isAccent ? (accentColor || NEO.accent) : NEO.bgLight;
+    plane.setAttribute('material', `color:${btnColor}; opacity:0.95; transparent:true; shader:flat; side:double`);
+    plane.addEventListener('mouseenter', () => {
+        plane.setAttribute('material', 'opacity', 1);
+        plane.object3D.scale.set(1.06, 1.06, 1);
+        shadow.setAttribute('material', 'opacity', 0.15);
+    });
+    plane.addEventListener('mouseleave', () => {
+        plane.setAttribute('material', 'opacity', 0.95);
+        plane.object3D.scale.set(1, 1, 1);
+        shadow.setAttribute('material', 'opacity', 0.35);
+    });
     plane.addEventListener('click', onClick);
     parent.appendChild(plane);
     const txt = document.createElement('a-text');
     txt.setAttribute('value', label);
     txt.setAttribute('position', `${x} ${y} 0.02`);
     txt.setAttribute('align', 'center');
-    txt.setAttribute('color', '#ffffff');
-    txt.setAttribute('width', w * 0.85);
-    txt.setAttribute('wrapCount', Math.max(12, Math.floor(w * 30)));
+    txt.setAttribute('color', isAccent ? '#ffffff' : NEO.text);
+    txt.setAttribute('width', w * 1.3);
+    txt.setAttribute('wrapCount', Math.max(12, Math.floor(w * 22)));
     parent.appendChild(txt);
     return plane;
 }
 
+function makeNeoCard(parent, x, y, w, h, onClick) {
+    // Shadow
+    const shadow = document.createElement('a-plane');
+    shadow.setAttribute('width', w);
+    shadow.setAttribute('height', h);
+    shadow.setAttribute('position', `${x+0.005} ${y-0.005} 0.003`);
+    shadow.setAttribute('material', `color:${NEO.shadow}; opacity:0.35; transparent:true; shader:flat; side:double`);
+    parent.appendChild(shadow);
+    // Highlight
+    const hl = document.createElement('a-plane');
+    hl.setAttribute('width', w);
+    hl.setAttribute('height', h);
+    hl.setAttribute('position', `${x-0.003} ${y+0.003} 0.006`);
+    hl.setAttribute('material', `color:${NEO.highlight}; opacity:0.5; transparent:true; shader:flat; side:double`);
+    parent.appendChild(hl);
+    // Card face
+    const card = document.createElement('a-plane');
+    card.setAttribute('position', `${x} ${y} 0.01`);
+    card.setAttribute('width', w);
+    card.setAttribute('height', h);
+    card.setAttribute('class', 'interactive');
+    card.setAttribute('material', `color:${NEO.cardBg}; opacity:0.95; transparent:true; shader:flat; side:double`);
+    card.addEventListener('mouseenter', () => {
+        card.setAttribute('material', 'color', '#d8dce8');
+        card.object3D.scale.set(1.05, 1.05, 1);
+        shadow.setAttribute('material', 'opacity', 0.15);
+    });
+    card.addEventListener('mouseleave', () => {
+        card.setAttribute('material', 'color', NEO.cardBg);
+        card.object3D.scale.set(1, 1, 1);
+        shadow.setAttribute('material', 'opacity', 0.35);
+    });
+    card.addEventListener('click', onClick);
+    parent.appendChild(card);
+    return card;
+}
+
 function buildCalibrationPanel(nav) {
-    makePanel(nav, 1.2, 0.7, '#0f1228', 0.92);
+    makePanel(nav, 1.4, 0.8);
+    // Logo icon accent
+    const iconBg = document.createElement('a-plane');
+    iconBg.setAttribute('width', 0.1);
+    iconBg.setAttribute('height', 0.1);
+    iconBg.setAttribute('position', '0 0.30 0.02');
+    iconBg.setAttribute('material', `color:${NEO.accent}; opacity:0.15; transparent:true; shader:flat; side:double`);
+    nav.appendChild(iconBg);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'BeGreifbar Lite');
-    title.setAttribute('position', '0 0.22 0.02');
+    title.setAttribute('position', '0 0.18 0.02');
     title.setAttribute('align', 'center');
-    title.setAttribute('color', '#6c8aff');
-    title.setAttribute('width', 1.0);
+    title.setAttribute('color', NEO.accent);
+    title.setAttribute('width', 1.6);
     nav.appendChild(title);
+    const edition = document.createElement('a-text');
+    edition.setAttribute('value', 'LITE EDITION');
+    edition.setAttribute('position', '0 0.10 0.02');
+    edition.setAttribute('align', 'center');
+    edition.setAttribute('color', NEO.textSoft);
+    edition.setAttribute('width', 0.7);
+    nav.appendChild(edition);
+    // Divider line
+    const divider = document.createElement('a-plane');
+    divider.setAttribute('width', 0.6);
+    divider.setAttribute('height', 0.002);
+    divider.setAttribute('position', '0 0.04 0.02');
+    divider.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
+    nav.appendChild(divider);
     const hint = document.createElement('a-text');
     hint.setAttribute('value', 'Schau geradeaus und waehle:');
-    hint.setAttribute('position', '0 0.08 0.02');
+    hint.setAttribute('position', '0 -0.02 0.02');
     hint.setAttribute('align', 'center');
-    hint.setAttribute('color', '#aab');
-    hint.setAttribute('width', 0.8);
+    hint.setAttribute('color', NEO.textSoft);
+    hint.setAttribute('width', 1.1);
     nav.appendChild(hint);
-    makeButton(nav, 'Kalibrieren & Start', 0, -0.12, 0.6, 0.14, '#6c8aff', () => calibrateVR());
+    makeButton(nav, 'Kalibrieren & Start', 0, -0.18, 0.65, 0.14, NEO.accent, () => calibrateVR());
 }
 
 function buildMainMenu(nav) {
-    makePanel(nav, 1.4, 0.9, '#0f1228', 0.9);
+    makePanel(nav, 1.6, 1.1);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Fach waehlen');
-    title.setAttribute('position', '0 0.32 0.02');
+    title.setAttribute('position', '0 0.40 0.02');
     title.setAttribute('align', 'center');
-    title.setAttribute('color', '#ffffff');
-    title.setAttribute('width', 0.9);
+    title.setAttribute('color', NEO.text);
+    title.setAttribute('width', 1.5);
     nav.appendChild(title);
+    const subtitle = document.createElement('a-text');
+    subtitle.setAttribute('value', 'Waehle ein Themengebiet');
+    subtitle.setAttribute('position', '0 0.30 0.02');
+    subtitle.setAttribute('align', 'center');
+    subtitle.setAttribute('color', NEO.textSoft);
+    subtitle.setAttribute('width', 0.9);
+    nav.appendChild(subtitle);
     const subjects = [
-        { label: 'Chemie', icon: 'Molekuele', color: '#2a6fff', state: 'chemie' },
-        { label: 'Physik', icon: 'Simulationen', color: '#ff6644', state: 'physik' },
-        { label: 'Mathe', icon: '3D Funktionen', color: '#44cc88', state: 'mathe' },
+        { label: 'Chemie', icon: 'Molekuele', color: NEO.accent, iconEmoji: '\u269B', state: 'chemie' },
+        { label: 'Physik', icon: 'Simulationen', color: '#e8725c', iconEmoji: '\u26A1', state: 'physik' },
+        { label: 'Mathe', icon: '3D Funktionen', color: '#3bb87a', iconEmoji: '\u03C0', state: 'mathe' },
     ];
     subjects.forEach((s, i) => {
-        const x = (i - 1) * 0.42;
-        const card = document.createElement('a-plane');
-        card.setAttribute('position', `${x} 0 0.01`);
-        card.setAttribute('width', 0.36);
-        card.setAttribute('height', 0.4);
-        card.setAttribute('class', 'interactive');
-        card.setAttribute('material', `color:${s.color}; opacity:0.7; transparent:true; shader:flat; side:double`);
-        card.addEventListener('mouseenter', () => { card.setAttribute('material', 'opacity', 1); card.object3D.scale.set(1.08, 1.08, 1); });
-        card.addEventListener('mouseleave', () => { card.setAttribute('material', 'opacity', 0.7); card.object3D.scale.set(1, 1, 1); });
-        card.addEventListener('click', () => navigateTo(s.state));
-        nav.appendChild(card);
+        const x = (i - 1) * 0.46;
+        const card = makeNeoCard(nav, x, 0.02, 0.40, 0.46, () => navigateTo(s.state));
+        // Color accent bar at top of card
+        const accentBar = document.createElement('a-plane');
+        accentBar.setAttribute('width', 0.28);
+        accentBar.setAttribute('height', 0.006);
+        accentBar.setAttribute('position', `${x} ${0.02 + 0.23 - 0.02} 0.015`);
+        accentBar.setAttribute('material', `color:${s.color}; opacity:0.8; transparent:true; shader:flat; side:double`);
+        nav.appendChild(accentBar);
+        // Icon circle
+        const iconCircle = document.createElement('a-plane');
+        iconCircle.setAttribute('width', 0.08);
+        iconCircle.setAttribute('height', 0.08);
+        iconCircle.setAttribute('position', `${x} ${0.02 + 0.10} 0.02`);
+        iconCircle.setAttribute('material', `color:${s.color}; opacity:0.12; transparent:true; shader:flat; side:double`);
+        nav.appendChild(iconCircle);
         const nameEl = document.createElement('a-text');
         nameEl.setAttribute('value', s.label);
-        nameEl.setAttribute('position', `${x} 0.06 0.025`);
+        nameEl.setAttribute('position', `${x} ${0.02 - 0.02} 0.025`);
         nameEl.setAttribute('align', 'center');
-        nameEl.setAttribute('color', '#ffffff');
-        nameEl.setAttribute('width', 0.5);
+        nameEl.setAttribute('color', NEO.text);
+        nameEl.setAttribute('width', 0.7);
         nav.appendChild(nameEl);
-        const sub = document.createElement('a-text');
-        sub.setAttribute('value', s.icon);
-        sub.setAttribute('position', `${x} -0.08 0.025`);
-        sub.setAttribute('align', 'center');
-        sub.setAttribute('color', '#ddd');
-        sub.setAttribute('width', 0.3);
-        nav.appendChild(sub);
+        const descEl = document.createElement('a-text');
+        descEl.setAttribute('value', s.icon);
+        descEl.setAttribute('position', `${x} ${0.02 - 0.10} 0.025`);
+        descEl.setAttribute('align', 'center');
+        descEl.setAttribute('color', NEO.textSoft);
+        descEl.setAttribute('width', 0.45);
+        nav.appendChild(descEl);
     });
-    makeButton(nav, 'Neu kalibrieren', 0, -0.38, 0.4, 0.08, '#444', () => navigateTo('calibrate'));
+    makeButton(nav, 'Neu kalibrieren', 0, -0.44, 0.4, 0.08, null, () => navigateTo('calibrate'));
 }
 
 function buildChemieMenu(nav) {
     activeModule = 'chemie';
-    makePanel(nav, 1.5, 1.2, '#0f1228', 0.9);
+    makePanel(nav, 1.65, 1.4);
     const title = document.createElement('a-text');
-    title.setAttribute('value', 'Chemie - Molekuel waehlen');
-    title.setAttribute('position', '0 0.48 0.02');
+    title.setAttribute('value', 'Chemie');
+    title.setAttribute('position', '0 0.58 0.02');
     title.setAttribute('align', 'center');
-    title.setAttribute('color', '#6c8aff');
-    title.setAttribute('width', 1.0);
+    title.setAttribute('color', NEO.text);
+    title.setAttribute('width', 1.5);
     nav.appendChild(title);
-    const cols = 3, rows = 4, btnW = 0.42, btnH = 0.14, gapX = 0.04, gapY = 0.03;
-    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.30;
+    const subtitle = document.createElement('a-text');
+    subtitle.setAttribute('value', 'Molekuel waehlen');
+    subtitle.setAttribute('position', '0 0.48 0.02');
+    subtitle.setAttribute('align', 'center');
+    subtitle.setAttribute('color', NEO.textSoft);
+    subtitle.setAttribute('width', 0.9);
+    nav.appendChild(subtitle);
+    const cols = 3, rows = 4, btnW = 0.48, btnH = 0.15, gapX = 0.04, gapY = 0.025;
+    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.34;
     PRESETS.forEach((p, i) => {
         if (i >= cols * rows) return;
         const col = i % cols, row = Math.floor(i / cols);
         const x = startX + col * (btnW + gapX), y = startY - row * (btnH + gapY);
-        const plane = document.createElement('a-plane');
-        plane.setAttribute('position', `${x} ${y} 0.01`);
-        plane.setAttribute('width', btnW); plane.setAttribute('height', btnH);
-        plane.setAttribute('class', 'interactive');
-        plane.setAttribute('material', 'color:#1c2035; opacity:0.9; transparent:true; shader:flat; side:double');
-        plane.addEventListener('mouseenter', () => { plane.setAttribute('material', 'color', '#2a3050'); });
-        plane.addEventListener('mouseleave', () => { plane.setAttribute('material', 'color', '#1c2035'); });
-        plane.addEventListener('click', () => loadMoleculeVR(p.name, p.label, p.formula));
-        nav.appendChild(plane);
+        // Neumorphic card for each molecule
+        makeNeoCard(nav, x, y, btnW, btnH, () => loadMoleculeVR(p.name, p.label, p.formula));
         const lbl = document.createElement('a-text');
-        lbl.setAttribute('value', p.label); lbl.setAttribute('position', `${x} ${y+0.02} 0.025`);
-        lbl.setAttribute('align', 'center'); lbl.setAttribute('color', '#e8eaed');
-        lbl.setAttribute('width', btnW * 0.8); lbl.setAttribute('wrapCount', 16);
+        lbl.setAttribute('value', p.label); lbl.setAttribute('position', `${x} ${y+0.022} 0.025`);
+        lbl.setAttribute('align', 'center'); lbl.setAttribute('color', NEO.text);
+        lbl.setAttribute('width', btnW * 1.0); lbl.setAttribute('wrapCount', 14);
         nav.appendChild(lbl);
         const fml = document.createElement('a-text');
-        fml.setAttribute('value', p.formula); fml.setAttribute('position', `${x} ${y-0.03} 0.025`);
-        fml.setAttribute('align', 'center'); fml.setAttribute('color', '#6c8aff');
-        fml.setAttribute('width', btnW * 0.65); fml.setAttribute('wrapCount', 14);
+        fml.setAttribute('value', p.formula); fml.setAttribute('position', `${x} ${y-0.032} 0.025`);
+        fml.setAttribute('align', 'center'); fml.setAttribute('color', NEO.accent);
+        fml.setAttribute('width', btnW * 0.85); fml.setAttribute('wrapCount', 14);
         nav.appendChild(fml);
     });
-    makeButton(nav, 'Quiz starten', 0, -0.48, 0.4, 0.1, '#6c8aff', () => startQuizVR());
+    makeButton(nav, 'Quiz starten', 0, -0.56, 0.45, 0.11, NEO.accent, () => startQuizVR());
 }
 
 function buildPhysikMenu(nav) {
     activeModule = 'physik';
-    makePanel(nav, 1.2, 0.8, '#0f1228', 0.9);
+    makePanel(nav, 1.4, 1.0);
     const title = document.createElement('a-text');
-    title.setAttribute('value', 'Physik - Experiment waehlen');
-    title.setAttribute('position', '0 0.28 0.02'); title.setAttribute('align', 'center');
-    title.setAttribute('color', '#ff6644'); title.setAttribute('width', 0.9);
+    title.setAttribute('value', 'Physik');
+    title.setAttribute('position', '0 0.38 0.02'); title.setAttribute('align', 'center');
+    title.setAttribute('color', NEO.text); title.setAttribute('width', 1.4);
     nav.appendChild(title);
-    [{id:'lorentz',label:'Lorentzkraft',formula:'F = q(v x B)',x:-0.22,color:'#2244aa',fc:'#aaccff'},
-     {id:'induction',label:'Induktion',formula:'EMF = -dPhi/dt',x:0.22,color:'#cc5522',fc:'#ffccaa'}].forEach(item => {
-        const card = document.createElement('a-plane');
-        card.setAttribute('position', `${item.x} -0.02 0.01`);
-        card.setAttribute('width', 0.38); card.setAttribute('height', 0.3);
-        card.setAttribute('class', 'interactive');
-        card.setAttribute('material', `color:${item.color}; opacity:0.8; transparent:true; shader:flat; side:double`);
-        card.addEventListener('mouseenter', () => { card.setAttribute('material','opacity',1); card.object3D.scale.set(1.05,1.05,1); });
-        card.addEventListener('mouseleave', () => { card.setAttribute('material','opacity',0.8); card.object3D.scale.set(1,1,1); });
-        card.addEventListener('click', () => loadPhysicsVR(item.id));
-        nav.appendChild(card);
+    const subtitle = document.createElement('a-text');
+    subtitle.setAttribute('value', 'Experiment waehlen');
+    subtitle.setAttribute('position', '0 0.28 0.02'); subtitle.setAttribute('align', 'center');
+    subtitle.setAttribute('color', NEO.textSoft); subtitle.setAttribute('width', 0.9);
+    nav.appendChild(subtitle);
+    [{id:'lorentz',label:'Lorentzkraft',formula:'F = q(v x B)',x:-0.28,color:'#5b7fff',fc:NEO.accent},
+     {id:'induction',label:'Induktion',formula:'EMF = -dPhi/dt',x:0.28,color:'#e8725c',fc:'#e8725c'}].forEach(item => {
+        const card = makeNeoCard(nav, item.x, -0.04, 0.48, 0.40, () => loadPhysicsVR(item.id));
+        // Accent bar
+        const bar = document.createElement('a-plane');
+        bar.setAttribute('width', 0.30);
+        bar.setAttribute('height', 0.005);
+        bar.setAttribute('position', `${item.x} ${-0.04 + 0.18} 0.015`);
+        bar.setAttribute('material', `color:${item.color}; opacity:0.7; transparent:true; shader:flat; side:double`);
+        nav.appendChild(bar);
+        // Icon badge
+        const badge = document.createElement('a-plane');
+        badge.setAttribute('width', 0.07);
+        badge.setAttribute('height', 0.07);
+        badge.setAttribute('position', `${item.x} ${-0.04 + 0.08} 0.02`);
+        badge.setAttribute('material', `color:${item.color}; opacity:0.1; transparent:true; shader:flat; side:double`);
+        nav.appendChild(badge);
         let txt = document.createElement('a-text');
-        txt.setAttribute('value', item.label); txt.setAttribute('position', `${item.x} 0.04 0.025`);
-        txt.setAttribute('align', 'center'); txt.setAttribute('color', '#fff'); txt.setAttribute('width', 0.4);
+        txt.setAttribute('value', item.label); txt.setAttribute('position', `${item.x} ${-0.04 - 0.02} 0.025`);
+        txt.setAttribute('align', 'center'); txt.setAttribute('color', NEO.text); txt.setAttribute('width', 0.65);
         nav.appendChild(txt);
         txt = document.createElement('a-text');
-        txt.setAttribute('value', item.formula); txt.setAttribute('position', `${item.x} -0.06 0.025`);
-        txt.setAttribute('align', 'center'); txt.setAttribute('color', item.fc); txt.setAttribute('width', 0.3);
+        txt.setAttribute('value', item.formula); txt.setAttribute('position', `${item.x} ${-0.04 - 0.10} 0.025`);
+        txt.setAttribute('align', 'center'); txt.setAttribute('color', item.fc); txt.setAttribute('width', 0.5);
         nav.appendChild(txt);
     });
 }
 
 function buildMatheMenu(nav) {
     activeModule = 'mathe';
-    makePanel(nav, 1.4, 1.1, '#0f1228', 0.9);
+    makePanel(nav, 1.6, 1.3);
     const title = document.createElement('a-text');
-    title.setAttribute('value', 'Mathe - Funktion waehlen');
-    title.setAttribute('position', '0 0.42 0.02'); title.setAttribute('align', 'center');
-    title.setAttribute('color', '#44cc88'); title.setAttribute('width', 0.9);
+    title.setAttribute('value', 'Mathe');
+    title.setAttribute('position', '0 0.52 0.02'); title.setAttribute('align', 'center');
+    title.setAttribute('color', NEO.text); title.setAttribute('width', 1.4);
     nav.appendChild(title);
-    const cols = 3, rows = 3, btnW = 0.38, btnH = 0.14, gapX = 0.04, gapY = 0.03;
-    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.22;
+    const mathSub = document.createElement('a-text');
+    mathSub.setAttribute('value', 'Funktion waehlen');
+    mathSub.setAttribute('position', '0 0.42 0.02'); mathSub.setAttribute('align', 'center');
+    mathSub.setAttribute('color', NEO.textSoft); mathSub.setAttribute('width', 0.9);
+    nav.appendChild(mathSub);
+    const cols = 3, rows = 3, btnW = 0.46, btnH = 0.16, gapX = 0.04, gapY = 0.03;
+    const startX = -((cols - 1) * (btnW + gapX)) / 2, startY = 0.24;
     MATH_PRESETS.forEach((p, i) => {
         if (i >= cols * rows) return;
         const col = i % cols, row = Math.floor(i / cols);
         const x = startX + col * (btnW + gapX), y = startY - row * (btnH + gapY);
-        const plane = document.createElement('a-plane');
-        plane.setAttribute('position', `${x} ${y} 0.01`);
-        plane.setAttribute('width', btnW); plane.setAttribute('height', btnH);
-        plane.setAttribute('class', 'interactive');
-        plane.setAttribute('material', 'color:#1c3028; opacity:0.9; transparent:true; shader:flat; side:double');
-        plane.addEventListener('mouseenter', () => { plane.setAttribute('material', 'color', '#2a4838'); });
-        plane.addEventListener('mouseleave', () => { plane.setAttribute('material', 'color', '#1c3028'); });
-        plane.addEventListener('click', () => loadMathVR(p.expr, p.label));
-        nav.appendChild(plane);
+        makeNeoCard(nav, x, y, btnW, btnH, () => loadMathVR(p.expr, p.label));
         const lbl = document.createElement('a-text');
-        lbl.setAttribute('value', p.expr); lbl.setAttribute('position', `${x} ${y+0.02} 0.025`);
-        lbl.setAttribute('align', 'center'); lbl.setAttribute('color', '#44cc88');
-        lbl.setAttribute('width', btnW * 0.8); lbl.setAttribute('wrapCount', 14);
+        lbl.setAttribute('value', p.expr); lbl.setAttribute('position', `${x} ${y+0.025} 0.025`);
+        lbl.setAttribute('align', 'center'); lbl.setAttribute('color', '#3bb87a');
+        lbl.setAttribute('width', btnW * 1.1); lbl.setAttribute('wrapCount', 14);
         nav.appendChild(lbl);
         const sub = document.createElement('a-text');
-        sub.setAttribute('value', p.label); sub.setAttribute('position', `${x} ${y-0.03} 0.025`);
-        sub.setAttribute('align', 'center'); sub.setAttribute('color', '#aaa');
-        sub.setAttribute('width', btnW * 0.65); sub.setAttribute('wrapCount', 16);
+        sub.setAttribute('value', p.label); sub.setAttribute('position', `${x} ${y-0.035} 0.025`);
+        sub.setAttribute('align', 'center'); sub.setAttribute('color', NEO.textSoft);
+        sub.setAttribute('width', btnW * 0.85); sub.setAttribute('wrapCount', 16);
         nav.appendChild(sub);
     });
 }
@@ -1702,6 +1895,8 @@ function buildMatheMenu(nav) {
 async function loadMoleculeVR(name, label, formula) {
     showToast('Lade ' + label + '...');
     try {
+        // Clear everything first so no old content lingers
+        clearAllContent();
         const sdf = await fetchMolecule(name);
         const mol = parseSDF(sdf);
         if (!mol || mol.atoms.length === 0) throw new Error('Nicht gefunden');
@@ -1718,8 +1913,9 @@ async function loadMoleculeVR(name, label, formula) {
 }
 
 function loadPhysicsVR(type) {
+    // Clear everything first so no old content lingers
+    clearAllContent();
     const container = document.getElementById('physics-container');
-    while (container.firstChild) container.firstChild.remove();
     container.setAttribute('visible', true);
     if (type === 'lorentz') { LorentzSim.init(container); updateHUD('Lorentzkraft', 'F = q(v x B)'); }
     else { InductionSim.init(container); updateHUD('Induktion', 'EMF = -dPhi/dt'); }
@@ -1730,6 +1926,8 @@ function loadPhysicsVR(type) {
 
 function loadMathVR(expr, label) {
     try {
+        // Clear everything first so no old content lingers
+        clearAllContent();
         const fn = parseComplexExpr(expr);
         renderMathSurface(fn, expr);
         updateHUD('f(z) = ' + expr, label || 'Komplexe Funktion');
@@ -1748,6 +1946,9 @@ let quizActive = false, quizIdx = 0, quizScore = 0, quizAnswered = false;
 function startQuizVR() {
     quizActive = true; quizIdx = 0; quizScore = 0;
     navState = 'quiz';
+    // Thoroughly clear ALL content (including raw THREE.js objects)
+    clearAllContent();
+    clearHUD();
     document.getElementById('vr-nav').setAttribute('visible', false);
     document.getElementById('vr-back-btn').setAttribute('visible', true);
     showQuizQuestion();
@@ -1760,36 +1961,72 @@ function showQuizQuestion() {
     const container = document.getElementById('quiz-container');
     container.setAttribute('visible', true);
     while (container.firstChild) container.removeChild(container.firstChild);
-    makePanel(container, 1.4, 1.2, '#0f1228', 0.92);
+    makePanel(container, 1.55, 1.5);
+    // Progress bar background
+    const progBg = document.createElement('a-plane');
+    progBg.setAttribute('width', 1.3);
+    progBg.setAttribute('height', 0.008);
+    progBg.setAttribute('position', '0 0.62 0.015');
+    progBg.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
+    container.appendChild(progBg);
+    // Progress bar fill
+    const progPct = (quizIdx) / QUIZ_QUESTIONS.length;
+    const progFill = document.createElement('a-plane');
+    const progW = Math.max(0.01, 1.3 * progPct);
+    progFill.setAttribute('width', progW);
+    progFill.setAttribute('height', 0.008);
+    progFill.setAttribute('position', `${-1.3/2 + progW/2} 0.62 0.016`);
+    progFill.setAttribute('material', `color:${NEO.accent}; opacity:0.8; transparent:true; shader:flat; side:double`);
+    container.appendChild(progFill);
     const progress = document.createElement('a-text');
-    progress.setAttribute('value', 'Frage ' + (quizIdx+1) + '/' + QUIZ_QUESTIONS.length + '  |  ' + quizScore + ' Pkt');
-    progress.setAttribute('position', '0 0.48 0.02'); progress.setAttribute('align', 'center');
-    progress.setAttribute('color', '#6c8aff'); progress.setAttribute('width', 1.0);
+    progress.setAttribute('value', 'Frage ' + (quizIdx+1) + ' / ' + QUIZ_QUESTIONS.length + '   \u2022   ' + quizScore + ' Punkte');
+    progress.setAttribute('position', '0 0.56 0.02'); progress.setAttribute('align', 'center');
+    progress.setAttribute('color', NEO.accent); progress.setAttribute('width', 1.3);
     container.appendChild(progress);
     const qEl = document.createElement('a-text');
-    qEl.setAttribute('value', wrapText(q.q, 38));
-    qEl.setAttribute('position', '0 0.35 0.02'); qEl.setAttribute('align', 'center');
-    qEl.setAttribute('color', '#ffffff'); qEl.setAttribute('width', 1.1);
-    qEl.setAttribute('baseline', 'top'); qEl.setAttribute('wrapCount', 40);
+    qEl.setAttribute('value', wrapText(q.q, 34));
+    qEl.setAttribute('position', '0 0.42 0.02'); qEl.setAttribute('align', 'center');
+    qEl.setAttribute('color', NEO.text); qEl.setAttribute('width', 1.3);
+    qEl.setAttribute('baseline', 'top'); qEl.setAttribute('wrapCount', 36);
     container.appendChild(qEl);
-    const btnH = 0.12, btnGap = 0.025, startY = 0.06;
+    const btnH = 0.13, btnGap = 0.025, startY = 0.12;
     q.a.forEach((answer, i) => {
         const y = startY - i * (btnH + btnGap);
+        // Neumorphic answer card
+        const shadow = document.createElement('a-plane');
+        shadow.setAttribute('width', 1.3);
+        shadow.setAttribute('height', btnH - 0.01);
+        shadow.setAttribute('position', '0.004 ' + (y-0.004) + ' 0.005');
+        shadow.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
+        container.appendChild(shadow);
         const plane = document.createElement('a-plane');
         plane.setAttribute('position', '0 ' + y + ' 0.01');
-        plane.setAttribute('width', 1.2); plane.setAttribute('height', btnH - 0.01);
+        plane.setAttribute('width', 1.3); plane.setAttribute('height', btnH - 0.01);
         plane.setAttribute('class', 'interactive');
-        plane.setAttribute('material', 'color:#1c2035; opacity:0.9; transparent:true; shader:flat; side:double');
+        plane.setAttribute('material', `color:${NEO.cardBg}; opacity:0.95; transparent:true; shader:flat; side:double`);
         plane.id = 'quiz-plane-' + i;
-        plane.addEventListener('mouseenter', () => { if (!quizAnswered) plane.setAttribute('material', 'color', '#2a3050'); });
-        plane.addEventListener('mouseleave', () => { if (!quizAnswered) plane.setAttribute('material', 'color', '#1c2035'); });
+        plane.addEventListener('mouseenter', () => { if (!quizAnswered) { plane.setAttribute('material', 'color', '#d8dce8'); plane.object3D.scale.set(1.02, 1.02, 1); } });
+        plane.addEventListener('mouseleave', () => { if (!quizAnswered) { plane.setAttribute('material', 'color', NEO.cardBg); plane.object3D.scale.set(1, 1, 1); } });
         plane.addEventListener('click', () => submitQuizAnswer(i));
         container.appendChild(plane);
+        // Answer number badge
+        const numBadge = document.createElement('a-plane');
+        numBadge.setAttribute('width', 0.05);
+        numBadge.setAttribute('height', 0.05);
+        numBadge.setAttribute('position', `${-0.58} ${y} 0.015`);
+        numBadge.setAttribute('material', `color:${NEO.accent}; opacity:0.12; transparent:true; shader:flat; side:double`);
+        container.appendChild(numBadge);
+        const numTxt = document.createElement('a-text');
+        numTxt.setAttribute('value', String.fromCharCode(65 + i)); // A, B, C, D
+        numTxt.setAttribute('position', `${-0.58} ${y} 0.02`);
+        numTxt.setAttribute('align', 'center'); numTxt.setAttribute('color', NEO.accent);
+        numTxt.setAttribute('width', 0.35);
+        container.appendChild(numTxt);
         const label = document.createElement('a-text');
-        label.setAttribute('value', wrapText(answer, 42));
-        label.setAttribute('position', '0 ' + y + ' 0.025');
-        label.setAttribute('align', 'center'); label.setAttribute('color', '#e8eaed');
-        label.setAttribute('width', 1.0); label.setAttribute('wrapCount', 44);
+        label.setAttribute('value', wrapText(answer, 38));
+        label.setAttribute('position', '0.02 ' + y + ' 0.025');
+        label.setAttribute('align', 'center'); label.setAttribute('color', NEO.text);
+        label.setAttribute('width', 1.1); label.setAttribute('wrapCount', 40);
         container.appendChild(label);
     });
 }
@@ -1802,18 +2039,18 @@ function submitQuizAnswer(idx) {
     for (let i = 0; i < q.a.length; i++) {
         const plane = document.getElementById('quiz-plane-' + i);
         if (!plane) continue;
-        if (i === q.correct) { plane.setAttribute('material', 'color', '#1a5c38'); plane.setAttribute('material', 'opacity', 1); }
-        else if (i === idx && idx !== q.correct) { plane.setAttribute('material', 'color', '#5c1a1a'); plane.setAttribute('material', 'opacity', 1); }
+        if (i === q.correct) { plane.setAttribute('material', 'color', '#a7f3d0'); plane.setAttribute('material', 'opacity', 1); }
+        else if (i === idx && idx !== q.correct) { plane.setAttribute('material', 'color', '#fecaca'); plane.setAttribute('material', 'opacity', 1); }
     }
     setTimeout(() => {
         const container = document.getElementById('quiz-container');
         const explEl = document.createElement('a-text');
-        explEl.setAttribute('value', wrapText(q.explain, 40));
-        explEl.setAttribute('position', '0 -0.42 0.02'); explEl.setAttribute('align', 'center');
-        explEl.setAttribute('color', '#34d399'); explEl.setAttribute('width', 1.0);
-        explEl.setAttribute('wrapCount', 44);
+        explEl.setAttribute('value', wrapText(q.explain, 36));
+        explEl.setAttribute('position', '0 -0.50 0.02'); explEl.setAttribute('align', 'center');
+        explEl.setAttribute('color', '#047857'); explEl.setAttribute('width', 1.1);
+        explEl.setAttribute('wrapCount', 40);
         container.appendChild(explEl);
-        makeButton(container, quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter', 0, -0.52, 0.4, 0.1, '#6c8aff', () => { quizIdx++; showQuizQuestion(); });
+        makeButton(container, quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter \u2192', 0, -0.64, 0.45, 0.11, NEO.accent, () => { quizIdx++; showQuizQuestion(); });
     }, 800);
 }
 
@@ -1822,23 +2059,35 @@ function showQuizFinished() {
     while (container.firstChild) container.removeChild(container.firstChild);
     const pct = Math.round(quizScore / QUIZ_QUESTIONS.length * 100);
     let rating = pct >= 80 ? 'Ausgezeichnet!' : pct >= 60 ? 'Gut gemacht!' : pct >= 40 ? 'Nicht schlecht.' : 'Weiter ueben!';
-    makePanel(container, 1.0, 0.7, '#0f1228', 0.92);
+    makePanel(container, 1.2, 0.9);
+    // Score circle
+    const scoreBg = document.createElement('a-plane');
+    scoreBg.setAttribute('width', 0.18);
+    scoreBg.setAttribute('height', 0.18);
+    scoreBg.setAttribute('position', '0 0.28 0.02');
+    scoreBg.setAttribute('material', `color:${pct >= 60 ? '#a7f3d0' : '#fde68a'}; opacity:0.3; transparent:true; shader:flat; side:double`);
+    container.appendChild(scoreBg);
+    const pctText = document.createElement('a-text');
+    pctText.setAttribute('value', pct + '%');
+    pctText.setAttribute('position', '0 0.28 0.025'); pctText.setAttribute('align', 'center');
+    pctText.setAttribute('color', pct >= 60 ? '#047857' : '#92400e'); pctText.setAttribute('width', 1.2);
+    container.appendChild(pctText);
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Quiz beendet!');
-    title.setAttribute('position', '0 0.22 0.02'); title.setAttribute('align', 'center');
-    title.setAttribute('color', '#6c8aff'); title.setAttribute('width', 1.0);
+    title.setAttribute('position', '0 0.12 0.02'); title.setAttribute('align', 'center');
+    title.setAttribute('color', NEO.text); title.setAttribute('width', 1.4);
     container.appendChild(title);
     const score = document.createElement('a-text');
-    score.setAttribute('value', quizScore + ' / ' + QUIZ_QUESTIONS.length + ' richtig (' + pct + '%)');
-    score.setAttribute('position', '0 0.06 0.02'); score.setAttribute('align', 'center');
-    score.setAttribute('color', '#ffffff'); score.setAttribute('width', 0.9);
+    score.setAttribute('value', quizScore + ' von ' + QUIZ_QUESTIONS.length + ' richtig');
+    score.setAttribute('position', '0 0.02 0.02'); score.setAttribute('align', 'center');
+    score.setAttribute('color', NEO.textSoft); score.setAttribute('width', 1.1);
     container.appendChild(score);
     const ratingEl = document.createElement('a-text');
     ratingEl.setAttribute('value', rating);
-    ratingEl.setAttribute('position', '0 -0.06 0.02'); ratingEl.setAttribute('align', 'center');
-    ratingEl.setAttribute('color', '#34d399'); ratingEl.setAttribute('width', 0.8);
+    ratingEl.setAttribute('position', '0 -0.10 0.02'); ratingEl.setAttribute('align', 'center');
+    ratingEl.setAttribute('color', pct >= 60 ? '#047857' : '#92400e'); ratingEl.setAttribute('width', 1.2);
     container.appendChild(ratingEl);
-    makeButton(container, 'Zurueck', 0, -0.24, 0.4, 0.1, '#444', () => { quizActive = false; document.getElementById('quiz-container').setAttribute('visible', false); navigateTo('chemie'); });
+    makeButton(container, 'Zurueck', 0, -0.30, 0.40, 0.10, null, () => { quizActive = false; document.getElementById('quiz-container').setAttribute('visible', false); navigateTo('chemie'); });
 }
 
 function wrapText(text, maxChars) {
@@ -1880,6 +2129,20 @@ function updateHUD(name, formula) {
     if (hudFormula) hudFormula.setAttribute('text', 'value', formula);
     const text = document.getElementById('mol-info-text');
     if (text) text.innerHTML = name + ' <small>' + formula + '</small>';
+}
+
+function clearHUD() {
+    const hudName = document.getElementById('hud-name');
+    const hudFormula = document.getElementById('hud-formula');
+    const atomLabel = document.getElementById('atom-label');
+    if (hudName) hudName.setAttribute('text', 'value', '');
+    if (hudFormula) hudFormula.setAttribute('text', 'value', '');
+    if (atomLabel) {
+        atomLabel.setAttribute('text', 'value', '');
+        atomLabel.setAttribute('text', 'opacity', 0);
+    }
+    const text = document.getElementById('mol-info-text');
+    if (text) text.innerHTML = '—';
 }
 
 function enterStereoVR() {
@@ -1974,7 +2237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stereo-renderer physics-tick math-rotate>
 
     <!-- Sky -->
-    <a-sky color="#d8dce6"></a-sky>
+    <a-sky color="#e0e5ef"></a-sky>
 
     <!-- Lighting (light mode) -->
     <a-light type="ambient" color="#f0f0ff" intensity="0.85"></a-light>
@@ -1987,26 +2250,26 @@ document.addEventListener('DOMContentLoaded', () => {
         <a-camera id="camera" look-controls="pointerLockEnabled:false" wasd-controls="enabled:false">
             <!-- Gaze Cursor -->
             <a-entity id="cursor-wrap" position="0 0 -0.8">
-                <a-ring id="cursor-ring" radius-inner="0.006" radius-outer="0.009"
-                    material="shader:flat; color:#333355; opacity:0.8; transparent:true"
+                <a-ring id="cursor-ring" radius-inner="0.007" radius-outer="0.011"
+                    material="shader:flat; color:#5b7fff; opacity:0.7; transparent:true"
                     cursor="fuse:true; fuseTimeout:1500"
                     raycaster="objects:.interactive; far:20">
                 </a-ring>
-                <a-ring id="cursor-fill" radius-inner="0.001" radius-outer="0.009"
-                    material="shader:flat; color:#6c8aff; opacity:0; transparent:true"
+                <a-ring id="cursor-fill" radius-inner="0.001" radius-outer="0.011"
+                    material="shader:flat; color:#7c5cff; opacity:0; transparent:true"
                     geometry="thetaLength:0">
                 </a-ring>
             </a-entity>
 
             <!-- HUD (camera-attached) -->
             <a-text id="hud-name" value="" position="0 -0.22 -0.8" align="center"
-                color="#333355" width="0.8" opacity="0.9" font="roboto"></a-text>
-            <a-text id="hud-formula" value="" position="0 -0.25 -0.8" align="center"
-                color="#5566aa" width="0.6" opacity="0.7" font="roboto"></a-text>
+                color="#3a4060" width="1.2" opacity="0.9" font="roboto"></a-text>
+            <a-text id="hud-formula" value="" position="0 -0.26 -0.8" align="center"
+                color="#5b7fff" width="0.9" opacity="0.7" font="roboto"></a-text>
 
             <!-- Atom hover label -->
             <a-text id="atom-label" value="" position="0 0.08 -0.8" align="center"
-                color="#2288aa" width="0.7" opacity="0" font="roboto"></a-text>
+                color="#5b7fff" width="1.0" opacity="0" font="roboto"></a-text>
         </a-camera>
     </a-entity>
 
@@ -2018,19 +2281,24 @@ document.addEventListener('DOMContentLoaded', () => {
         <a-entity id="vr-nav" position="0 0 -1.2"></a-entity>
 
         <!-- Back Button (persistent, top-right of view) -->
-        <a-entity id="vr-back-btn" position="0.48 0.32 -1.18" visible="false">
-            <a-plane width="0.18" height="0.07" color="#556" opacity="0.85"
+        <a-entity id="vr-back-btn" position="0.62 0.48 -1.18" visible="false">
+            <!-- Neumorphic back button -->
+            <a-plane width="0.26" height="0.09" position="0.004 -0.004 0"
+                material="shader:flat; color:#a8b0c0; opacity:0.35; transparent:true; side:double"></a-plane>
+            <a-plane width="0.26" height="0.09" position="-0.003 0.003 0.003"
+                material="shader:flat; color:#f8faff; opacity:0.4; transparent:true; side:double"></a-plane>
+            <a-plane width="0.26" height="0.09" color="#e0e5ef" opacity="0.94"
                 class="interactive" id="back-btn-plane"
                 material="shader:flat; side:double"></a-plane>
-            <a-text value="< Zurueck" position="0 0 0.01" align="center"
-                color="#ffffff" width="0.4"></a-text>
+            <a-text value="\u2190 Zurueck" position="0 0 0.01" align="center"
+                color="#3a4060" width="0.6"></a-text>
         </a-entity>
 
         <!-- Content Containers (all hidden until loaded) -->
         <a-entity id="mol-container" position="0 0 -1.2" visible="false"></a-entity>
         <a-entity id="physics-container" position="0 0 -1.2" visible="false"></a-entity>
         <a-entity id="math-container" position="0 0 -1.2" visible="false"></a-entity>
-        <a-entity id="quiz-container" position="0 0 -1.3" visible="false"></a-entity>
+        <a-entity id="quiz-container" position="0 0 -1.15" visible="false"></a-entity>
 
     </a-entity>
 
