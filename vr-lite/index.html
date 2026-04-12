@@ -329,19 +329,19 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
     </a-entity>
 
     <!-- Physics Container -->
-    <a-entity id="physics-container" position="0 1.4 -1.0" visible="false">
+    <a-entity id="physics-container" position="0 1.6 -1.0" visible="false">
     </a-entity>
 
     <!-- Math Container -->
-    <a-entity id="math-container" position="0 1.4 -1.0" visible="false">
+    <a-entity id="math-container" position="0 1.6 -1.0" visible="false">
     </a-entity>
 
     <!-- VR Menu Container -->
-    <a-entity id="vr-menu" position="0 1.7 -1.8" visible="false">
+    <a-entity id="vr-menu" position="0 1.6 -1.5" visible="false">
     </a-entity>
 
     <!-- Quiz Container -->
-    <a-entity id="quiz-container" position="0 1.7 -1.8" visible="false">
+    <a-entity id="quiz-container" position="0 1.6 -1.5" visible="false">
     </a-entity>
 
 </a-scene>
@@ -1693,16 +1693,16 @@ function buildVRMenu() {
 
     // Border (furthest back)
     const border = document.createElement('a-plane');
-    border.setAttribute('width', 2.24);
-    border.setAttribute('height', 1.64);
+    border.setAttribute('width', 1.74);
+    border.setAttribute('height', 1.44);
     border.setAttribute('material', 'color:#6c8aff; opacity:0.15; transparent:true; shader:flat; side:double');
     border.setAttribute('position', '0 0 -0.02');
     menuEl.appendChild(border);
 
     // Background panel (behind buttons)
     const bg = document.createElement('a-plane');
-    bg.setAttribute('width', 2.2);
-    bg.setAttribute('height', 1.6);
+    bg.setAttribute('width', 1.7);
+    bg.setAttribute('height', 1.4);
     bg.setAttribute('material', 'color:#0f1117; opacity:0.88; transparent:true; shader:flat; side:double');
     bg.setAttribute('position', '0 0 -0.01');
     menuEl.appendChild(bg);
@@ -1710,17 +1710,17 @@ function buildVRMenu() {
     // Title (in front)
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Molekuel-Auswahl');
-    title.setAttribute('position', '0 0.65 0.02');
+    title.setAttribute('position', '0 0.58 0.02');
     title.setAttribute('align', 'center');
     title.setAttribute('color', '#ffffff');
-    title.setAttribute('width', 2);
+    title.setAttribute('width', 1.4);
     menuEl.appendChild(title);
 
-    // Molecule buttons grid (4 columns x 3 rows)
-    const cols = 4, rows = 3;
-    const btnW = 0.45, btnH = 0.3, gapX = 0.06, gapY = 0.06;
+    // Molecule buttons grid (3 columns x 4 rows)
+    const cols = 3, rows = 4;
+    const btnW = 0.48, btnH = 0.18, gapX = 0.05, gapY = 0.04;
     const startX = -((cols - 1) * (btnW + gapX)) / 2;
-    const startY = 0.35;
+    const startY = 0.40;
 
     PRESETS.forEach((preset, i) => {
         if (i >= cols * rows) return;
@@ -1752,30 +1752,32 @@ function buildVRMenu() {
         });
         menuEl.appendChild(plane);
 
-        // Label text (in front of plane)
+        // Label text (in front of plane) — single line, small width
         const label = document.createElement('a-text');
         label.setAttribute('value', preset.label);
-        label.setAttribute('position', `${x} ${y + 0.04} 0.03`);
+        label.setAttribute('position', `${x} ${y + 0.02} 0.03`);
         label.setAttribute('align', 'center');
         label.setAttribute('color', '#e8eaed');
-        label.setAttribute('width', btnW * 0.9);
+        label.setAttribute('width', btnW * 0.85);
+        label.setAttribute('wrapCount', 20);
         menuEl.appendChild(label);
 
-        // Formula text (in front of plane)
+        // Formula text (in front of plane) — smaller
         const formula = document.createElement('a-text');
         formula.setAttribute('value', preset.formula);
-        formula.setAttribute('position', `${x} ${y - 0.05} 0.03`);
+        formula.setAttribute('position', `${x} ${y - 0.04} 0.03`);
         formula.setAttribute('align', 'center');
         formula.setAttribute('color', '#6c8aff');
-        formula.setAttribute('width', btnW * 0.75);
+        formula.setAttribute('width', btnW * 0.7);
+        formula.setAttribute('wrapCount', 18);
         menuEl.appendChild(formula);
     });
 
     // Close button — plane is the interactive element
     const closePlane = document.createElement('a-plane');
     closePlane.setAttribute('position', '0 -0.55 0.01');
-    closePlane.setAttribute('width', 0.5);
-    closePlane.setAttribute('height', 0.18);
+    closePlane.setAttribute('width', 0.45);
+    closePlane.setAttribute('height', 0.14);
     closePlane.setAttribute('class', 'interactive');
     closePlane.setAttribute('material', 'color:#ff4444; opacity:0.7; transparent:true; shader:flat; side:double');
     closePlane.addEventListener('mouseenter', () => closePlane.setAttribute('material','opacity',1));
@@ -1855,35 +1857,37 @@ function showQuizQuestion() {
 
     // Background (behind everything)
     const bg = document.createElement('a-plane');
-    bg.setAttribute('width', 2);
-    bg.setAttribute('height', 2.2);
-    bg.setAttribute('material', 'color:#0f1117; opacity:0.88; transparent:true; shader:flat; side:double');
+    bg.setAttribute('width', 1.6);
+    bg.setAttribute('height', 1.5);
+    bg.setAttribute('material', 'color:#0f1117; opacity:0.9; transparent:true; shader:flat; side:double');
     bg.setAttribute('position', '0 0 -0.02');
     container.appendChild(bg);
 
     // Progress
     const progress = document.createElement('a-text');
-    progress.setAttribute('value', `Frage ${quizIdx+1}/${QUIZ_QUESTIONS.length}  |  Punkte: ${quizScore}`);
-    progress.setAttribute('position', '0 0.9 0.03');
+    progress.setAttribute('value', `Frage ${quizIdx+1}/${QUIZ_QUESTIONS.length}  |  ${quizScore} Pkt`);
+    progress.setAttribute('position', '0 0.62 0.03');
     progress.setAttribute('align', 'center');
     progress.setAttribute('color', '#6c8aff');
-    progress.setAttribute('width', 1.6);
+    progress.setAttribute('width', 1.2);
+    progress.setAttribute('wrapCount', 40);
     container.appendChild(progress);
 
     // Question text
-    const qText = wrapText(q.q, 45);
+    const qText = wrapText(q.q, 40);
     const qEl = document.createElement('a-text');
     qEl.setAttribute('value', qText);
-    qEl.setAttribute('position', '0 0.7 0.03');
+    qEl.setAttribute('position', '0 0.48 0.03');
     qEl.setAttribute('align', 'center');
     qEl.setAttribute('color', '#ffffff');
-    qEl.setAttribute('width', 1.7);
+    qEl.setAttribute('width', 1.3);
     qEl.setAttribute('baseline', 'top');
+    qEl.setAttribute('wrapCount', 42);
     container.appendChild(qEl);
 
     // Answer buttons — plane IS the interactive element
-    const btnH = 0.2, btnGap = 0.05;
-    const startY = 0.15;
+    const btnH = 0.14, btnGap = 0.03;
+    const startY = 0.12;
 
     q.a.forEach((answer, i) => {
         const y = startY - i * (btnH + btnGap);
@@ -1891,8 +1895,8 @@ function showQuizQuestion() {
         // Plane = interactive target with geometry
         const plane = document.createElement('a-plane');
         plane.setAttribute('position', `0 ${y} 0.01`);
-        plane.setAttribute('width', 1.7);
-        plane.setAttribute('height', btnH - 0.02);
+        plane.setAttribute('width', 1.4);
+        plane.setAttribute('height', btnH - 0.01);
         plane.setAttribute('class', 'interactive');
         plane.setAttribute('material', 'color:#1a1d27; opacity:0.9; transparent:true; shader:flat; side:double');
         plane.id = `quiz-plane-${i}`;
@@ -1906,13 +1910,14 @@ function showQuizQuestion() {
         plane.addEventListener('click', () => submitQuizAnswer(i));
         container.appendChild(plane);
 
-        // Answer text (in front of plane)
+        // Answer text (in front of plane) — constrained to button bounds
         const label = document.createElement('a-text');
-        label.setAttribute('value', wrapText(answer, 50));
+        label.setAttribute('value', wrapText(answer, 45));
         label.setAttribute('position', `0 ${y} 0.03`);
         label.setAttribute('align', 'center');
         label.setAttribute('color', '#e8eaed');
-        label.setAttribute('width', 1.5);
+        label.setAttribute('width', 1.2);
+        label.setAttribute('wrapCount', 48);
         container.appendChild(label);
     });
 }
@@ -1943,18 +1948,19 @@ function submitQuizAnswer(idx) {
 
         // Explanation
         const explEl = document.createElement('a-text');
-        explEl.setAttribute('value', wrapText(q.explain, 50));
-        explEl.setAttribute('position', '0 -0.75 0.03');
+        explEl.setAttribute('value', wrapText(q.explain, 42));
+        explEl.setAttribute('position', '0 -0.50 0.03');
         explEl.setAttribute('align', 'center');
         explEl.setAttribute('color', '#34d399');
-        explEl.setAttribute('width', 1.5);
+        explEl.setAttribute('width', 1.2);
+        explEl.setAttribute('wrapCount', 46);
         container.appendChild(explEl);
 
         // Next button — plane is int. element
         const nextPlane = document.createElement('a-plane');
-        nextPlane.setAttribute('position', '0 -1 0.01');
-        nextPlane.setAttribute('width', 0.6);
-        nextPlane.setAttribute('height', 0.18);
+        nextPlane.setAttribute('position', '0 -0.65 0.01');
+        nextPlane.setAttribute('width', 0.5);
+        nextPlane.setAttribute('height', 0.13);
         nextPlane.setAttribute('class', 'interactive');
         nextPlane.setAttribute('material', 'color:#6c8aff; opacity:0.8; transparent:true; shader:flat; side:double');
         nextPlane.addEventListener('mouseenter', () => nextPlane.setAttribute('material','opacity',1));
@@ -1964,10 +1970,10 @@ function submitQuizAnswer(idx) {
 
         const nextText = document.createElement('a-text');
         nextText.setAttribute('value', quizIdx >= QUIZ_QUESTIONS.length - 1 ? 'Ergebnis' : 'Weiter');
-        nextText.setAttribute('position', '0 -1 0.03');
+        nextText.setAttribute('position', '0 -0.65 0.03');
         nextText.setAttribute('align', 'center');
         nextText.setAttribute('color', '#fff');
-        nextText.setAttribute('width', 0.55);
+        nextText.setAttribute('width', 0.45);
         container.appendChild(nextText);
     }, 800);
 }
@@ -1980,41 +1986,41 @@ function showQuizFinished() {
     let rating = pct >= 80 ? 'Ausgezeichnet!' : pct >= 60 ? 'Gut gemacht!' : pct >= 40 ? 'Nicht schlecht.' : 'Weiter ueben!';
 
     const bg = document.createElement('a-plane');
-    bg.setAttribute('width', 1.6);
-    bg.setAttribute('height', 1.2);
+    bg.setAttribute('width', 1.2);
+    bg.setAttribute('height', 0.85);
     bg.setAttribute('material', 'color:#0f1117; opacity:0.9; transparent:true; shader:flat; side:double');
     bg.setAttribute('position', '0 0 -0.02');
     container.appendChild(bg);
 
     const title = document.createElement('a-text');
     title.setAttribute('value', 'Quiz beendet!');
-    title.setAttribute('position', '0 0.35 0.03');
+    title.setAttribute('position', '0 0.28 0.03');
     title.setAttribute('align', 'center');
     title.setAttribute('color', '#6c8aff');
-    title.setAttribute('width', 1.5);
+    title.setAttribute('width', 1.2);
     container.appendChild(title);
 
     const score = document.createElement('a-text');
     score.setAttribute('value', `${quizScore} / ${QUIZ_QUESTIONS.length} richtig (${pct}%)`);
-    score.setAttribute('position', '0 0.15 0.03');
+    score.setAttribute('position', '0 0.12 0.03');
     score.setAttribute('align', 'center');
     score.setAttribute('color', '#ffffff');
-    score.setAttribute('width', 1.4);
+    score.setAttribute('width', 1.1);
     container.appendChild(score);
 
     const ratingEl = document.createElement('a-text');
     ratingEl.setAttribute('value', rating);
-    ratingEl.setAttribute('position', '0 -0.05 0.03');
+    ratingEl.setAttribute('position', '0 -0.02 0.03');
     ratingEl.setAttribute('align', 'center');
     ratingEl.setAttribute('color', '#34d399');
-    ratingEl.setAttribute('width', 1.3);
+    ratingEl.setAttribute('width', 1.0);
     container.appendChild(ratingEl);
 
     // Close button — plane is interactive
     const closePlane = document.createElement('a-plane');
-    closePlane.setAttribute('position', '0 -0.35 0.01');
-    closePlane.setAttribute('width', 0.6);
-    closePlane.setAttribute('height', 0.18);
+    closePlane.setAttribute('position', '0 -0.22 0.01');
+    closePlane.setAttribute('width', 0.5);
+    closePlane.setAttribute('height', 0.14);
     closePlane.setAttribute('class', 'interactive');
     closePlane.setAttribute('material', 'color:#444; opacity:0.8; transparent:true; shader:flat; side:double');
     closePlane.addEventListener('click', () => {
@@ -2025,10 +2031,10 @@ function showQuizFinished() {
 
     const closeText = document.createElement('a-text');
     closeText.setAttribute('value', 'Schliessen');
-    closeText.setAttribute('position', '0 -0.35 0.03');
+    closeText.setAttribute('position', '0 -0.22 0.03');
     closeText.setAttribute('align', 'center');
     closeText.setAttribute('color', '#fff');
-    closeText.setAttribute('width', 0.55);
+    closeText.setAttribute('width', 0.45);
     container.appendChild(closeText);
 }
 
