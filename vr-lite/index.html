@@ -278,23 +278,17 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
     stereo-renderer physics-tick math-rotate>
 
     <!-- Sky -->
-    <a-sky color="#070710"></a-sky>
+    <a-sky color="#d8dce6"></a-sky>
 
-    <!-- Starfield (generated via component) -->
-    <a-entity starfield></a-entity>
-
-    <!-- Nebula glow planes -->
-    <a-plane position="-8 5 -20" rotation="0 30 0" width="25" height="25" material="shader:flat; color:#1a0a2e; opacity:0.08; transparent:true; side:double"></a-plane>
-    <a-plane position="10 -3 -15" rotation="10 -20 5" width="20" height="20" material="shader:flat; color:#0a1a2e; opacity:0.06; transparent:true; side:double"></a-plane>
-
-    <!-- Lighting -->
-    <a-light type="ambient" color="#223" intensity="0.6"></a-light>
-    <a-light type="directional" color="#eef" intensity="0.9" position="3 5 2"></a-light>
-    <a-light type="point" color="#6c8aff" intensity="0.3" position="0 2 -1.5" distance="6"></a-light>
+    <!-- Lighting (light mode) -->
+    <a-light type="ambient" color="#f0f0ff" intensity="0.85"></a-light>
+    <a-light type="directional" color="#ffffff" intensity="0.9" position="3 5 2"></a-light>
+    <a-light type="directional" color="#dde4ff" intensity="0.4" position="-3 3 -2"></a-light>
+    <a-light type="point" color="#6c8aff" intensity="0.25" position="0 2 -1.5" distance="6"></a-light>
 
     <!-- Subtle floor -->
     <a-ring position="0 0.01 -2" rotation="-90 0 0" radius-inner="0" radius-outer="3"
-        material="shader:flat; color:#6c8aff; opacity:0.03; transparent:true"></a-ring>
+        material="shader:flat; color:#6c8aff; opacity:0.06; transparent:true"></a-ring>
 
     <!-- Camera Rig -->
     <a-entity id="rig" position="0 1.6 0">
@@ -302,7 +296,7 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
             <!-- Gaze Cursor -->
             <a-entity id="cursor-wrap" position="0 0 -0.8">
                 <a-ring id="cursor-ring" radius-inner="0.006" radius-outer="0.009"
-                    material="shader:flat; color:#ffffff; opacity:0.7; transparent:true"
+                    material="shader:flat; color:#333355; opacity:0.8; transparent:true"
                     cursor="fuse:true; fuseTimeout:1500"
                     raycaster="objects:.interactive; far:20">
                 </a-ring>
@@ -314,34 +308,34 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 
             <!-- HUD: molecule name -->
             <a-text id="hud-name" value="" position="0 -0.22 -0.8" align="center"
-                color="#ffffff" width="0.8" opacity="0.8" font="roboto"></a-text>
+                color="#333355" width="0.8" opacity="0.9" font="roboto"></a-text>
             <a-text id="hud-formula" value="" position="0 -0.25 -0.8" align="center"
-                color="#9aa0b0" width="0.6" opacity="0.6" font="roboto"></a-text>
+                color="#5566aa" width="0.6" opacity="0.7" font="roboto"></a-text>
 
             <!-- Atom hover label -->
             <a-text id="atom-label" value="" position="0 0.08 -0.8" align="center"
-                color="#34d399" width="0.7" opacity="0" font="roboto"></a-text>
+                color="#2288aa" width="0.7" opacity="0" font="roboto"></a-text>
         </a-camera>
     </a-entity>
 
-    <!-- Molecule Container -->
+    <!-- Molecule Container (in front of camera, eye level) -->
     <a-entity id="mol-container" position="0 1.6 -1.2">
     </a-entity>
 
     <!-- Physics Container -->
-    <a-entity id="physics-container" position="0 1.6 -1.0" visible="false">
+    <a-entity id="physics-container" position="0 1.6 -1.2" visible="false">
     </a-entity>
 
     <!-- Math Container -->
-    <a-entity id="math-container" position="0 1.6 -1.0" visible="false">
+    <a-entity id="math-container" position="0 1.6 -1.2" visible="false">
     </a-entity>
 
-    <!-- VR Menu Container -->
-    <a-entity id="vr-menu" position="0 1.6 -1.5" visible="false">
+    <!-- VR Menu Container (slightly in front, at eye) -->
+    <a-entity id="vr-menu" position="0 1.6 -1.3" visible="false">
     </a-entity>
 
     <!-- Quiz Container -->
-    <a-entity id="quiz-container" position="0 1.6 -1.5" visible="false">
+    <a-entity id="quiz-container" position="0 1.6 -1.3" visible="false">
     </a-entity>
 
 </a-scene>
@@ -360,9 +354,9 @@ const ELEMENT_COLORS = {
 };
 
 const ELEMENT_RADII = {
-    H:0.025,He:0.025,C:0.04,N:0.038,O:0.035,F:0.032,P:0.045,S:0.045,
-    Cl:0.042,Br:0.05,I:0.055,B:0.04,Si:0.05,Na:0.055,K:0.06,Ca:0.05,
-    Fe:0.042,Cu:0.042,Zn:0.042,Ag:0.05,Au:0.05
+    H:0.045,He:0.045,C:0.065,N:0.06,O:0.058,F:0.055,P:0.07,S:0.07,
+    Cl:0.065,Br:0.075,I:0.08,B:0.065,Si:0.075,Na:0.08,K:0.085,Ca:0.075,
+    Fe:0.065,Cu:0.065,Zn:0.065,Ag:0.075,Au:0.075
 };
 
 const ELEMENT_NAMES = {
@@ -726,121 +720,113 @@ AFRAME.registerComponent('math-rotate', {
 
 const LorentzSim = {
     running: false,
-    particle: null,    // {pos, vel}
+    particle: null,
     trail: [],
-    chargeSign: 1,     // +1 proton, -1 electron
-    B: {x:0, y:0, z:0.5},  // magnetic field (z-direction)
-    boxSize: 0.5,
-    entities: {particle:null, trail:null, arrows:{}},
-    arrowEntities: [],
-    fieldArrowEntities: [],
+    chargeSign: 1,
+    B: {x:0, y:0.6, z:0},  // field pointing UP so particle spirals in xz-plane (visible face-on)
+    boxSize: 0.4,
+    entities: {particle:null, chargeLabel:null},
     dt: 1/60,
-    maxTrail: 300,
+    maxTrail: 400,
 
     init: function(container) {
         this.container = container;
         while (container.firstChild) container.firstChild.remove();
         container.setAttribute('visible', true);
 
-        // Magnetic field box (wireframe)
+        // Magnetic field box
         const boxEl = document.createElement('a-box');
         boxEl.setAttribute('width', this.boxSize);
         boxEl.setAttribute('height', this.boxSize);
         boxEl.setAttribute('depth', this.boxSize);
-        boxEl.setAttribute('material', 'color:#2244aa;opacity:0.08;transparent:true;side:double');
-        boxEl.setAttribute('position', '0 0 0');
+        boxEl.setAttribute('material', 'color:#4466cc;opacity:0.06;transparent:true;side:double');
         container.appendChild(boxEl);
 
-        // Wireframe edges
+        // Wireframe
         const wireEl = document.createElement('a-box');
         wireEl.setAttribute('width', this.boxSize);
         wireEl.setAttribute('height', this.boxSize);
         wireEl.setAttribute('depth', this.boxSize);
-        wireEl.setAttribute('material', 'color:#4466ff;opacity:0.25;transparent:true;wireframe:true');
+        wireEl.setAttribute('material', 'color:#6688ff;opacity:0.2;transparent:true;wireframe:true');
         container.appendChild(wireEl);
 
-        // B-field arrows (static, showing field direction)
-        this.fieldArrowEntities = [];
-        const spacing = this.boxSize / 3;
+        // B-field arrows (vertical, showing field direction up)
+        const spacing = this.boxSize / 4;
         for (let ix = -1; ix <= 1; ix++) {
-            for (let iy = -1; iy <= 1; iy++) {
-                const arrow = document.createElement('a-entity');
-                arrow.setAttribute('position', `${ix*spacing*0.4} ${iy*spacing*0.4} 0`);
-                // Arrow shaft
+            for (let iz = -1; iz <= 1; iz++) {
                 const shaft = document.createElement('a-cylinder');
                 shaft.setAttribute('radius', 0.003);
-                shaft.setAttribute('height', 0.12);
-                shaft.setAttribute('color', '#4488ff');
-                shaft.setAttribute('opacity', 0.35);
-                shaft.setAttribute('rotation', '90 0 0');
-                arrow.appendChild(shaft);
-                // Arrow head
-                const head = document.createElement('a-cone');
-                head.setAttribute('radius-bottom', 0.008);
-                head.setAttribute('radius-top', 0);
-                head.setAttribute('height', 0.025);
-                head.setAttribute('color', '#4488ff');
-                head.setAttribute('opacity', 0.5);
-                head.setAttribute('position', '0 0 -0.07');
-                head.setAttribute('rotation', '90 0 0');
-                arrow.appendChild(head);
-                container.appendChild(arrow);
-                this.fieldArrowEntities.push(arrow);
+                shaft.setAttribute('height', 0.08);
+                shaft.setAttribute('color', '#6688ff');
+                shaft.setAttribute('opacity', 0.3);
+                shaft.setAttribute('position', `${ix*spacing} 0 ${iz*spacing}`);
+                container.appendChild(shaft);
+                // Arrow tip
+                const tip = document.createElement('a-cone');
+                tip.setAttribute('radius-bottom', 0.007);
+                tip.setAttribute('radius-top', 0);
+                tip.setAttribute('height', 0.02);
+                tip.setAttribute('color', '#6688ff');
+                tip.setAttribute('opacity', 0.5);
+                tip.setAttribute('position', `${ix*spacing} 0.05 ${iz*spacing}`);
+                container.appendChild(tip);
             }
         }
 
         // B label
         const bLabel = document.createElement('a-text');
-        bLabel.setAttribute('value', 'B');
-        bLabel.setAttribute('position', `0 ${this.boxSize*0.35} ${-this.boxSize*0.35}`);
+        bLabel.setAttribute('value', 'B ↑');
+        bLabel.setAttribute('position', `${this.boxSize*0.3} ${this.boxSize*0.3} 0`);
         bLabel.setAttribute('align', 'center');
-        bLabel.setAttribute('color', '#4488ff');
-        bLabel.setAttribute('width', '0.6');
+        bLabel.setAttribute('color', '#6688ff');
+        bLabel.setAttribute('width', '0.5');
         container.appendChild(bLabel);
 
-        // Particle sphere
+        // Particle sphere (BIGGER)
         this.entities.particle = document.createElement('a-sphere');
-        this.entities.particle.setAttribute('radius', 0.02);
+        this.entities.particle.setAttribute('radius', 0.025);
         this.entities.particle.setAttribute('color', this.chargeSign > 0 ? '#ff4444' : '#4488ff');
-        this.entities.particle.setAttribute('material', 'shader:flat');
+        this.entities.particle.setAttribute('material', 'emissive:' + (this.chargeSign > 0 ? '#ff2222' : '#2266ff') + ';emissiveIntensity:0.4');
         container.appendChild(this.entities.particle);
 
         // Charge label
         this.entities.chargeLabel = document.createElement('a-text');
-        this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p⁺' : 'e⁻');
+        this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p+' : 'e-');
         this.entities.chargeLabel.setAttribute('position', '0 0.04 0');
         this.entities.chargeLabel.setAttribute('align', 'center');
         this.entities.chargeLabel.setAttribute('color', '#ffffff');
-        this.entities.chargeLabel.setAttribute('width', '0.5');
+        this.entities.chargeLabel.setAttribute('width', '0.35');
         this.entities.particle.appendChild(this.entities.chargeLabel);
 
-        // Formula label
+        // Formula
         const formulaEl = document.createElement('a-text');
-        formulaEl.setAttribute('value', 'F = q(v × B)');
-        formulaEl.setAttribute('position', `0 ${-this.boxSize*0.38} 0`);
+        formulaEl.setAttribute('value', 'F = q(v x B)');
+        formulaEl.setAttribute('position', `0 ${-this.boxSize*0.35} 0`);
         formulaEl.setAttribute('align', 'center');
         formulaEl.setAttribute('color', '#ff8866');
-        formulaEl.setAttribute('width', '1.0');
+        formulaEl.setAttribute('width', '0.8');
         container.appendChild(formulaEl);
 
-        // VR control buttons in scene
+        // VR buttons
         this.buildVRControls(container);
 
+        // Auto-start
         this.reset();
+        this.play();
     },
 
     buildVRControls: function(container) {
         const btnData = [
-            {label:'▶ Start', x:-0.28, fn:'lorentzPlay'},
-            {label:'↺ Reset', x:-0.09, fn:'lorentzReset'},
-            {label:'± Ladung', x:0.10, fn:'lorentzToggleCharge'},
+            {label:'Reset', x:-0.18, fn:'lorentzReset'},
+            {label:'+ / -', x:0, fn:'lorentzToggleCharge'},
+            {label:'Start', x:0.18, fn:'lorentzPlay'},
         ];
         btnData.forEach(b => {
             const bg = document.createElement('a-plane');
-            bg.setAttribute('width', 0.16);
+            bg.setAttribute('width', 0.14);
             bg.setAttribute('height', 0.06);
-            bg.setAttribute('position', `${b.x} ${-this.boxSize*0.5} 0.01`);
-            bg.setAttribute('color', '#1a1d2e');
+            bg.setAttribute('position', `${b.x} ${-this.boxSize*0.45} 0.01`);
+            bg.setAttribute('color', '#334');
             bg.setAttribute('opacity', 0.85);
             bg.setAttribute('class', 'interactive');
             bg.addEventListener('click', () => window[b.fn]());
@@ -848,10 +834,10 @@ const LorentzSim = {
 
             const txt = document.createElement('a-text');
             txt.setAttribute('value', b.label);
-            txt.setAttribute('position', `${b.x} ${-this.boxSize*0.5} 0.015`);
+            txt.setAttribute('position', `${b.x} ${-this.boxSize*0.45} 0.015`);
             txt.setAttribute('align', 'center');
             txt.setAttribute('color', '#ffffff');
-            txt.setAttribute('width', '0.5');
+            txt.setAttribute('width', '0.4');
             container.appendChild(txt);
         });
     },
@@ -860,8 +846,8 @@ const LorentzSim = {
         this.running = false;
         this.trail = [];
         this.particle = {
-            pos: {x: -this.boxSize*0.35, y: 0, z: 0},
-            vel: {x: 0.15, y: 0.05, z: 0}
+            pos: {x: 0.12, y: 0, z: 0},
+            vel: {x: 0, y: 0, z: 0.25}
         };
         this.updateVisuals();
         this.clearTrail();
@@ -870,10 +856,13 @@ const LorentzSim = {
     toggleCharge: function() {
         this.chargeSign *= -1;
         if (this.entities.particle) {
-            this.entities.particle.setAttribute('color', this.chargeSign > 0 ? '#ff4444' : '#4488ff');
-            this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p⁺' : 'e⁻');
+            const c = this.chargeSign > 0 ? '#ff4444' : '#4488ff';
+            this.entities.particle.setAttribute('color', c);
+            this.entities.particle.setAttribute('material', 'emissive', this.chargeSign > 0 ? '#ff2222' : '#2266ff');
+            this.entities.chargeLabel.setAttribute('value', this.chargeSign > 0 ? 'p+' : 'e-');
         }
         this.reset();
+        this.play();
     },
 
     play: function() {
@@ -1321,29 +1310,7 @@ async function fetchMolecule(name) {
 //  A-FRAME COMPONENTS
 // ══════════════════════════════════════════════════════════════
 
-AFRAME.registerComponent('starfield', {
-    init() {
-        const count = 2000;
-        const geom = new THREE.BufferGeometry();
-        const pos = new Float32Array(count * 3);
-        const sizes = new Float32Array(count);
-        for (let i = 0; i < count; i++) {
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            const r = 30 + Math.random() * 70;
-            pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-            pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-            pos[i*3+2] = r * Math.cos(phi);
-            sizes[i] = 0.08 + Math.random() * 0.15;
-        }
-        geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-        const mat = new THREE.PointsMaterial({
-            color: 0xffffff, size: 0.12, sizeAttenuation: true,
-            transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
-        });
-        this.el.object3D.add(new THREE.Points(geom, mat));
-    }
-});
+
 
 AFRAME.registerComponent('auto-rotate', {
     schema: { speed: { type: 'number', default: 0.15 }, paused: { type: 'boolean', default: false } },
@@ -1817,6 +1784,8 @@ function buildVRMenu() {
 function toggleVRMenu() {
     menuVisible = !menuVisible;
     document.getElementById('vr-menu').setAttribute('visible', menuVisible);
+    // Hide/show molecule when menu is toggled
+    document.getElementById('mol-container').setAttribute('visible', !menuVisible);
     // Pause/resume rotation
     const wrapper = document.getElementById('mol-wrapper');
     if (wrapper) wrapper.setAttribute('auto-rotate', 'paused', menuVisible);
@@ -1834,6 +1803,8 @@ function startQuizMode() {
     quizActive = true;
     quizIdx = 0;
     quizScore = 0;
+    // Hide molecule while quiz is active
+    document.getElementById('mol-container').setAttribute('visible', false);
     showQuizQuestion();
 }
 
@@ -1847,13 +1818,9 @@ function showQuizQuestion() {
     const q = QUIZ_QUESTIONS[quizIdx];
     const container = document.getElementById('quiz-container');
     container.setAttribute('visible', true);
+    // Keep molecule hidden during quiz
+    document.getElementById('mol-container').setAttribute('visible', false);
     while (container.firstChild) container.removeChild(container.firstChild);
-
-    // Hide molecule menu if visible
-    if (menuVisible) toggleVRMenu();
-
-    // Load molecule for this question
-    if (q.mol) loadAndDisplay(q.mol, q.mol, '');
 
     // Background (behind everything)
     const bg = document.createElement('a-plane');
@@ -2026,6 +1993,8 @@ function showQuizFinished() {
     closePlane.addEventListener('click', () => {
         quizActive = false;
         container.setAttribute('visible', false);
+        // Re-show molecule
+        document.getElementById('mol-container').setAttribute('visible', true);
     });
     container.appendChild(closePlane);
 
@@ -2213,6 +2182,9 @@ function backToLanding() {
     document.getElementById('info-bar').style.display = 'none';
     quizActive = false;
     document.getElementById('quiz-container').setAttribute('visible', false);
+    document.getElementById('mol-container').setAttribute('visible', true);
+    document.getElementById('physics-container').setAttribute('visible', false);
+    document.getElementById('math-container').setAttribute('visible', false);
     if (menuVisible) toggleVRMenu();
     // Stop physics
     LorentzSim.running = false;
