@@ -1584,9 +1584,29 @@ function navigateTo(state) {
 }
 
 function goBack() {
+    // IMMEDIATELY kill all interactivity to prevent gaze-through during transition
+    document.querySelectorAll('.interactive').forEach(el => {
+        el.classList.remove('interactive');
+        el.classList.add('interactive-disabled');
+    });
+    // Cancel any pending fuse click
+    const cursorRing = document.getElementById('cursor-ring');
+    if (cursorRing) {
+        cursorRing.setAttribute('cursor', 'fuse', false);
+    }
+    
     showAIButton(false);
+    hideAIResponse();
     if (navState === 'viewing' || navState === 'quiz') navigateTo(activeModule);
     else if (navState === 'chemie' || navState === 'physik' || navState === 'mathe') navigateTo('main');
+    
+    // Re-enable fuse after navigation is done
+    setTimeout(() => {
+        if (cursorRing) {
+            cursorRing.setAttribute('cursor', 'fuse', true);
+            cursorRing.setAttribute('cursor', 'fuseTimeout', 1500);
+        }
+    }, 200);
 }
 
 // ═══ NEUMORPHIC VR DESIGN SYSTEM ═══
@@ -2423,6 +2443,12 @@ function setAIButtonState(state) {
 // --- Start AI Interaction ---
 function startAIInteraction() {
     if (aiProcessing) return;
+    // Unlock TTS on mobile (requires user gesture)
+    if ('speechSynthesis' in window) {
+        const unlock = new SpeechSynthesisUtterance('');
+        unlock.volume = 0;
+        window.speechSynthesis.speak(unlock);
+    }
     // Check for API key
     if (!hasAIKey()) {
         showAIKeyModal();
