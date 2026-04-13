@@ -1565,6 +1565,13 @@ function navigateTo(state) {
     nav.setAttribute('visible', state !== 'viewing' && state !== 'quiz');
     // Also strip all interactive classes from any leftover elements
     nav.querySelectorAll('.interactive').forEach(el => el.classList.remove('interactive'));
+    // Restore any elements that were disabled during viewing
+    document.querySelectorAll('.interactive-disabled').forEach(el => {
+        el.classList.remove('interactive-disabled');
+        el.classList.add('interactive');
+    });
+    // Stop any TTS that might be playing
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     switch(state) {
         case 'calibrate': buildCalibrationPanel(nav); break;
         case 'main': buildMainMenu(nav); break;
@@ -1928,7 +1935,10 @@ async function loadMoleculeVR(name, label, formula) {
         container.setAttribute('visible', true);
         updateHUD(label, formula || mol.atoms.length + ' Atome');
         navState = 'viewing';
-        document.getElementById('vr-nav').setAttribute('visible', false);
+        const nav = document.getElementById('vr-nav');
+        nav.setAttribute('visible', false);
+        // Strip interactive class so gaze can't trigger hidden buttons
+        nav.querySelectorAll('.interactive').forEach(el => { el.classList.remove('interactive'); el.classList.add('interactive-disabled'); });
         document.getElementById('vr-back-btn').setAttribute('visible', true);
         // Show AI button when viewing a molecule
         buildAIButton();
@@ -1945,7 +1955,9 @@ function loadPhysicsVR(type) {
     if (type === 'lorentz') { LorentzSim.init(container); updateHUD('Lorentzkraft', 'F = q(v x B)'); }
     else { InductionSim.init(container); updateHUD('Induktion', 'EMF = -dPhi/dt'); }
     navState = 'viewing';
-    document.getElementById('vr-nav').setAttribute('visible', false);
+    const nav = document.getElementById('vr-nav');
+    nav.setAttribute('visible', false);
+    nav.querySelectorAll('.interactive').forEach(el => { el.classList.remove('interactive'); el.classList.add('interactive-disabled'); });
     document.getElementById('vr-back-btn').setAttribute('visible', true);
 }
 
@@ -1957,7 +1969,9 @@ function loadMathVR(expr, label) {
         renderMathSurface(fn, expr);
         updateHUD('f(z) = ' + expr, label || 'Komplexe Funktion');
         navState = 'viewing';
-        document.getElementById('vr-nav').setAttribute('visible', false);
+        const navM = document.getElementById('vr-nav');
+        navM.setAttribute('visible', false);
+        navM.querySelectorAll('.interactive').forEach(el => { el.classList.remove('interactive'); el.classList.add('interactive-disabled'); });
         document.getElementById('vr-back-btn').setAttribute('visible', true);
     } catch(e) { showToast('Fehler: ' + e.message); }
 }
@@ -2494,7 +2508,6 @@ async function askAI(question) {
                 parts: [{ text: context + '\nFrage des Schuelers: ' + question }]
             }],
             generationConfig: {
-                maxOutputTokens: 400,
                 temperature: 0.7
             }
         };
