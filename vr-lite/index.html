@@ -2202,34 +2202,50 @@ function buildAIButton() {
 }
 
 // --- AI Response Panel ---
-function showAIResponse(text) {
+function showAIResponse(text, question) {
     const panel = document.getElementById('ai-response-panel');
     if (!panel) return;
     while (panel.firstChild) panel.firstChild.remove();
     // Calculate panel height based on text length
-    const lines = Math.ceil(text.length / 40) + 2;
-    const panelH = Math.max(0.5, Math.min(1.6, lines * 0.08));
+    const lines = Math.ceil(text.length / 40) + (question ? 3 : 2);
+    const panelH = Math.max(0.6, Math.min(2.0, lines * 0.08));
     makePanel(panel, 2.2, panelH);
+    let yPos = panelH/2 - 0.08;
     // Header
     const header = document.createElement('a-text');
     header.setAttribute('value', 'AI Assistent');
-    header.setAttribute('position', `0 ${panelH/2 - 0.08} 0.02`);
+    header.setAttribute('position', `0 ${yPos} 0.02`);
     header.setAttribute('align', 'center');
     header.setAttribute('color', NEO.accent);
     header.setAttribute('width', 1.8);
     panel.appendChild(header);
+    yPos -= 0.07;
     // Divider
     const div = document.createElement('a-plane');
     div.setAttribute('width', 1.6);
     div.setAttribute('height', 0.003);
-    div.setAttribute('position', `0 ${panelH/2 - 0.15} 0.02`);
+    div.setAttribute('position', `0 ${yPos} 0.02`);
     div.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
     panel.appendChild(div);
+    yPos -= 0.10;
+    // Show question if provided
+    if (question) {
+        const qLabel = document.createElement('a-text');
+        qLabel.setAttribute('value', 'Du: ' + wrapText(question, 44));
+        qLabel.setAttribute('position', `0 ${yPos} 0.02`);
+        qLabel.setAttribute('align', 'center');
+        qLabel.setAttribute('color', NEO.accent2);
+        qLabel.setAttribute('width', 1.6);
+        qLabel.setAttribute('baseline', 'top');
+        qLabel.setAttribute('wrapCount', 46);
+        panel.appendChild(qLabel);
+        yPos -= 0.14;
+    }
     // Response text
     const wrapped = wrapText(text, 48);
     const resp = document.createElement('a-text');
     resp.setAttribute('value', wrapped);
-    resp.setAttribute('position', `0 ${panelH/2 - 0.25} 0.02`);
+    resp.setAttribute('position', `0 ${yPos} 0.02`);
     resp.setAttribute('align', 'center');
     resp.setAttribute('color', NEO.text);
     resp.setAttribute('width', 1.8);
@@ -2316,11 +2332,12 @@ function startAIInteraction() {
         console.error('[AI] Speech error:', event.error);
         aiListening = false;
         if (event.error === 'no-speech') {
-            showToast('Keine Sprache erkannt. Nochmal versuchen.');
-            setAIButtonState('idle');
+            showToast('Keine Sprache erkannt — frage automatisch...');
         } else {
-            setAIButtonState('error');
+            showToast('Mikrofon: ' + event.error + ' — frage automatisch...');
         }
+        // Always fall back to a default question about the current molecule
+        askAI('Was ist dieses Molekuel? Erklaere es kurz und einfach.');
     };
     recognition.onend = () => {
         if (aiListening) {
@@ -2328,7 +2345,14 @@ function startAIInteraction() {
             setAIButtonState('idle');
         }
     };
-    recognition.start();
+    try {
+        recognition.start();
+    } catch(e) {
+        console.error('[AI] Could not start speech:', e);
+        aiListening = false;
+        showToast('Spracherkennung fehlgeschlagen — frage automatisch...');
+        askAI('Was ist dieses Molekuel? Erklaere es kurz und einfach.');
+    }
 }
 
 // --- Send to Gemini API ---
@@ -2371,7 +2395,7 @@ async function askAI(question) {
         const data = await res.json();
         const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
         console.log('[AI] Response:', answer);
-        showAIResponse(answer);
+        showAIResponse(answer, question);
         setAIButtonState('idle');
     } catch(e) {
         console.error('[AI] API error:', e);
