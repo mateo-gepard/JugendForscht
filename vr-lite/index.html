@@ -2545,6 +2545,15 @@ function startVR() {
         console.log('[BeGreifbar] Scene ready, activating VR...');
         enterStereoVR();
         setTimeout(() => calibrateVR(), 300);
+        // Request microphone permission early so AI voice works without delay
+        try {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                stream.getTracks().forEach(t => t.stop()); // release immediately
+                console.log('[AI] Microphone permission granted');
+            }).catch(e => console.warn('[AI] Microphone permission denied:', e));
+        } catch(e) { console.warn('[AI] getUserMedia not available:', e); }
+        // Preload TTS voices
+        if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
     }
     if (sceneEl && sceneEl.hasLoaded) {
         doStart();
