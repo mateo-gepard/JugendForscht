@@ -2129,9 +2129,9 @@ let aiListening = false;
 let aiProcessing = false;
 let aiRecognition = null;
 
-// --- API Key Management ---
-function getAIKey() { return localStorage.getItem('begreibar_gemini_key') || ''; }
-function hasAIKey() { return !!getAIKey(); }
+const GEMINI_DEFAULT_KEY = 'AIzaSyCnouCH9zxEJDo6B1YoO-C8CWPvtfmaDiQ';
+function getAIKey() { return localStorage.getItem('begreibar_gemini_key') || GEMINI_DEFAULT_KEY; }
+function hasAIKey() { return true; }
 
 function showAIKeyModal() {
     const modal = document.getElementById('ai-key-modal');
