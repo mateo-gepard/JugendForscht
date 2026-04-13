@@ -2129,9 +2129,9 @@ let aiListening = false;
 let aiProcessing = false;
 let aiRecognition = null;
 
-const GEMINI_DEFAULT_KEY = 'AIzaSyCnouCH9zxEJDo6B1YoO-C8CWPvtfmaDiQ';
-function getAIKey() { return localStorage.getItem('begreibar_gemini_key') || GEMINI_DEFAULT_KEY; }
-function hasAIKey() { return true; }
+// --- API Key Management (stored in localStorage only, never in source) ---
+function getAIKey() { return localStorage.getItem('begreifbar_gemini_key') || ''; }
+function hasAIKey() { return !!getAIKey(); }
 
 function showAIKeyModal() {
     const modal = document.getElementById('ai-key-modal');
@@ -2145,7 +2145,7 @@ function closeAIKeyModal() {
 function saveAIKey() {
     const input = document.getElementById('ai-key-input');
     if (input && input.value.trim()) {
-        localStorage.setItem('begreibar_gemini_key', input.value.trim());
+        localStorage.setItem('begreifbar_gemini_key', input.value.trim());
         closeAIKeyModal();
         showToast('API-Key gespeichert!');
     }
