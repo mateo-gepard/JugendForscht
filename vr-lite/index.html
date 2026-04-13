@@ -2213,8 +2213,9 @@ function showAIResponse(text, question) {
     // Hide viewing containers so the molecule doesn't clip into the text
     ['mol-container', 'physics-container', 'math-container'].forEach(id => {
         const el = document.getElementById(id);
-        if (el && el.getAttribute('visible') === 'true') {
-            el.setAttribute('visible', 'false');
+        // A-Frame getAttribute returns a boolean, not string 'true'
+        if (el && el.getAttribute('visible')) {
+            el.setAttribute('visible', false);
             el.dataset.wasVisible = 'true';
         }
     });
@@ -2292,7 +2293,7 @@ function hideAIResponse() {
     ['mol-container', 'physics-container', 'math-container'].forEach(id => {
         const el = document.getElementById(id);
         if (el && el.dataset.wasVisible === 'true') {
-            el.setAttribute('visible', 'true');
+            el.setAttribute('visible', true);
             el.dataset.wasVisible = 'false';
         }
     });
@@ -2396,7 +2397,7 @@ async function askAI(question) {
     const key = getAIKey();
     if (!key) { setAIButtonState('error'); aiProcessing = false; return; }
     // Build context about current molecule
-    let context = 'Du bist ein freundlicher Chemie-Tutor in einer VR-Lernapp fuer Schueler. Antworte kurz und verstaendlich auf Deutsch (max 3-4 Saetze). ';
+    let context = 'Du bist ein KI-Tutor in einer VR-Lernapp. Antworte EXTREM DIREKT und praezise auf Deutsch. Maximal 1-2 kurze Saetze. Keine Begruessung ("Hallo!"). Komm sofort zur Sache. ';
     if (currentMolecule) {
         const m = currentMolecule;
         const atomCounts = {};
