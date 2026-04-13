@@ -72,6 +72,18 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg)
 .a-enter-vr-button{display:none!important}
 a-scene{position:fixed!important;inset:0!important}
 
+/* API Key Modal */
+#ai-key-modal{position:fixed;inset:0;z-index:5000;background:rgba(228,232,238,.95);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px}
+#ai-key-modal.show{display:flex}
+#ai-key-modal .modal-card{background:var(--bg);border-radius:var(--r);box-shadow:var(--neo);padding:32px;max-width:400px;width:90%;text-align:center}
+#ai-key-modal .modal-card h3{font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px}
+#ai-key-modal .modal-card p{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+#ai-key-modal .modal-card input{width:100%;padding:14px 16px;border-radius:var(--r-sm);border:none;background:var(--bg);box-shadow:var(--neo-in);font-family:inherit;font-size:14px;color:var(--text);outline:none;margin-bottom:16px}
+#ai-key-modal .modal-card .modal-btns{display:flex;gap:10px;justify-content:center}
+#ai-key-modal .modal-card .modal-btns button{padding:12px 24px;border-radius:var(--r-sm);border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+#ai-key-modal .modal-card .btn-save{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 16px rgba(91,127,255,.3)}
+#ai-key-modal .modal-card .btn-cancel{background:var(--bg);color:var(--text2);box-shadow:var(--neo-sm)}
+
 /* ═══ STEREO VR OVERLAY ═══ */
 #stereo-divider{position:fixed;top:0;left:50%;width:3px;height:100%;background:#000;z-index:3000;display:none;transform:translateX(-50%)}
 #stereo-exit{position:fixed;top:12px;right:12px;z-index:3001;width:44px;height:44px;border-radius:50%;background:rgba(255,68,68,.8);color:#fff;border:none;font-size:20px;font-weight:bold;display:none;cursor:pointer;line-height:44px;text-align:center}
@@ -126,6 +138,19 @@ body.stereo-active #overlay,body.stereo-active #info-bar,body.stereo-active .toa
 
 <!-- ═══════════════ TOAST ═══════════════ -->
 <div class="toast" id="toast"></div>
+
+<!-- ═══════════════ AI KEY MODAL ═══════════════ -->
+<div id="ai-key-modal">
+    <div class="modal-card">
+        <h3>AI Assistent einrichten</h3>
+        <p>Gib deinen Google Gemini API-Key ein, um den KI-Assistenten zu nutzen.<br>Kostenlos erstellen auf <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a></p>
+        <input type="password" id="ai-key-input" placeholder="AIza...">
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="closeAIKeyModal()">Abbrechen</button>
+            <button class="btn-save" onclick="saveAIKey()">Speichern</button>
+        </div>
+    </div>
+</div>
 
 <!-- ═══════════════ INFO BAR ═══════════════ -->
 <div id="info-bar" style="display:none">
@@ -1552,6 +1577,7 @@ function navigateTo(state) {
 }
 
 function goBack() {
+    showAIButton(false);
     if (navState === 'viewing' || navState === 'quiz') navigateTo(activeModule);
     else if (navState === 'chemie' || navState === 'physik' || navState === 'mathe') navigateTo('main');
 }
@@ -1904,6 +1930,9 @@ async function loadMoleculeVR(name, label, formula) {
         navState = 'viewing';
         document.getElementById('vr-nav').setAttribute('visible', false);
         document.getElementById('vr-back-btn').setAttribute('visible', true);
+        // Show AI button when viewing a molecule
+        buildAIButton();
+        showAIButton(true);
         showToast(label + ' — ' + mol.atoms.length + ' Atome');
     } catch(e) { showToast('Fehler: ' + e.message); }
 }
@@ -2090,6 +2119,266 @@ function wrapText(text, maxChars) {
     words.forEach(w => { if ((line + ' ' + w).trim().length > maxChars) { lines.push(line.trim()); line = w; } else { line += (line ? ' ' : '') + w; } });
     if (line) lines.push(line.trim());
     return lines.join('\n');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AI VOICE Q&A SYSTEM (Web Speech API + Gemini)
+// ══════════════════════════════════════════════════════════════
+
+let aiListening = false;
+let aiProcessing = false;
+let aiRecognition = null;
+
+// --- API Key Management ---
+function getAIKey() { return localStorage.getItem('begreibar_gemini_key') || ''; }
+function hasAIKey() { return !!getAIKey(); }
+
+function showAIKeyModal() {
+    const modal = document.getElementById('ai-key-modal');
+    const input = document.getElementById('ai-key-input');
+    if (modal) { modal.classList.add('show'); if (input) input.value = getAIKey(); }
+}
+function closeAIKeyModal() {
+    const modal = document.getElementById('ai-key-modal');
+    if (modal) modal.classList.remove('show');
+}
+function saveAIKey() {
+    const input = document.getElementById('ai-key-input');
+    if (input && input.value.trim()) {
+        localStorage.setItem('begreibar_gemini_key', input.value.trim());
+        closeAIKeyModal();
+        showToast('API-Key gespeichert!');
+    }
+}
+
+// --- AI Button in VR ---
+function showAIButton(visible) {
+    const btn = document.getElementById('ai-ask-btn');
+    if (btn) btn.setAttribute('visible', visible);
+    // Hide response panel when hiding button
+    if (!visible) hideAIResponse();
+}
+
+function buildAIButton() {
+    const btn = document.getElementById('ai-ask-btn');
+    if (!btn) return;
+    // Clear any previous content
+    while (btn.firstChild) btn.firstChild.remove();
+    // Shadow
+    const shadow = document.createElement('a-plane');
+    shadow.setAttribute('width', 0.50);
+    shadow.setAttribute('height', 0.16);
+    shadow.setAttribute('position', '0.006 -0.006 0');
+    shadow.setAttribute('material', `color:${NEO.shadow}; opacity:0.35; transparent:true; shader:flat; side:double`);
+    btn.appendChild(shadow);
+    // Highlight
+    const hl = document.createElement('a-plane');
+    hl.setAttribute('width', 0.50);
+    hl.setAttribute('height', 0.16);
+    hl.setAttribute('position', '-0.004 0.004 0.003');
+    hl.setAttribute('material', `color:${NEO.highlight}; opacity:0.4; transparent:true; shader:flat; side:double`);
+    btn.appendChild(hl);
+    // Main button face
+    const face = document.createElement('a-plane');
+    face.setAttribute('width', 0.50);
+    face.setAttribute('height', 0.16);
+    face.setAttribute('position', '0 0 0.006');
+    face.setAttribute('material', `color:${NEO.accent}; opacity:0.95; transparent:true; shader:flat; side:double`);
+    face.setAttribute('class', 'interactive');
+    face.setAttribute('id', 'ai-btn-face');
+    face.addEventListener('mouseenter', () => { face.object3D.scale.set(1.06, 1.06, 1); shadow.setAttribute('material', 'opacity', 0.15); });
+    face.addEventListener('mouseleave', () => { face.object3D.scale.set(1, 1, 1); shadow.setAttribute('material', 'opacity', 0.35); });
+    face.addEventListener('click', () => startAIInteraction());
+    btn.appendChild(face);
+    // Label
+    const label = document.createElement('a-text');
+    label.setAttribute('value', 'AI Fragen');
+    label.setAttribute('position', '0 0 0.01');
+    label.setAttribute('align', 'center');
+    label.setAttribute('color', '#ffffff');
+    label.setAttribute('width', 1.0);
+    label.setAttribute('id', 'ai-btn-label');
+    btn.appendChild(label);
+}
+
+// --- AI Response Panel ---
+function showAIResponse(text) {
+    const panel = document.getElementById('ai-response-panel');
+    if (!panel) return;
+    while (panel.firstChild) panel.firstChild.remove();
+    // Calculate panel height based on text length
+    const lines = Math.ceil(text.length / 40) + 2;
+    const panelH = Math.max(0.5, Math.min(1.6, lines * 0.08));
+    makePanel(panel, 2.2, panelH);
+    // Header
+    const header = document.createElement('a-text');
+    header.setAttribute('value', 'AI Assistent');
+    header.setAttribute('position', `0 ${panelH/2 - 0.08} 0.02`);
+    header.setAttribute('align', 'center');
+    header.setAttribute('color', NEO.accent);
+    header.setAttribute('width', 1.8);
+    panel.appendChild(header);
+    // Divider
+    const div = document.createElement('a-plane');
+    div.setAttribute('width', 1.6);
+    div.setAttribute('height', 0.003);
+    div.setAttribute('position', `0 ${panelH/2 - 0.15} 0.02`);
+    div.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
+    panel.appendChild(div);
+    // Response text
+    const wrapped = wrapText(text, 48);
+    const resp = document.createElement('a-text');
+    resp.setAttribute('value', wrapped);
+    resp.setAttribute('position', `0 ${panelH/2 - 0.25} 0.02`);
+    resp.setAttribute('align', 'center');
+    resp.setAttribute('color', NEO.text);
+    resp.setAttribute('width', 1.8);
+    resp.setAttribute('baseline', 'top');
+    resp.setAttribute('wrapCount', 50);
+    panel.appendChild(resp);
+    // Close button
+    makeButton(panel, 'Schliessen', 0, -panelH/2 + 0.10, 0.5, 0.12, null, () => hideAIResponse());
+    panel.setAttribute('visible', true);
+}
+
+function hideAIResponse() {
+    const panel = document.getElementById('ai-response-panel');
+    if (panel) {
+        while (panel.firstChild) panel.firstChild.remove();
+        panel.setAttribute('visible', false);
+    }
+}
+
+// --- Update AI button state visually ---
+function setAIButtonState(state) {
+    const label = document.getElementById('ai-btn-label');
+    const face = document.getElementById('ai-btn-face');
+    if (!label || !face) return;
+    switch(state) {
+        case 'idle':
+            label.setAttribute('value', 'AI Fragen');
+            face.setAttribute('material', 'color', NEO.accent);
+            break;
+        case 'listening':
+            label.setAttribute('value', 'Hoere zu...');
+            face.setAttribute('material', 'color', '#e8725c');
+            break;
+        case 'thinking':
+            label.setAttribute('value', 'Denke nach...');
+            face.setAttribute('material', 'color', NEO.accent2);
+            break;
+        case 'error':
+            label.setAttribute('value', 'Fehler - nochmal');
+            face.setAttribute('material', 'color', '#ef4444');
+            setTimeout(() => setAIButtonState('idle'), 2500);
+            break;
+    }
+}
+
+// --- Start AI Interaction ---
+function startAIInteraction() {
+    if (aiProcessing) return;
+    // Check for API key
+    if (!hasAIKey()) {
+        showAIKeyModal();
+        return;
+    }
+    // Check for Speech API support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        showToast('Spracherkennung nicht unterstuetzt');
+        // Fallback: use a default question
+        askAI('Was ist dieses Molekuel? Erklaere es einfach.');
+        return;
+    }
+    if (aiListening) {
+        // Stop listening
+        if (aiRecognition) aiRecognition.stop();
+        return;
+    }
+    aiListening = true;
+    setAIButtonState('listening');
+    showToast('Stelle deine Frage...');
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'de-DE';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+    aiRecognition = recognition;
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log('[AI] Recognized:', transcript);
+        aiListening = false;
+        showToast('Frage: ' + transcript);
+        askAI(transcript);
+    };
+    recognition.onerror = (event) => {
+        console.error('[AI] Speech error:', event.error);
+        aiListening = false;
+        if (event.error === 'no-speech') {
+            showToast('Keine Sprache erkannt. Nochmal versuchen.');
+            setAIButtonState('idle');
+        } else {
+            setAIButtonState('error');
+        }
+    };
+    recognition.onend = () => {
+        if (aiListening) {
+            aiListening = false;
+            setAIButtonState('idle');
+        }
+    };
+    recognition.start();
+}
+
+// --- Send to Gemini API ---
+async function askAI(question) {
+    if (aiProcessing) return;
+    aiProcessing = true;
+    setAIButtonState('thinking');
+    const key = getAIKey();
+    if (!key) { setAIButtonState('error'); aiProcessing = false; return; }
+    // Build context about current molecule
+    let context = 'Du bist ein freundlicher Chemie-Tutor in einer VR-Lernapp fuer Schueler. Antworte kurz und verstaendlich auf Deutsch (max 3-4 Saetze). ';
+    if (currentMolecule) {
+        const m = currentMolecule;
+        const atomCounts = {};
+        m.mol.atoms.forEach(a => { atomCounts[a.element] = (atomCounts[a.element] || 0) + 1; });
+        const composition = Object.entries(atomCounts).map(([el, n]) => `${n}x ${ELEMENT_NAMES[el] || el}`).join(', ');
+        context += `\nDer Schueler betrachtet gerade das Molekuel: ${m.label} (${m.formula}). `;
+        context += `Es hat ${m.mol.atoms.length} Atome (${composition}) und ${m.mol.bonds.length} Bindungen. `;
+    }
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+        const body = {
+            contents: [{
+                parts: [{ text: context + '\nFrage des Schuelers: ' + question }]
+            }],
+            generationConfig: {
+                maxOutputTokens: 200,
+                temperature: 0.7
+            }
+        };
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData?.error?.message || `API Fehler ${res.status}`);
+        }
+        const data = await res.json();
+        const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Keine Antwort erhalten.';
+        console.log('[AI] Response:', answer);
+        showAIResponse(answer);
+        setAIButtonState('idle');
+    } catch(e) {
+        console.error('[AI] API error:', e);
+        showToast('AI Fehler: ' + e.message);
+        setAIButtonState('error');
+    }
+    aiProcessing = false;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2292,6 +2581,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <a-entity id="physics-container" position="0 0 -2.0" visible="false"></a-entity>
         <a-entity id="math-container" position="0 0 -2.0" visible="false"></a-entity>
         <a-entity id="quiz-container" position="0 0 -1.95" visible="false"></a-entity>
+
+        <!-- AI Ask Button (shown during molecule viewing) -->
+        <a-entity id="ai-ask-btn" position="-1.0 0.75 -1.95" visible="false"></a-entity>
+
+        <!-- AI Response Panel (centered, above content) -->
+        <a-entity id="ai-response-panel" position="0 0.2 -1.9" visible="false"></a-entity>
 
     </a-entity>
 
