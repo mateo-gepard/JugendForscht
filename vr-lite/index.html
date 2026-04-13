@@ -2210,8 +2210,8 @@ function showAIResponse(text, question) {
     if (!panel) return;
     while (panel.firstChild) panel.firstChild.remove();
     
-    // Hide viewing containers so the molecule doesn't clip into the text
-    ['mol-container', 'physics-container', 'math-container'].forEach(id => {
+    // Hide viewing containers AND navigation so gaze doesn't trigger buttons behind the panel
+    ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn'].forEach(id => {
         const el = document.getElementById(id);
         // A-Frame getAttribute returns a boolean, not string 'true'
         if (el && el.getAttribute('visible')) {
@@ -2289,8 +2289,8 @@ function hideAIResponse() {
         panel.setAttribute('visible', false);
     }
     
-    // Restore viewing containers
-    ['mol-container', 'physics-container', 'math-container'].forEach(id => {
+    // Restore viewing containers and navigation
+    ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn'].forEach(id => {
         const el = document.getElementById(id);
         if (el && el.dataset.wasVisible === 'true') {
             el.setAttribute('visible', true);
