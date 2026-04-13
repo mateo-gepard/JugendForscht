@@ -2210,19 +2210,34 @@ function showAIResponse(text, question) {
     if (!panel) return;
     while (panel.firstChild) panel.firstChild.remove();
     
-    // Hide viewing containers AND navigation so gaze doesn't trigger buttons behind the panel
-    ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn'].forEach(id => {
+    // DISABLE the gaze raycaster entirely so nothing behind the panel can be triggered
+    const cursorRing = document.getElementById('cursor-ring');
+    if (cursorRing) {
+        cursorRing.setAttribute('raycaster', 'objects', '.ai-panel-only');
+        cursorRing.setAttribute('cursor', 'fuse', false);
+    }
+    
+    // Clear any stuck HUD text / atom labels
+    clearHUD();
+    
+    // Hide viewing containers AND navigation
+    ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn', 'ai-ask-btn'].forEach(id => {
         const el = document.getElementById(id);
         if (el && el.getAttribute('visible')) {
             el.setAttribute('visible', false);
             el.dataset.wasVisible = 'true';
         }
     });
+    
+    // Also strip interactive class from ALL elements in the scene to be safe
+    document.querySelectorAll('.interactive').forEach(el => {
+        el.classList.remove('interactive');
+        el.classList.add('interactive-disabled');
+    });
 
     // Use a consistent chars-per-line for all height calculations
-    // A-Frame text at width=2.4 with wrapCount=40 gives readable VR text
     const CHARS_PER_LINE = 40;
-    const LINE_HEIGHT = 0.065; // meters per line of text in VR
+    const LINE_HEIGHT = 0.065;
     
     // Count lines for question
     let qLines = 0;
@@ -2235,11 +2250,10 @@ function showAIResponse(text, question) {
     // Count lines for answer
     const ansLines = Math.ceil(text.length / CHARS_PER_LINE);
     
-    // Total panel height: header(0.12) + divider(0.06) + question + gap + answer + gap + button(0.18)
-    const topPad = 0.20; // header + divider
+    const topPad = 0.20;
     const qHeight = qLines > 0 ? (qLines * LINE_HEIGHT + 0.08) : 0;
     const ansHeight = ansLines * LINE_HEIGHT;
-    const bottomPad = 0.22; // button + padding
+    const bottomPad = 0.22;
     const panelH = Math.max(0.8, topPad + qHeight + ansHeight + bottomPad);
     const panelW = 2.6;
     makePanel(panel, panelW, panelH);
@@ -2279,7 +2293,7 @@ function showAIResponse(text, question) {
         yPos -= qHeight;
     }
     
-    // Response text — let A-Frame handle wrapping natively
+    // Response text
     const resp = document.createElement('a-text');
     resp.setAttribute('value', text);
     resp.setAttribute('position', `0 ${yPos.toFixed(3)} 0.02`);
@@ -2290,9 +2304,43 @@ function showAIResponse(text, question) {
     resp.setAttribute('wrapCount', CHARS_PER_LINE);
     panel.appendChild(resp);
     
-    // Close button
-    makeButton(panel, 'Schliessen', 0, -panelH/2 + 0.12, 0.6, 0.14, null, () => hideAIResponse());
+    // Close button — use a special class so the raycaster can target it
+    const closeBtn = makeButton(panel, 'Schliessen', 0, -panelH/2 + 0.12, 0.6, 0.14, null, () => hideAIResponse());
+    
+    // Re-enable raycaster ONLY for the close button
+    setTimeout(() => {
+        const closePlane = panel.querySelector('a-plane[class]');
+        if (closePlane) closePlane.setAttribute('class', 'ai-panel-only');
+        if (cursorRing) {
+            cursorRing.setAttribute('raycaster', 'objects', '.ai-panel-only');
+            cursorRing.setAttribute('cursor', 'fuse', true);
+            cursorRing.setAttribute('cursor', 'fuseTimeout', 1500);
+        }
+    }, 100);
+    
     panel.setAttribute('visible', true);
+    
+    // --- TTS: Read the answer aloud in German ---
+    speakText(text);
+}
+
+function speakText(text) {
+    try {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // stop any previous speech
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'de-DE';
+            utter.rate = 1.0;
+            utter.pitch = 1.0;
+            // Try to pick a German voice
+            const voices = window.speechSynthesis.getVoices();
+            const deVoice = voices.find(v => v.lang.startsWith('de'));
+            if (deVoice) utter.voice = deVoice;
+            window.speechSynthesis.speak(utter);
+        }
+    } catch(e) {
+        console.warn('[AI] TTS error:', e);
+    }
 }
 
 function hideAIResponse() {
@@ -2302,8 +2350,28 @@ function hideAIResponse() {
         panel.setAttribute('visible', false);
     }
     
+    // Stop TTS if still speaking
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    
+    // Clear HUD again in case anything stuck
+    clearHUD();
+    
+    // Restore the raycaster to normal operation
+    const cursorRing = document.getElementById('cursor-ring');
+    if (cursorRing) {
+        cursorRing.setAttribute('raycaster', 'objects', '.interactive');
+        cursorRing.setAttribute('cursor', 'fuse', true);
+        cursorRing.setAttribute('cursor', 'fuseTimeout', 1500);
+    }
+    
+    // Restore interactive class on disabled elements
+    document.querySelectorAll('.interactive-disabled').forEach(el => {
+        el.classList.remove('interactive-disabled');
+        el.classList.add('interactive');
+    });
+    
     // Restore viewing containers and navigation
-    ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn'].forEach(id => {
+    ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn', 'ai-ask-btn'].forEach(id => {
         const el = document.getElementById(id);
         if (el && el.dataset.wasVisible === 'true') {
             el.setAttribute('visible', true);
