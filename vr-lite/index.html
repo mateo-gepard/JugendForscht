@@ -2376,7 +2376,7 @@ async function askAI(question) {
         context += `Es hat ${m.mol.atoms.length} Atome (${composition}) und ${m.mol.bonds.length} Bindungen. `;
     }
     try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
         const body = {
             contents: [{
                 parts: [{ text: context + '\nFrage des Schuelers: ' + question }]
