@@ -2209,10 +2209,27 @@ function showAIResponse(text, question) {
     const panel = document.getElementById('ai-response-panel');
     if (!panel) return;
     while (panel.firstChild) panel.firstChild.remove();
-    // Calculate panel height based on text length
-    const lines = Math.ceil(text.length / 40) + (question ? 3 : 2);
-    const panelH = Math.max(0.6, Math.min(2.0, lines * 0.08));
-    makePanel(panel, 2.2, panelH);
+    
+    // Hide viewing containers so the molecule doesn't clip into the text
+    ['mol-container', 'physics-container', 'math-container'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.getAttribute('visible') === 'true') {
+            el.setAttribute('visible', 'false');
+            el.dataset.wasVisible = 'true';
+        }
+    });
+
+    const wrappedQuestion = question ? wrapText(question, 46) : '';
+    const wrappedText = wrapText(text, 54);
+    
+    // Calculate panel height precisely
+    let contentLines = wrappedText.split('\n').length;
+    if (question) contentLines += wrappedQuestion.split('\n').length + 1; // +1 spacing
+    
+    // Height padding: header + divider + closing button + padding = ~0.6
+    const panelH = Math.max(0.7, contentLines * 0.10 + 0.6);
+    makePanel(panel, 2.6, panelH);
+    
     let yPos = panelH/2 - 0.08;
     // Header
     const header = document.createElement('a-text');
@@ -2220,43 +2237,47 @@ function showAIResponse(text, question) {
     header.setAttribute('position', `0 ${yPos} 0.02`);
     header.setAttribute('align', 'center');
     header.setAttribute('color', NEO.accent);
-    header.setAttribute('width', 1.8);
+    header.setAttribute('width', 2.0);
     panel.appendChild(header);
-    yPos -= 0.07;
+    
+    yPos -= 0.08;
     // Divider
     const div = document.createElement('a-plane');
-    div.setAttribute('width', 1.6);
+    div.setAttribute('width', 2.2);
     div.setAttribute('height', 0.003);
     div.setAttribute('position', `0 ${yPos} 0.02`);
     div.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
     panel.appendChild(div);
-    yPos -= 0.10;
+    
+    yPos -= 0.12;
     // Show question if provided
     if (question) {
         const qLabel = document.createElement('a-text');
-        qLabel.setAttribute('value', 'Du: ' + wrapText(question, 44));
+        qLabel.setAttribute('value', 'Du: ' + wrappedQuestion);
         qLabel.setAttribute('position', `0 ${yPos} 0.02`);
         qLabel.setAttribute('align', 'center');
         qLabel.setAttribute('color', NEO.accent2);
-        qLabel.setAttribute('width', 1.6);
+        qLabel.setAttribute('width', 1.8);
         qLabel.setAttribute('baseline', 'top');
-        qLabel.setAttribute('wrapCount', 46);
+        qLabel.setAttribute('wrapCount', 48);
         panel.appendChild(qLabel);
-        yPos -= 0.14;
+        
+        yPos -= (wrappedQuestion.split('\n').length * 0.10) + 0.06;
     }
+    
     // Response text
-    const wrapped = wrapText(text, 48);
     const resp = document.createElement('a-text');
-    resp.setAttribute('value', wrapped);
+    resp.setAttribute('value', wrappedText);
     resp.setAttribute('position', `0 ${yPos} 0.02`);
     resp.setAttribute('align', 'center');
     resp.setAttribute('color', NEO.text);
-    resp.setAttribute('width', 1.8);
+    resp.setAttribute('width', 2.0);
     resp.setAttribute('baseline', 'top');
-    resp.setAttribute('wrapCount', 50);
+    resp.setAttribute('wrapCount', 56);
     panel.appendChild(resp);
+    
     // Close button
-    makeButton(panel, 'Schliessen', 0, -panelH/2 + 0.10, 0.5, 0.12, null, () => hideAIResponse());
+    makeButton(panel, 'Schliessen', 0, -panelH/2 + 0.12, 0.6, 0.14, null, () => hideAIResponse());
     panel.setAttribute('visible', true);
 }
 
@@ -2266,6 +2287,15 @@ function hideAIResponse() {
         while (panel.firstChild) panel.firstChild.remove();
         panel.setAttribute('visible', false);
     }
+    
+    // Restore viewing containers
+    ['mol-container', 'physics-container', 'math-container'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.dataset.wasVisible === 'true') {
+            el.setAttribute('visible', 'true');
+            el.dataset.wasVisible = 'false';
+        }
+    });
 }
 
 // --- Update AI button state visually ---
