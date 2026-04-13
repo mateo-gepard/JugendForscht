@@ -2213,68 +2213,81 @@ function showAIResponse(text, question) {
     // Hide viewing containers AND navigation so gaze doesn't trigger buttons behind the panel
     ['mol-container', 'physics-container', 'math-container', 'vr-nav', 'vr-back-btn'].forEach(id => {
         const el = document.getElementById(id);
-        // A-Frame getAttribute returns a boolean, not string 'true'
         if (el && el.getAttribute('visible')) {
             el.setAttribute('visible', false);
             el.dataset.wasVisible = 'true';
         }
     });
 
-    const wrappedQuestion = question ? wrapText(question, 46) : '';
-    const wrappedText = wrapText(text, 54);
+    // Use a consistent chars-per-line for all height calculations
+    // A-Frame text at width=2.4 with wrapCount=40 gives readable VR text
+    const CHARS_PER_LINE = 40;
+    const LINE_HEIGHT = 0.065; // meters per line of text in VR
     
-    // Calculate panel height precisely
-    let contentLines = wrappedText.split('\n').length;
-    if (question) contentLines += wrappedQuestion.split('\n').length + 1; // +1 spacing
+    // Count lines for question
+    let qLines = 0;
+    let qText = '';
+    if (question) {
+        qText = 'Du: ' + question;
+        qLines = Math.ceil(qText.length / CHARS_PER_LINE);
+    }
     
-    // Height padding: header + divider + closing button + padding = ~0.6
-    const panelH = Math.max(0.7, contentLines * 0.10 + 0.6);
-    makePanel(panel, 2.6, panelH);
+    // Count lines for answer
+    const ansLines = Math.ceil(text.length / CHARS_PER_LINE);
     
-    let yPos = panelH/2 - 0.08;
+    // Total panel height: header(0.12) + divider(0.06) + question + gap + answer + gap + button(0.18)
+    const topPad = 0.20; // header + divider
+    const qHeight = qLines > 0 ? (qLines * LINE_HEIGHT + 0.08) : 0;
+    const ansHeight = ansLines * LINE_HEIGHT;
+    const bottomPad = 0.22; // button + padding
+    const panelH = Math.max(0.8, topPad + qHeight + ansHeight + bottomPad);
+    const panelW = 2.6;
+    makePanel(panel, panelW, panelH);
+    
+    let yPos = panelH / 2 - 0.06;
+    
     // Header
     const header = document.createElement('a-text');
     header.setAttribute('value', 'AI Assistent');
-    header.setAttribute('position', `0 ${yPos} 0.02`);
+    header.setAttribute('position', `0 ${yPos.toFixed(3)} 0.02`);
     header.setAttribute('align', 'center');
     header.setAttribute('color', NEO.accent);
-    header.setAttribute('width', 2.0);
+    header.setAttribute('width', 2.2);
     panel.appendChild(header);
+    yPos -= 0.09;
     
-    yPos -= 0.08;
     // Divider
     const div = document.createElement('a-plane');
     div.setAttribute('width', 2.2);
     div.setAttribute('height', 0.003);
-    div.setAttribute('position', `0 ${yPos} 0.02`);
+    div.setAttribute('position', `0 ${yPos.toFixed(3)} 0.02`);
     div.setAttribute('material', `color:${NEO.shadow}; opacity:0.3; transparent:true; shader:flat; side:double`);
     panel.appendChild(div);
+    yPos -= 0.08;
     
-    yPos -= 0.12;
     // Show question if provided
     if (question) {
         const qLabel = document.createElement('a-text');
-        qLabel.setAttribute('value', 'Du: ' + wrappedQuestion);
-        qLabel.setAttribute('position', `0 ${yPos} 0.02`);
+        qLabel.setAttribute('value', qText);
+        qLabel.setAttribute('position', `0 ${yPos.toFixed(3)} 0.02`);
         qLabel.setAttribute('align', 'center');
         qLabel.setAttribute('color', NEO.accent2);
-        qLabel.setAttribute('width', 1.8);
+        qLabel.setAttribute('width', 2.2);
         qLabel.setAttribute('baseline', 'top');
-        qLabel.setAttribute('wrapCount', 48);
+        qLabel.setAttribute('wrapCount', CHARS_PER_LINE);
         panel.appendChild(qLabel);
-        
-        yPos -= (wrappedQuestion.split('\n').length * 0.10) + 0.06;
+        yPos -= qHeight;
     }
     
-    // Response text
+    // Response text — let A-Frame handle wrapping natively
     const resp = document.createElement('a-text');
-    resp.setAttribute('value', wrappedText);
-    resp.setAttribute('position', `0 ${yPos} 0.02`);
+    resp.setAttribute('value', text);
+    resp.setAttribute('position', `0 ${yPos.toFixed(3)} 0.02`);
     resp.setAttribute('align', 'center');
     resp.setAttribute('color', NEO.text);
-    resp.setAttribute('width', 2.0);
+    resp.setAttribute('width', 2.2);
     resp.setAttribute('baseline', 'top');
-    resp.setAttribute('wrapCount', 56);
+    resp.setAttribute('wrapCount', CHARS_PER_LINE);
     panel.appendChild(resp);
     
     // Close button
@@ -2413,7 +2426,7 @@ async function askAI(question) {
                 parts: [{ text: context + '\nFrage des Schuelers: ' + question }]
             }],
             generationConfig: {
-                maxOutputTokens: 200,
+                maxOutputTokens: 400,
                 temperature: 0.7
             }
         };
